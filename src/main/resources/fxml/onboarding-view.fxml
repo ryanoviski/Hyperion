@@ -6,16 +6,16 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.OnboardingController">
+<StackPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.OnboardingController">
    <children>
-      <VBox fx:id="onboardingCard" alignment="CENTER_LEFT" maxHeight="420.0" maxWidth="420.0" prefHeight="420.0" prefWidth="420.0" styleClass="card">
+      <VBox fx:id="onboardingCard" alignment="CENTER" maxHeight="360.0" maxWidth="360.0" prefHeight="360.0" prefWidth="360.0" styleClass="card">
          <children>
-            <Label prefWidth="360.0" text="Configure seu negócio" />
-            <Label prefWidth="360.0" styleClass="text-muted" text="Crie seu ambiente local para começar a gerenciar sua empresa." wrapText="true" />
-            <TextField fx:id="companyNameField" maxWidth="360.0" prefWidth="360.0" promptText="Nome da empresa" />
-            <TextField fx:id="ownerNameField" maxWidth="360.0" prefWidth="360.0" promptText="Seu nome" />
-            <Button fx:id="startButton" maxWidth="360.0" mnemonicParsing="false" onAction="#handleStart" prefWidth="360.0" styleClass="primary-button" text="Começar" />
-            <Label fx:id="errorLabel" prefWidth="360.0" styleClass="error-label" wrapText="true" />
+            <Label prefWidth="296.0" styleClass="screen-title" text="Configure seu negócio" />
+            <Label prefWidth="296.0" styleClass="text-muted" text="Crie seu ambiente local para começar a gerenciar sua empresa." wrapText="true" />
+            <TextField fx:id="companyNameField" maxWidth="296.0" prefWidth="296.0" promptText="Nome da empresa" />
+            <TextField fx:id="ownerNameField" maxWidth="296.0" prefWidth="296.0" promptText="Seu nome" />
+            <Button fx:id="startButton" maxWidth="296.0" mnemonicParsing="false" onAction="#handleStart" prefWidth="296.0" styleClass="primary-button" text="Começar" />
+            <Label fx:id="errorLabel" prefWidth="296.0" styleClass="error-label" wrapText="true" />
          </children>
       </VBox>
    </children>

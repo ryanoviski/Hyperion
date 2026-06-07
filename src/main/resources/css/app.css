@@ -9,6 +9,8 @@
 
 .text-muted {
     -fx-text-fill: #94A3B8;
+    -fx-font-size: 13px;
+    -fx-text-alignment: center;
 }
 
 .card {
@@ -17,7 +19,15 @@
     -fx-border-color: #334155;
     -fx-border-radius: 12;
     -fx-padding: 32;
-    -fx-spacing: 10;
+    -fx-spacing: 11;
+}
+
+.screen-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #F8FAFC;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
 }
 
 .primary-button {
@@ -25,6 +35,9 @@
     -fx-text-fill: white;
     -fx-background-radius: 8;
     -fx-font-weight: bold;
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-cursor: hand;
 }
 
 .secondary-button {
@@ -33,6 +46,10 @@
     -fx-border-color: #334155;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
+    -fx-font-weight: bold;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-cursor: hand;
 }
 
 .text-field,
@@ -43,6 +60,9 @@
     -fx-border-color: #334155;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-padding: 0 14;
 }
 
 .check-box {

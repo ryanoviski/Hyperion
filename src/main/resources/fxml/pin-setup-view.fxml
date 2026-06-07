@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.PinSetupController">
+   <children>
+      <VBox fx:id="pinSetupCard" alignment="CENTER" maxHeight="360.0" maxWidth="360.0" prefHeight="360.0" prefWidth="360.0" styleClass="card">
+         <children>
+            <Label prefWidth="296.0" styleClass="screen-title" text="Proteger seu app" />
+            <Label prefWidth="296.0" styleClass="text-muted" text="Crie um PIN para impedir acesso não autorizado neste computador." wrapText="true" />
+            <PasswordField fx:id="pinField" maxWidth="296.0" prefWidth="296.0" promptText="PIN" />
+            <PasswordField fx:id="confirmPinField" maxWidth="296.0" prefWidth="296.0" promptText="Confirmar PIN" />
+            <Button fx:id="createPinButton" maxWidth="296.0" mnemonicParsing="false" onAction="#handleCreatePin" prefWidth="296.0" styleClass="primary-button" text="Criar PIN" />
+            <Button fx:id="skipButton" maxWidth="296.0" mnemonicParsing="false" onAction="#handleSkip" prefWidth="296.0" styleClass="secondary-button" text="Pular por agora" />
+            <Label fx:id="errorLabel" prefWidth="296.0" styleClass="error-label" wrapText="true" />
+         </children>
+      </VBox>
+   </children>
+</StackPane>
