@@ -1,26 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-
-<AnchorPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<StackPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.OnboardingController">
    <children>
-      <VBox fx:id="onboardingCard" layoutX="100.0" layoutY="100.0" prefHeight="200.0" prefWidth="400.0">
+      <VBox fx:id="onboardingCard" alignment="CENTER_LEFT" maxHeight="420.0" maxWidth="420.0" prefHeight="420.0" prefWidth="420.0" styleClass="card">
          <children>
-            <Label text="Hyperion" />
-            <Label text="Configure seu negócio" />
-            <Label text="Crie seu ambiente local para começar a gerenciar sua empresa." />
-            <TextField fx:id="companyNameField" promptText="Nome da empresa" />
-            <TextField fx:id="ownerNameField" promptText="Seu nome" />
-            <CheckBox fx:id="protectWithPinCheckBox" mnemonicParsing="false" text="Proteger este app com PIN" />
-            <Button fx:id="startButton" mnemonicParsing="false" text="Começar" />
-            <Label fx:id="errorLabel" />
+            <Label prefWidth="360.0" text="Configure seu negócio" />
+            <Label prefWidth="360.0" styleClass="text-muted" text="Crie seu ambiente local para começar a gerenciar sua empresa." wrapText="true" />
+            <TextField fx:id="companyNameField" maxWidth="360.0" prefWidth="360.0" promptText="Nome da empresa" />
+            <TextField fx:id="ownerNameField" maxWidth="360.0" prefWidth="360.0" promptText="Seu nome" />
+            <Button fx:id="startButton" maxWidth="360.0" mnemonicParsing="false" onAction="#handleStart" prefWidth="360.0" styleClass="primary-button" text="Começar" />
+            <Label fx:id="errorLabel" prefWidth="360.0" styleClass="error-label" wrapText="true" />
          </children>
       </VBox>
    </children>
-</AnchorPane>
+</StackPane>

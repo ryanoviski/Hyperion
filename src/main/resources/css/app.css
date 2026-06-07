@@ -16,6 +16,8 @@
     -fx-background-radius: 12;
     -fx-border-color: #334155;
     -fx-border-radius: 12;
+    -fx-padding: 32;
+    -fx-spacing: 10;
 }
 
 .primary-button {
@@ -41,4 +43,12 @@
     -fx-border-color: #334155;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
+}
+
+.check-box {
+    -fx-text-fill: #F8FAFC;
+}
+
+.error-label {
+    -fx-text-fill: #EF4444;
 }
