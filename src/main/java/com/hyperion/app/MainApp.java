@@ -1,25 +1,16 @@
 package com.hyperion.app;
 
+import com.hyperion.util.SceneManager;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.util.Objects;
 
 public class MainApp extends Application {
 
     @Override
-    public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("/fxml/onboarding-view.fxml"));
-
-        Scene scene = new Scene(loader.load());
-        scene.getStylesheets().add(Objects.requireNonNull(
-                MainApp.class.getResource("/css/app.css")
-        ).toExternalForm());
-
+    public void start(Stage stage) {
         stage.setTitle("Hyperion");
-        stage.setScene(scene);
+        SceneManager.setStage(stage);
+        SceneManager.switchTo("/fxml/onboarding-view.fxml");
         stage.show();
     }
 

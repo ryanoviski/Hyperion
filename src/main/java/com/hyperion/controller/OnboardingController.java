@@ -1,5 +1,6 @@
 package com.hyperion.controller;
 
+import com.hyperion.util.SceneManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -34,6 +35,7 @@ public class OnboardingController {
 
         clearError();
         System.out.printf("Empresa: %s | Responsável: %s%n", companyName, ownerName);
+        SceneManager.switchTo("/fxml/pin-setup-view.fxml");
     }
 
     private void showError(String message) {
