@@ -10,7 +10,9 @@
 .text-muted {
     -fx-text-fill: #94A3B8;
     -fx-font-size: 13px;
+    -fx-alignment: center;
     -fx-text-alignment: center;
+    -fx-min-height: 38;
 }
 
 .card {
@@ -71,4 +73,11 @@
 
 .error-label {
     -fx-text-fill: #EF4444;
+}
+
+.app-footer {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 12px;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
 }

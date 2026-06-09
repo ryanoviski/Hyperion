@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
@@ -11,12 +12,17 @@
       <VBox fx:id="onboardingCard" alignment="CENTER" maxHeight="360.0" maxWidth="360.0" prefHeight="360.0" prefWidth="360.0" styleClass="card">
          <children>
             <Label prefWidth="296.0" styleClass="screen-title" text="Configure seu negócio" />
-            <Label prefWidth="296.0" styleClass="text-muted" text="Crie seu ambiente local para começar a gerenciar sua empresa." wrapText="true" />
+            <Label maxWidth="296.0" minHeight="42.0" prefWidth="296.0" styleClass="text-muted" text="Crie seu ambiente local para começar a gerenciar sua empresa." wrapText="true" />
             <TextField fx:id="companyNameField" maxWidth="296.0" prefWidth="296.0" promptText="Nome da empresa" />
             <TextField fx:id="ownerNameField" maxWidth="296.0" prefWidth="296.0" promptText="Seu nome" />
             <Button fx:id="startButton" maxWidth="296.0" mnemonicParsing="false" onAction="#handleStart" prefWidth="296.0" styleClass="primary-button" text="Começar" />
             <Label fx:id="errorLabel" prefWidth="296.0" styleClass="error-label" wrapText="true" />
          </children>
       </VBox>
+      <Label styleClass="app-footer" text="© 2026 Hyperion. Todos os direitos reservados." StackPane.alignment="BOTTOM_CENTER">
+         <StackPane.margin>
+            <Insets bottom="24.0" />
+         </StackPane.margin>
+      </Label>
    </children>
 </StackPane>

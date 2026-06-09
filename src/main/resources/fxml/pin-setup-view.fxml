@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -11,7 +12,7 @@
       <VBox fx:id="pinSetupCard" alignment="CENTER" maxHeight="360.0" maxWidth="360.0" prefHeight="360.0" prefWidth="360.0" styleClass="card">
          <children>
             <Label prefWidth="296.0" styleClass="screen-title" text="Proteger seu app" />
-            <Label prefWidth="296.0" styleClass="text-muted" text="Crie um PIN para impedir acesso não autorizado neste computador." wrapText="true" />
+            <Label maxWidth="296.0" minHeight="42.0" prefWidth="296.0" styleClass="text-muted" text="Crie um PIN para impedir acesso não autorizado neste computador." wrapText="true" />
             <PasswordField fx:id="pinField" maxWidth="296.0" prefWidth="296.0" promptText="PIN" />
             <PasswordField fx:id="confirmPinField" maxWidth="296.0" prefWidth="296.0" promptText="Confirmar PIN" />
             <Button fx:id="createPinButton" maxWidth="296.0" mnemonicParsing="false" onAction="#handleCreatePin" prefWidth="296.0" styleClass="primary-button" text="Criar PIN" />
@@ -19,5 +20,10 @@
             <Label fx:id="errorLabel" prefWidth="296.0" styleClass="error-label" wrapText="true" />
          </children>
       </VBox>
+      <Label styleClass="app-footer" text="© 2026 Hyperion. Todos os direitos reservados." StackPane.alignment="BOTTOM_CENTER">
+         <StackPane.margin>
+            <Insets bottom="24.0" />
+         </StackPane.margin>
+      </Label>
    </children>
 </StackPane>
