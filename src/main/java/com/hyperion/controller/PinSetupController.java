@@ -1,5 +1,6 @@
 package com.hyperion.controller;
 
+import com.hyperion.util.SceneManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -48,12 +49,14 @@ public class PinSetupController {
 
         clearError();
         System.out.println("PIN configurado com sucesso.");
+        SceneManager.switchTo("/fxml/dashboard-view.fxml");
     }
 
     @FXML
     private void handleSkip() {
         clearError();
         System.out.println("Configuração de PIN ignorada.");
+        SceneManager.switchTo("/fxml/dashboard-view.fxml");
     }
 
     private void showError(String message) {
