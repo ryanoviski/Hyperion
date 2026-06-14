@@ -1,0 +1,42 @@
+package com.hyperion.config;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public final class DatabaseInitializer {
+
+    private static final String CREATE_COMPANY_TABLE = """
+            CREATE TABLE IF NOT EXISTS company (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                owner_name TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """;
+
+    private static final String CREATE_APP_SETTINGS_TABLE = """
+            CREATE TABLE IF NOT EXISTS app_settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_run_completed INTEGER NOT NULL DEFAULT 0,
+                pin_enabled INTEGER NOT NULL DEFAULT 0,
+                pin_hash TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """;
+
+    private DatabaseInitializer() {
+    }
+
+    public static void initialize() {
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement()) {
+
+            statement.execute(CREATE_COMPANY_TABLE);
+            statement.execute(CREATE_APP_SETTINGS_TABLE);
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not initialize database.", exception);
+        }
+    }
+}
