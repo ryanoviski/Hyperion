@@ -1,11 +1,14 @@
 package com.hyperion.controller;
 
+import com.hyperion.service.CompanyService;
 import com.hyperion.util.SceneManager;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 public class OnboardingController {
+
+    private final CompanyService companyService = new CompanyService();
 
     @FXML
     private TextField companyNameField;
@@ -33,9 +36,13 @@ public class OnboardingController {
             return;
         }
 
-        clearError();
-        System.out.printf("Empresa: %s | Responsável: %s%n", companyName, ownerName);
-        SceneManager.switchTo("/fxml/pin-setup-view.fxml");
+        try {
+            companyService.createInitialCompany(companyName, ownerName);
+            clearError();
+            SceneManager.switchTo("/fxml/pin-setup-view.fxml");
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            showError(exception.getMessage());
+        }
     }
 
     private void showError(String message) {
