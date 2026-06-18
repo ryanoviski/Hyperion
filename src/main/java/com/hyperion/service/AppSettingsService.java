@@ -11,11 +11,19 @@ public class AppSettingsService {
         return appSettingsRepository.isFirstRunCompleted();
     }
 
+    public boolean isPinEnabled() {
+        return appSettingsRepository.isPinEnabled();
+    }
+
     public void completeFirstRunWithoutPin() {
         appSettingsRepository.completeFirstRunWithoutPin();
     }
 
     public void completeFirstRunWithPin(String pin) {
         appSettingsRepository.completeFirstRunWithPin(PinHashUtil.hash(pin));
+    }
+
+    public boolean verifyPin(String pin) {
+        return PinHashUtil.verify(pin, appSettingsRepository.findPinHash());
     }
 }

@@ -25,6 +25,40 @@ public class AppSettingsRepository {
         }
     }
 
+    public boolean isPinEnabled() {
+        ensureSettingsRowExists();
+
+        String sql = "SELECT pin_enabled FROM app_settings ORDER BY id LIMIT 1;";
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            return resultSet.next() && resultSet.getInt("pin_enabled") == 1;
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not read PIN setting.", exception);
+        }
+    }
+
+    public String findPinHash() {
+        ensureSettingsRowExists();
+
+        String sql = "SELECT pin_hash FROM app_settings ORDER BY id LIMIT 1;";
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            if (!resultSet.next()) {
+                return null;
+            }
+
+            return resultSet.getString("pin_hash");
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not read PIN hash.", exception);
+        }
+    }
+
     public void completeFirstRunWithoutPin() {
         ensureSettingsRowExists();
 

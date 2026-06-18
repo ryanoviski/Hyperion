@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.UnlockController">
+   <children>
+      <VBox fx:id="unlockCard" alignment="CENTER" maxHeight="300.0" maxWidth="360.0" prefHeight="300.0" prefWidth="360.0" styleClass="card">
+         <children>
+            <Label prefWidth="296.0" styleClass="screen-title" text="Desbloquear" />
+            <PasswordField fx:id="pinField" maxWidth="296.0" prefWidth="296.0" promptText="PIN" />
+            <Button fx:id="unlockButton" maxWidth="296.0" mnemonicParsing="false" onAction="#handleUnlock" prefWidth="296.0" styleClass="primary-button" text="Entrar" />
+            <Label fx:id="errorLabel" prefWidth="296.0" styleClass="error-label" wrapText="true" />
+         </children>
+      </VBox>
+      <Label styleClass="app-footer" text="© 2026 Hyperion. Todos os direitos reservados." StackPane.alignment="BOTTOM_CENTER">
+         <StackPane.margin>
+            <Insets bottom="24.0" />
+         </StackPane.margin>
+      </Label>
+   </children>
+</StackPane>

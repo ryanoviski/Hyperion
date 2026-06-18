@@ -29,11 +29,15 @@ public class MainApp extends Application {
     }
 
     private String getInitialView() {
-        if (appSettingsService.isFirstRunCompleted()) {
-            return "/fxml/dashboard-view.fxml";
+        if (!appSettingsService.isFirstRunCompleted()) {
+            return "/fxml/onboarding-view.fxml";
         }
 
-        return "/fxml/onboarding-view.fxml";
+        if (appSettingsService.isPinEnabled()) {
+            return "/fxml/unlock-view.fxml";
+        }
+
+        return "/fxml/dashboard-view.fxml";
     }
 
     public static void main(String[] args) {
