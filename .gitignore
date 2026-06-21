@@ -41,3 +41,4 @@ build/
 .vs/Hyperion/v17/.wsuo
 /data
 *.db
+*.db

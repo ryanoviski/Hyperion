@@ -6,13 +6,21 @@ import com.hyperion.util.SceneManager;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 
 import java.util.List;
+import java.util.Optional;
 
 public class CustomerController {
 
@@ -76,7 +84,25 @@ public class CustomerController {
 
     @FXML
     private void handleNewCustomer() {
-        showMessage("Formulario de novo cliente sera criado no proximo passo.");
+        Optional<CustomerFormData> result = showCustomerDialog("Novo cliente", null);
+
+        result.ifPresent(formData -> {
+            try {
+                customerService.createCustomer(
+                        formData.name(),
+                        formData.document(),
+                        formData.phone(),
+                        formData.email(),
+                        formData.address(),
+                        formData.notes()
+                );
+
+                loadCustomers();
+                showMessage("Cliente cadastrado: " + formData.name() + ".");
+            } catch (IllegalArgumentException | IllegalStateException exception) {
+                showMessage(exception.getMessage());
+            }
+        });
     }
 
     @FXML
@@ -88,7 +114,30 @@ public class CustomerController {
             return;
         }
 
-        showMessage("Edicao do cliente sera criada no proximo passo: " + selectedCustomer.getName() + ".");
+        Optional<CustomerFormData> result = showCustomerDialog("Editar cliente", selectedCustomer);
+
+        result.ifPresent(formData -> {
+            Customer updatedCustomer = new Customer(
+                    selectedCustomer.getId(),
+                    formData.name(),
+                    formData.document(),
+                    formData.phone(),
+                    formData.email(),
+                    formData.address(),
+                    formData.notes(),
+                    selectedCustomer.isActive(),
+                    selectedCustomer.getCreatedAt(),
+                    selectedCustomer.getUpdatedAt()
+            );
+
+            try {
+                customerService.updateCustomer(updatedCustomer);
+                loadCustomers();
+                showMessage("Cliente atualizado: " + formData.name() + ".");
+            } catch (IllegalArgumentException | IllegalStateException exception) {
+                showMessage(exception.getMessage());
+            }
+        });
     }
 
     @FXML
@@ -147,5 +196,104 @@ public class CustomerController {
 
     private void showMessage(String message) {
         messageLabel.setText(message);
+    }
+
+    private Optional<CustomerFormData> showCustomerDialog(String title, Customer customer) {
+        Dialog<CustomerFormData> dialog = new Dialog<>();
+        dialog.setTitle(title);
+        dialog.setHeaderText(null);
+        dialog.initOwner(customersTable.getScene().getWindow());
+
+        ButtonType saveButtonType = new ButtonType("Salvar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(createCustomerForm(customer));
+
+        Node saveButton = dialog.getDialogPane().lookupButton(saveButtonType);
+        saveButton.disableProperty().bind(customerNameField.textProperty().isEmpty());
+
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType != saveButtonType) {
+                return null;
+            }
+
+            return new CustomerFormData(
+                    customerNameField.getText(),
+                    customerDocumentField.getText(),
+                    customerPhoneField.getText(),
+                    customerEmailField.getText(),
+                    customerAddressField.getText(),
+                    customerNotesArea.getText()
+            );
+        });
+
+        return dialog.showAndWait();
+    }
+
+    private GridPane createCustomerForm(Customer customer) {
+        customerNameField = new TextField();
+        customerDocumentField = new TextField();
+        customerPhoneField = new TextField();
+        customerEmailField = new TextField();
+        customerAddressField = new TextField();
+        customerNotesArea = new TextArea();
+
+        customerNameField.setPromptText("Nome do cliente");
+        customerDocumentField.setPromptText("CPF/CNPJ");
+        customerPhoneField.setPromptText("Telefone");
+        customerEmailField.setPromptText("Email");
+        customerAddressField.setPromptText("Endereco");
+        customerNotesArea.setPromptText("Observacoes");
+        customerNotesArea.setPrefRowCount(3);
+
+        if (customer != null) {
+            customerNameField.setText(textValue(customer.getName()));
+            customerDocumentField.setText(textValue(customer.getDocument()));
+            customerPhoneField.setText(textValue(customer.getPhone()));
+            customerEmailField.setText(textValue(customer.getEmail()));
+            customerAddressField.setText(textValue(customer.getAddress()));
+            customerNotesArea.setText(textValue(customer.getNotes()));
+        }
+
+        GridPane form = new GridPane();
+        form.setHgap(12);
+        form.setVgap(12);
+        form.setPadding(new Insets(16));
+        form.setPrefWidth(520);
+
+        form.add(new Label("Nome"), 0, 0);
+        form.add(customerNameField, 1, 0);
+        form.add(new Label("Documento"), 0, 1);
+        form.add(customerDocumentField, 1, 1);
+        form.add(new Label("Telefone"), 0, 2);
+        form.add(customerPhoneField, 1, 2);
+        form.add(new Label("Email"), 0, 3);
+        form.add(customerEmailField, 1, 3);
+        form.add(new Label("Endereco"), 0, 4);
+        form.add(customerAddressField, 1, 4);
+        form.add(new Label("Observacoes"), 0, 5);
+        form.add(customerNotesArea, 1, 5);
+
+        return form;
+    }
+
+    private String textValue(String value) {
+        return value == null ? "" : value;
+    }
+
+    private TextField customerNameField;
+    private TextField customerDocumentField;
+    private TextField customerPhoneField;
+    private TextField customerEmailField;
+    private TextField customerAddressField;
+    private TextArea customerNotesArea;
+
+    private record CustomerFormData(
+            String name,
+            String document,
+            String phone,
+            String email,
+            String address,
+            String notes
+    ) {
     }
 }
