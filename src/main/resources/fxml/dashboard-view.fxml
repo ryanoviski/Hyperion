@@ -18,7 +18,7 @@
             <Label styleClass="sidebar-title" text="Hyperion" />
             <Label styleClass="sidebar-subtitle" text="Gestão local" />
             <Button fx:id="dashboardButton" mnemonicParsing="false" styleClass="sidebar-button-active" text="Dashboard" />
-            <Button fx:id="customersButton" mnemonicParsing="false" styleClass="sidebar-button" text="Clientes" />
+            <Button fx:id="customersButton" mnemonicParsing="false" onAction="#handleCustomers" styleClass="sidebar-button" text="Clientes" />
             <Button fx:id="productsButton" mnemonicParsing="false" styleClass="sidebar-button" text="Produtos" />
             <Button fx:id="stockButton" mnemonicParsing="false" styleClass="sidebar-button" text="Estoque" />
             <Button fx:id="salesButton" mnemonicParsing="false" styleClass="sidebar-button" text="Vendas" />
@@ -89,7 +89,7 @@
                            </rowConstraints>
                            <children>
                               <Button fx:id="newSaleButton" mnemonicParsing="false" prefHeight="44.0" prefWidth="210.0" styleClass="primary-button" text="Nova venda" />
-                              <Button fx:id="newCustomerButton" mnemonicParsing="false" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar cliente" GridPane.columnIndex="1" />
+                              <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleCustomers" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar cliente" GridPane.columnIndex="1" />
                               <Button fx:id="newProductButton" mnemonicParsing="false" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar produto" GridPane.rowIndex="1" />
                               <Button fx:id="viewStockButton" mnemonicParsing="false" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Ver estoque" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                            </children>

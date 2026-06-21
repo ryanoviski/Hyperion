@@ -29,7 +29,7 @@ public class CustomerService {
 
     public void updateCustomer(Customer customer) {
         if (customer.getId() == null) {
-            throw new IllegalArgumentException("Cliente inválido para atualização.");
+            throw new IllegalArgumentException("Cliente invalido para atualizacao.");
         }
 
         if (normalize(customer.getName()).isBlank()) {
@@ -41,7 +41,7 @@ public class CustomerService {
 
     public void deactivateCustomer(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("Cliente inválido para desativação.");
+            throw new IllegalArgumentException("Cliente invalido para desativacao.");
         }
 
         customerRepository.deactivate(id);
