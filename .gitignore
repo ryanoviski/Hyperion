@@ -39,3 +39,5 @@ build/
 .DS_Store
 *.vsidx
 .vs/Hyperion/v17/.wsuo
+/data
+*.db

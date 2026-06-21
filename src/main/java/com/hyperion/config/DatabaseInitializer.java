@@ -26,6 +26,21 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String CREATE_CUSTOMERS_TABLE = """
+            CREATE TABLE IF NOT EXISTS customers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                document TEXT,
+                phone TEXT,
+                email TEXT,
+                address TEXT,
+                notes TEXT,
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -35,6 +50,7 @@ public final class DatabaseInitializer {
 
             statement.execute(CREATE_COMPANY_TABLE);
             statement.execute(CREATE_APP_SETTINGS_TABLE);
+            statement.execute(CREATE_CUSTOMERS_TABLE);
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);
         }
