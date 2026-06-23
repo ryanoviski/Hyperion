@@ -2,7 +2,6 @@ package com.hyperion.controller;
 
 import com.hyperion.model.Customer;
 import com.hyperion.service.CustomerService;
-import com.hyperion.util.SceneManager;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -75,11 +74,6 @@ public class CustomerController {
     private void handleRefresh() {
         searchField.clear();
         loadCustomers();
-    }
-
-    @FXML
-    private void handleBackToDashboard() {
-        SceneManager.switchTo("/fxml/dashboard-view.fxml");
     }
 
     @FXML

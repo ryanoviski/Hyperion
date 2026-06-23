@@ -27,7 +27,6 @@
                      </children>
                   </VBox>
                   <Region HBox.hgrow="ALWAYS" />
-                  <Button fx:id="backToDashboardButton" mnemonicParsing="false" onAction="#handleBackToDashboard" prefWidth="120.0" styleClass="secondary-button" text="Voltar" />
                   <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleNewCustomer" prefWidth="160.0" styleClass="primary-button" text="Novo cliente" />
                </children>
             </HBox>

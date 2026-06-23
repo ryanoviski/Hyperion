@@ -34,7 +34,7 @@ public class UnlockController {
         }
 
         clearError();
-        SceneManager.switchTo("/fxml/dashboard-view.fxml");
+        SceneManager.switchTo("/fxml/main-view.fxml");
     }
 
     private void showError(String message) {

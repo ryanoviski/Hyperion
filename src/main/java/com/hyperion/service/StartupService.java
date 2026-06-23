@@ -4,7 +4,7 @@ public class StartupService {
 
     private static final String ONBOARDING_VIEW = "/fxml/onboarding-view.fxml";
     private static final String UNLOCK_VIEW = "/fxml/unlock-view.fxml";
-    private static final String DASHBOARD_VIEW = "/fxml/dashboard-view.fxml";
+    private static final String MAIN_VIEW = "/fxml/main-view.fxml";
 
     private final AppSettingsService appSettingsService = new AppSettingsService();
 
@@ -17,6 +17,6 @@ public class StartupService {
             return UNLOCK_VIEW;
         }
 
-        return DASHBOARD_VIEW;
+        return MAIN_VIEW;
     }
 }

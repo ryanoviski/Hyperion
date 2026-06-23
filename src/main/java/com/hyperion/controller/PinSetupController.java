@@ -52,14 +52,14 @@ public class PinSetupController {
 
         clearError();
         appSettingsService.completeFirstRunWithPin(pin);
-        SceneManager.switchTo("/fxml/dashboard-view.fxml");
+        SceneManager.switchTo("/fxml/main-view.fxml");
     }
 
     @FXML
     private void handleSkip() {
         clearError();
         appSettingsService.completeFirstRunWithoutPin();
-        SceneManager.switchTo("/fxml/dashboard-view.fxml");
+        SceneManager.switchTo("/fxml/main-view.fxml");
     }
 
     private void showError(String message) {
