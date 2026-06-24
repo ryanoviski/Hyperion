@@ -8,4 +8,9 @@ public class DashboardController {
     private void handleCustomers() {
         MainController.openCustomersView();
     }
+
+    @FXML
+    private void handleProducts() {
+        MainController.openProductsView();
+    }
 }

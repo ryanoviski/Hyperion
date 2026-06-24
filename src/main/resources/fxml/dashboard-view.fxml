@@ -69,7 +69,7 @@
                      <children>
                         <Button fx:id="newSaleButton" mnemonicParsing="false" prefHeight="44.0" prefWidth="210.0" styleClass="primary-button" text="Nova venda" />
                         <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleCustomers" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar cliente" GridPane.columnIndex="1" />
-                        <Button fx:id="newProductButton" mnemonicParsing="false" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar produto" GridPane.rowIndex="1" />
+                        <Button fx:id="newProductButton" mnemonicParsing="false" onAction="#handleProducts" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar produto" GridPane.rowIndex="1" />
                         <Button fx:id="viewStockButton" mnemonicParsing="false" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Ver estoque" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                      </children>
                   </GridPane>

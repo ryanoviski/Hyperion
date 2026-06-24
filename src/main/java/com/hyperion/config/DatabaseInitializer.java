@@ -41,6 +41,23 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String CREATE_PRODUCTS_TABLE = """
+            CREATE TABLE IF NOT EXISTS products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                price NUMERIC NOT NULL DEFAULT 0,
+                cost NUMERIC NOT NULL DEFAULT 0,
+                stock_quantity INTEGER NOT NULL DEFAULT 0,
+                category TEXT,
+                barcode TEXT,
+                supplier TEXT,
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -51,6 +68,7 @@ public final class DatabaseInitializer {
             statement.execute(CREATE_COMPANY_TABLE);
             statement.execute(CREATE_APP_SETTINGS_TABLE);
             statement.execute(CREATE_CUSTOMERS_TABLE);
+            statement.execute(CREATE_PRODUCTS_TABLE);
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);
         }
