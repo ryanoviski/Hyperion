@@ -33,14 +33,14 @@
                <children>
                   <Label styleClass="card-label" text="Clientes" />
                   <Label fx:id="customersValueLabel" styleClass="card-value" text="0" />
-                  <Label styleClass="card-footnote-success" text="Comece cadastrando clientes" />
+                  <Label fx:id="customersFootnoteLabel" styleClass="card-footnote-success" text="Comece cadastrando clientes" />
                </children>
             </VBox>
             <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
                <children>
                   <Label styleClass="card-label" text="Produtos" />
                   <Label fx:id="productsValueLabel" styleClass="card-value" text="0" />
-                  <Label styleClass="card-footnote-warning" text="Estoque ainda vazio" />
+                  <Label fx:id="productsFootnoteLabel" styleClass="card-footnote-warning" text="Estoque ainda vazio" />
                </children>
             </VBox>
             <VBox prefHeight="140.0" prefWidth="160.0" styleClass="dashboard-card">
