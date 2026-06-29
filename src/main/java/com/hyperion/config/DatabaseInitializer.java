@@ -58,6 +58,18 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String CREATE_STOCK_MOVEMENTS_TABLE = """
+            CREATE TABLE IF NOT EXISTS stock_movements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                notes TEXT,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (product_id) REFERENCES products(id)
+            );
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -69,6 +81,7 @@ public final class DatabaseInitializer {
             statement.execute(CREATE_APP_SETTINGS_TABLE);
             statement.execute(CREATE_CUSTOMERS_TABLE);
             statement.execute(CREATE_PRODUCTS_TABLE);
+            statement.execute(CREATE_STOCK_MOVEMENTS_TABLE);
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);
         }

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.StockController">
+   <center>
+      <VBox spacing="22.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
+         </padding>
+         <children>
+            <VBox spacing="4.0">
+               <children>
+                  <Label styleClass="page-title" text="Estoque" />
+                  <Label styleClass="page-subtitle" text="Registre entradas, saidas e acompanhe o historico de movimentacoes." />
+               </children>
+            </VBox>
+            <HBox spacing="20.0">
+               <children>
+                  <VBox prefWidth="360.0" spacing="14.0" styleClass="dashboard-panel">
+                     <children>
+                        <Label styleClass="panel-title" text="Nova movimentacao" />
+                        <ChoiceBox fx:id="productChoiceBox" prefHeight="42.0" prefWidth="320.0" />
+                        <TextField fx:id="quantityField" prefHeight="42.0" promptText="Quantidade" />
+                        <TextArea fx:id="notesArea" prefRowCount="4" promptText="Observacao" />
+                        <HBox spacing="12.0">
+                           <children>
+                              <Button fx:id="entryButton" mnemonicParsing="false" onAction="#handleEntry" prefWidth="150.0" styleClass="primary-button" text="Entrada" />
+                              <Button fx:id="exitButton" mnemonicParsing="false" onAction="#handleExit" prefWidth="150.0" styleClass="secondary-button" text="Saida" />
+                           </children>
+                        </HBox>
+                        <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                     <children>
+                        <HBox alignment="CENTER_LEFT">
+                           <children>
+                              <Label styleClass="panel-title" text="Historico recente" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
+                           </children>
+                        </HBox>
+                        <TableView fx:id="movementsTable" prefHeight="430.0" VBox.vgrow="ALWAYS">
+                           <columns>
+                              <TableColumn fx:id="dateColumn" prefWidth="150.0" text="Data" />
+                              <TableColumn fx:id="productColumn" prefWidth="220.0" text="Produto" />
+                              <TableColumn fx:id="typeColumn" prefWidth="100.0" text="Tipo" />
+                              <TableColumn fx:id="quantityColumn" prefWidth="100.0" text="Qtd." />
+                              <TableColumn fx:id="notesColumn" prefWidth="260.0" text="Observacao" />
+                           </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>

@@ -43,6 +43,11 @@ public class DashboardController {
         MainController.openProductsView();
     }
 
+    @FXML
+    private void handleStock() {
+        MainController.openStockView();
+    }
+
     private void loadDashboardData() {
         int activeCustomers = customerService.listActiveCustomers().size();
         List<Product> activeProducts = productService.listActiveProducts();
