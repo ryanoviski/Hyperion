@@ -70,6 +70,34 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String CREATE_SALES_TABLE = """
+            CREATE TABLE IF NOT EXISTS sales (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id INTEGER NOT NULL,
+                customer_name TEXT NOT NULL,
+                subtotal NUMERIC NOT NULL DEFAULT 0,
+                discount NUMERIC NOT NULL DEFAULT 0,
+                total NUMERIC NOT NULL DEFAULT 0,
+                payment_method TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (customer_id) REFERENCES customers(id)
+            );
+            """;
+
+    private static final String CREATE_SALE_ITEMS_TABLE = """
+            CREATE TABLE IF NOT EXISTS sale_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sale_id INTEGER NOT NULL,
+                product_id INTEGER NOT NULL,
+                product_name TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                unit_price NUMERIC NOT NULL DEFAULT 0,
+                subtotal NUMERIC NOT NULL DEFAULT 0,
+                FOREIGN KEY (sale_id) REFERENCES sales(id),
+                FOREIGN KEY (product_id) REFERENCES products(id)
+            );
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -82,6 +110,8 @@ public final class DatabaseInitializer {
             statement.execute(CREATE_CUSTOMERS_TABLE);
             statement.execute(CREATE_PRODUCTS_TABLE);
             statement.execute(CREATE_STOCK_MOVEMENTS_TABLE);
+            statement.execute(CREATE_SALES_TABLE);
+            statement.execute(CREATE_SALE_ITEMS_TABLE);
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);
         }

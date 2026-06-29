@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.SaleController">
+   <center>
+      <VBox spacing="22.0" BorderPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
+         </padding>
+         <children>
+            <VBox spacing="4.0">
+               <children>
+                  <Label styleClass="page-title" text="Vendas" />
+                  <Label styleClass="page-subtitle" text="Monte o carrinho, escolha o pagamento e finalize a venda." />
+               </children>
+            </VBox>
+            <HBox spacing="20.0">
+               <children>
+                  <VBox prefWidth="360.0" spacing="14.0" styleClass="dashboard-panel">
+                     <children>
+                        <Label styleClass="panel-title" text="Nova venda" />
+                        <ChoiceBox fx:id="customerChoiceBox" prefHeight="42.0" prefWidth="320.0" />
+                        <ChoiceBox fx:id="productChoiceBox" prefHeight="42.0" prefWidth="320.0" />
+                        <TextField fx:id="quantityField" prefHeight="42.0" promptText="Quantidade" />
+                        <Button fx:id="addItemButton" mnemonicParsing="false" onAction="#handleAddItem" prefWidth="320.0" styleClass="secondary-button" text="Adicionar ao carrinho" />
+                        <TextField fx:id="discountField" prefHeight="42.0" promptText="Desconto em R$" />
+                        <ChoiceBox fx:id="paymentMethodChoiceBox" prefHeight="42.0" prefWidth="320.0" />
+                        <Button fx:id="finishSaleButton" mnemonicParsing="false" onAction="#handleFinishSale" prefWidth="320.0" styleClass="primary-button" text="Finalizar venda" />
+                        <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                     <children>
+                        <HBox alignment="CENTER_LEFT">
+                           <children>
+                              <Label styleClass="panel-title" text="Carrinho" />
+                              <Region HBox.hgrow="ALWAYS" />
+                              <Button fx:id="removeItemButton" mnemonicParsing="false" onAction="#handleRemoveItem" prefWidth="130.0" styleClass="secondary-button" text="Remover item" />
+                           </children>
+                        </HBox>
+                        <TableView fx:id="cartTable" prefHeight="360.0" VBox.vgrow="ALWAYS">
+                           <columns>
+                              <TableColumn fx:id="productColumn" prefWidth="260.0" text="Produto" />
+                              <TableColumn fx:id="quantityColumn" prefWidth="100.0" text="Qtd." />
+                              <TableColumn fx:id="unitPriceColumn" prefWidth="130.0" text="Preco" />
+                              <TableColumn fx:id="subtotalColumn" prefWidth="130.0" text="Subtotal" />
+                           </columns>
+                        </TableView>
+                        <HBox alignment="CENTER_RIGHT" spacing="18.0">
+                           <children>
+                              <Label styleClass="card-label" text="Subtotal" />
+                              <Label fx:id="subtotalValueLabel" styleClass="card-value" text="R$ 0,00" />
+                              <Label styleClass="card-label" text="Total" />
+                              <Label fx:id="totalValueLabel" styleClass="card-value" text="R$ 0,00" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>

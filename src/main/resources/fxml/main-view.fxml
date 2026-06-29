@@ -17,7 +17,7 @@
             <Button fx:id="customersButton" mnemonicParsing="false" onAction="#handleCustomers" styleClass="sidebar-button" text="Clientes" />
             <Button fx:id="productsButton" mnemonicParsing="false" onAction="#handleProducts" styleClass="sidebar-button" text="Produtos" />
             <Button fx:id="stockButton" mnemonicParsing="false" onAction="#handleStock" styleClass="sidebar-button" text="Estoque" />
-            <Button fx:id="salesButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Vendas" />
+            <Button fx:id="salesButton" mnemonicParsing="false" onAction="#handleSales" styleClass="sidebar-button" text="Vendas" />
             <Button fx:id="financeButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Financeiro" />
             <Button fx:id="reportsButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Relatorios" />
             <Region VBox.vgrow="ALWAYS" />
