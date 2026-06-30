@@ -1,9 +1,11 @@
 package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
+import com.hyperion.model.DailySalesSummary;
 import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -85,6 +87,31 @@ public class SaleRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not save sale.", exception);
+        }
+    }
+
+    public DailySalesSummary findTodaySummary() {
+        String sql = """
+                SELECT COUNT(*) AS sales_count,
+                       COALESCE(SUM(total), 0) AS total
+                FROM sales
+                WHERE DATE(created_at) = DATE('now', 'localtime');
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            if (!resultSet.next()) {
+                return new DailySalesSummary(BigDecimal.ZERO, 0);
+            }
+
+            return new DailySalesSummary(
+                    resultSet.getBigDecimal("total"),
+                    resultSet.getInt("sales_count")
+            );
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not load daily sales summary.", exception);
         }
     }
 

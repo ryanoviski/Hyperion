@@ -1,6 +1,7 @@
 package com.hyperion.service;
 
 import com.hyperion.model.Customer;
+import com.hyperion.model.DailySalesSummary;
 import com.hyperion.model.Product;
 import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
@@ -59,6 +60,10 @@ public class SaleService {
         );
 
         saleRepository.save(sale);
+    }
+
+    public DailySalesSummary getTodaySummary() {
+        return saleRepository.findTodaySummary();
     }
 
     private List<SaleItem> validateItems(List<SaleItem> items) {

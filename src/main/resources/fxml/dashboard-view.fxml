@@ -26,7 +26,7 @@
                <children>
                   <Label styleClass="card-label" text="Vendas hoje" />
                   <Label fx:id="salesTodayValueLabel" styleClass="card-value" text="R$ 0,00" />
-                  <Label styleClass="card-footnote" text="Nenhuma venda registrada" />
+                  <Label fx:id="salesTodayFootnoteLabel" styleClass="card-footnote" text="Nenhuma venda registrada" />
                </children>
             </VBox>
             <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
