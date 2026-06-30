@@ -254,9 +254,9 @@ public class ProductController {
         productCostField.setPromptText("0,00");
         productStockField.setPromptText("0");
         productCategoryField.setPromptText("Categoria");
-        productBarcodeField.setPromptText("Codigo de barras");
+        productBarcodeField.setPromptText("Código de barras");
         productSupplierField.setPromptText("Fornecedor");
-        productDescriptionArea.setPromptText("Descricao");
+        productDescriptionArea.setPromptText("Descrição");
         productDescriptionArea.setPrefRowCount(3);
 
         if (product != null) {
@@ -278,7 +278,7 @@ public class ProductController {
 
         form.add(new Label("Nome"), 0, 0);
         form.add(productNameField, 1, 0);
-        form.add(new Label("Preco"), 0, 1);
+        form.add(new Label("Preço"), 0, 1);
         form.add(productPriceField, 1, 1);
         form.add(new Label("Custo"), 0, 2);
         form.add(productCostField, 1, 2);
@@ -286,11 +286,11 @@ public class ProductController {
         form.add(productStockField, 1, 3);
         form.add(new Label("Categoria"), 0, 4);
         form.add(productCategoryField, 1, 4);
-        form.add(new Label("Codigo"), 0, 5);
+        form.add(new Label("Código"), 0, 5);
         form.add(productBarcodeField, 1, 5);
         form.add(new Label("Fornecedor"), 0, 6);
         form.add(productSupplierField, 1, 6);
-        form.add(new Label("Descricao"), 0, 7);
+        form.add(new Label("Descrição"), 0, 7);
         form.add(productDescriptionArea, 1, 7);
 
         return form;
@@ -306,7 +306,7 @@ public class ProductController {
         try {
             return new BigDecimal(normalizedValue);
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe valores monetarios validos.");
+            throw new IllegalArgumentException("Informe valores monetários válidos.");
         }
     }
 
@@ -320,7 +320,7 @@ public class ProductController {
         try {
             return Integer.parseInt(normalizedValue);
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe uma quantidade valida em estoque.");
+            throw new IllegalArgumentException("Informe uma quantidade válida em estoque.");
         }
     }
 

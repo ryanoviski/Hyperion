@@ -17,7 +17,7 @@
       <VBox>
          <children>
             <Label styleClass="page-title" text="Dashboard" />
-            <Label styleClass="page-subtitle" text="Visao geral do seu negocio hoje." />
+            <Label styleClass="page-subtitle" text="Visão geral do seu negócio hoje." />
          </children>
       </VBox>
       <HBox spacing="20.0">

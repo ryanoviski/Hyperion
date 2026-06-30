@@ -174,13 +174,13 @@ public class SaleController {
         paymentMethodChoiceBox.setItems(FXCollections.observableArrayList(
                 "Dinheiro",
                 "PIX",
-                "Cartao credito",
-                "Cartao debito",
-                "Crediario"
+                "Cartão crédito",
+                "Cartão débito",
+                "Crediário"
         ));
         paymentMethodChoiceBox.setValue("Dinheiro");
         paymentMethodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, paymentMethod) -> {
-            boolean isCreditSale = "Crediario".equals(paymentMethod);
+            boolean isCreditSale = "Crediário".equals(paymentMethod);
             installmentsField.setVisible(isCreditSale);
             installmentsField.setManaged(isCreditSale);
             firstDueDatePicker.setVisible(isCreditSale);
@@ -242,7 +242,7 @@ public class SaleController {
 
             return quantity;
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe uma quantidade valida.");
+            throw new IllegalArgumentException("Informe uma quantidade válida.");
         }
     }
 
@@ -256,12 +256,12 @@ public class SaleController {
         try {
             return new BigDecimal(normalizedValue);
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe um desconto valido.");
+            throw new IllegalArgumentException("Informe um desconto válido.");
         }
     }
 
     private CreditSalePlan buildCreditSalePlan() {
-        if (!"Crediario".equals(paymentMethodChoiceBox.getValue())) {
+        if (!"Crediário".equals(paymentMethodChoiceBox.getValue())) {
             return null;
         }
 
@@ -287,7 +287,7 @@ public class SaleController {
 
             return installments;
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe uma quantidade valida de parcelas.");
+            throw new IllegalArgumentException("Informe uma quantidade válida de parcelas.");
         }
     }
 

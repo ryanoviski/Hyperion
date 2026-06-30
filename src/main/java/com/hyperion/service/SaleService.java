@@ -44,14 +44,14 @@ public class SaleService {
         BigDecimal normalizedDiscount = discount == null ? BigDecimal.ZERO : discount;
 
         if (normalizedDiscount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("O desconto nao pode ser negativo.");
+            throw new IllegalArgumentException("O desconto não pode ser negativo.");
         }
 
         List<SaleItem> validatedItems = validateItems(items);
         BigDecimal subtotal = calculateSubtotal(validatedItems);
 
         if (normalizedDiscount.compareTo(subtotal) > 0) {
-            throw new IllegalArgumentException("O desconto nao pode ser maior que o subtotal.");
+            throw new IllegalArgumentException("O desconto não pode ser maior que o subtotal.");
         }
 
         BigDecimal total = subtotal.subtract(normalizedDiscount);
@@ -93,7 +93,7 @@ public class SaleService {
         for (SaleItem item : items) {
             Product product = productRepository.findById(item.getProductId())
                     .filter(Product::isActive)
-                    .orElseThrow(() -> new IllegalArgumentException("Produto invalido na venda."));
+                    .orElseThrow(() -> new IllegalArgumentException("Produto inválido na venda."));
 
             if (item.getQuantity() <= 0) {
                 throw new IllegalArgumentException("A quantidade deve ser maior que zero.");
@@ -128,16 +128,16 @@ public class SaleService {
     }
 
     private CreditSalePlan validateCreditSalePlan(String paymentMethod, CreditSalePlan creditSalePlan) {
-        if (!"Crediario".equals(paymentMethod)) {
+        if (!"Crediário".equals(paymentMethod)) {
             return null;
         }
 
         if (creditSalePlan == null) {
-            throw new IllegalArgumentException("Informe os dados do crediario.");
+            throw new IllegalArgumentException("Informe os dados do crediário.");
         }
 
         if (creditSalePlan.getInstallments() <= 0) {
-            throw new IllegalArgumentException("Informe uma quantidade valida de parcelas.");
+            throw new IllegalArgumentException("Informe uma quantidade válida de parcelas.");
         }
 
         if (creditSalePlan.getFirstDueDate() == null) {

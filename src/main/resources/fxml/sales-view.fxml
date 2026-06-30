@@ -56,7 +56,7 @@
                            <columns>
                               <TableColumn fx:id="productColumn" prefWidth="260.0" text="Produto" />
                               <TableColumn fx:id="quantityColumn" prefWidth="100.0" text="Qtd." />
-                              <TableColumn fx:id="unitPriceColumn" prefWidth="130.0" text="Preco" />
+                              <TableColumn fx:id="unitPriceColumn" prefWidth="130.0" text="Preço" />
                               <TableColumn fx:id="subtotalColumn" prefWidth="130.0" text="Subtotal" />
                            </columns>
                         </TableView>

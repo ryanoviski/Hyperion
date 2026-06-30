@@ -12,16 +12,16 @@
       <VBox fx:id="sidebar" maxWidth="240.0" minWidth="240.0" prefWidth="240.0" styleClass="sidebar" BorderPane.alignment="CENTER">
          <children>
             <Label styleClass="sidebar-title" text="Hyperion" />
-            <Label styleClass="sidebar-subtitle" text="Gestao local" />
+            <Label styleClass="sidebar-subtitle" text="Gestão local" />
             <Button fx:id="dashboardButton" mnemonicParsing="false" onAction="#handleDashboard" styleClass="sidebar-button-active" text="Dashboard" />
             <Button fx:id="customersButton" mnemonicParsing="false" onAction="#handleCustomers" styleClass="sidebar-button" text="Clientes" />
             <Button fx:id="productsButton" mnemonicParsing="false" onAction="#handleProducts" styleClass="sidebar-button" text="Produtos" />
             <Button fx:id="stockButton" mnemonicParsing="false" onAction="#handleStock" styleClass="sidebar-button" text="Estoque" />
             <Button fx:id="salesButton" mnemonicParsing="false" onAction="#handleSales" styleClass="sidebar-button" text="Vendas" />
             <Button fx:id="financeButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Financeiro" />
-            <Button fx:id="reportsButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Relatorios" />
+            <Button fx:id="reportsButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Relatórios" />
             <Region VBox.vgrow="ALWAYS" />
-            <Button fx:id="settingsButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Configuracoes" />
+            <Button fx:id="settingsButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Configurações" />
          </children>
       </VBox>
    </left>

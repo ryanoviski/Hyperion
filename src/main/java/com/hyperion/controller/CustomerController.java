@@ -268,8 +268,8 @@ public class CustomerController {
         Label documentLabel = new Label("Documento: " + textValue(customer.getDocument()));
         Label phoneLabel = new Label("Telefone: " + textValue(customer.getPhone()));
         Label emailLabel = new Label("Email: " + textValue(customer.getEmail()));
-        Label addressLabel = new Label("Endereco: " + textValue(customer.getAddress()));
-        Label purchasesTitle = new Label("Historico de compras");
+        Label addressLabel = new Label("Endereço: " + textValue(customer.getAddress()));
+        Label purchasesTitle = new Label("Histórico de compras");
         purchasesTitle.getStyleClass().add("panel-title");
 
         TableView<Sale> purchasesTable = createPurchasesTable(customer);
@@ -334,8 +334,8 @@ public class CustomerController {
         customerDocumentField.setPromptText("CPF/CNPJ");
         customerPhoneField.setPromptText("Telefone");
         customerEmailField.setPromptText("Email");
-        customerAddressField.setPromptText("Endereco");
-        customerNotesArea.setPromptText("Observacoes");
+        customerAddressField.setPromptText("Endereço");
+        customerNotesArea.setPromptText("Observações");
         customerNotesArea.setPrefRowCount(3);
 
         if (customer != null) {
@@ -361,9 +361,9 @@ public class CustomerController {
         form.add(customerPhoneField, 1, 2);
         form.add(new Label("Email"), 0, 3);
         form.add(customerEmailField, 1, 3);
-        form.add(new Label("Endereco"), 0, 4);
+        form.add(new Label("Endereço"), 0, 4);
         form.add(customerAddressField, 1, 4);
-        form.add(new Label("Observacoes"), 0, 5);
+        form.add(new Label("Observações"), 0, 5);
         form.add(customerNotesArea, 1, 5);
 
         return form;

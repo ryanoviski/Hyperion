@@ -95,7 +95,7 @@ public class StockController {
                 showMessage("Entrada registrada para " + selectedProduct.getName() + ".");
             } else {
                 stockService.registerExit(selectedProduct.getId(), quantity, notesArea.getText());
-                showMessage("Saida registrada para " + selectedProduct.getName() + ".");
+                showMessage("Saída registrada para " + selectedProduct.getName() + ".");
             }
 
             clearForm();
@@ -130,7 +130,7 @@ public class StockController {
         ));
         productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getProductName()));
         typeColumn.setCellValueFactory(cellData -> {
-            String type = StockService.MOVEMENT_TYPE_IN.equals(cellData.getValue().getType()) ? "Entrada" : "Saida";
+            String type = StockService.MOVEMENT_TYPE_IN.equals(cellData.getValue().getType()) ? "Entrada" : "Saída";
             return new ReadOnlyStringWrapper(type);
         });
         quantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantity())));
@@ -157,7 +157,7 @@ public class StockController {
         try {
             return Integer.parseInt(normalizedValue);
         } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe uma quantidade valida.");
+            throw new IllegalArgumentException("Informe uma quantidade válida.");
         }
     }
 

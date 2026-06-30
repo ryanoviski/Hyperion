@@ -30,14 +30,14 @@ public class StockService {
     private void registerMovement(Long productId, String type, int quantity, String notes) {
         Product product = productRepository.findById(productId)
                 .filter(Product::isActive)
-                .orElseThrow(() -> new IllegalArgumentException("Produto invalido para movimentacao."));
+                .orElseThrow(() -> new IllegalArgumentException("Produto inválido para movimentação."));
 
         if (quantity <= 0) {
             throw new IllegalArgumentException("Informe uma quantidade maior que zero.");
         }
 
         if (MOVEMENT_TYPE_OUT.equals(type) && product.getStockQuantity() < quantity) {
-            throw new IllegalArgumentException("Estoque insuficiente para saida.");
+            throw new IllegalArgumentException("Estoque insuficiente para saída.");
         }
 
         int stockDelta = MOVEMENT_TYPE_IN.equals(type) ? quantity : -quantity;

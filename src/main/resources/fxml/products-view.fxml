@@ -23,7 +23,7 @@
                   <VBox spacing="4.0">
                      <children>
                         <Label styleClass="page-title" text="Produtos" />
-                        <Label styleClass="page-subtitle" text="Cadastre produtos, precos e quantidade em estoque." />
+                        <Label styleClass="page-subtitle" text="Cadastre produtos, preços e quantidade em estoque." />
                      </children>
                   </VBox>
                   <Region HBox.hgrow="ALWAYS" />
@@ -34,7 +34,7 @@
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
-                        <TextField fx:id="searchField" onAction="#handleSearch" prefHeight="42.0" promptText="Buscar por nome, categoria, codigo ou fornecedor" HBox.hgrow="ALWAYS" />
+                        <TextField fx:id="searchField" onAction="#handleSearch" prefHeight="42.0" promptText="Buscar por nome, categoria, código ou fornecedor" HBox.hgrow="ALWAYS" />
                         <Button fx:id="searchButton" mnemonicParsing="false" onAction="#handleSearch" prefWidth="110.0" styleClass="secondary-button" text="Buscar" />
                         <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
                      </children>
@@ -43,10 +43,10 @@
                      <columns>
                         <TableColumn fx:id="nameColumn" prefWidth="220.0" text="Nome" />
                         <TableColumn fx:id="categoryColumn" prefWidth="150.0" text="Categoria" />
-                        <TableColumn fx:id="priceColumn" prefWidth="120.0" text="Preco" />
+                        <TableColumn fx:id="priceColumn" prefWidth="120.0" text="Preço" />
                         <TableColumn fx:id="costColumn" prefWidth="120.0" text="Custo" />
                         <TableColumn fx:id="stockColumn" prefWidth="100.0" text="Estoque" />
-                        <TableColumn fx:id="barcodeColumn" prefWidth="150.0" text="Codigo" />
+                        <TableColumn fx:id="barcodeColumn" prefWidth="150.0" text="Código" />
                         <TableColumn fx:id="supplierColumn" prefWidth="180.0" text="Fornecedor" />
                      </columns>
                   </TableView>

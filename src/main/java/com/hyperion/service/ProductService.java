@@ -39,7 +39,7 @@ public class ProductService {
 
     public void updateProduct(Product product) {
         if (product.getId() == null) {
-            throw new IllegalArgumentException("Produto invalido para atualizacao.");
+            throw new IllegalArgumentException("Produto inválido para atualização.");
         }
 
         validateProduct(product.getName(), product.getPrice(), product.getCost(), product.getStockQuantity());
@@ -48,7 +48,7 @@ public class ProductService {
 
     public void deactivateProduct(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("Produto invalido para desativacao.");
+            throw new IllegalArgumentException("Produto inválido para desativação.");
         }
 
         productRepository.deactivate(id);
@@ -82,15 +82,15 @@ public class ProductService {
         }
 
         if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Informe um preco valido.");
+            throw new IllegalArgumentException("Informe um preço válido.");
         }
 
         if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Informe um custo valido.");
+            throw new IllegalArgumentException("Informe um custo válido.");
         }
 
         if (stockQuantity < 0) {
-            throw new IllegalArgumentException("O estoque nao pode ser negativo.");
+            throw new IllegalArgumentException("O estoque não pode ser negativo.");
         }
     }
 
