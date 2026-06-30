@@ -1,6 +1,7 @@
 package com.hyperion.controller;
 
 import com.hyperion.model.Customer;
+import com.hyperion.model.CreditSalePlan;
 import com.hyperion.model.Product;
 import com.hyperion.model.SaleItem;
 import com.hyperion.service.CustomerService;
@@ -11,6 +12,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -44,6 +46,12 @@ public class SaleController {
 
     @FXML
     private TextField discountField;
+
+    @FXML
+    private TextField installmentsField;
+
+    @FXML
+    private DatePicker firstDueDatePicker;
 
     @FXML
     private TableView<SaleItem> cartTable;
@@ -122,7 +130,8 @@ public class SaleController {
                     customerChoiceBox.getValue(),
                     List.copyOf(cartItems),
                     parseMoney(discountField.getText()),
-                    paymentMethodChoiceBox.getValue()
+                    paymentMethodChoiceBox.getValue(),
+                    buildCreditSalePlan()
             );
 
             clearSale();
@@ -166,9 +175,17 @@ public class SaleController {
                 "Dinheiro",
                 "PIX",
                 "Cartao credito",
-                "Cartao debito"
+                "Cartao debito",
+                "Crediario"
         ));
         paymentMethodChoiceBox.setValue("Dinheiro");
+        paymentMethodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, paymentMethod) -> {
+            boolean isCreditSale = "Crediario".equals(paymentMethod);
+            installmentsField.setVisible(isCreditSale);
+            installmentsField.setManaged(isCreditSale);
+            firstDueDatePicker.setVisible(isCreditSale);
+            firstDueDatePicker.setManaged(isCreditSale);
+        });
     }
 
     private void configureTableColumns() {
@@ -243,6 +260,37 @@ public class SaleController {
         }
     }
 
+    private CreditSalePlan buildCreditSalePlan() {
+        if (!"Crediario".equals(paymentMethodChoiceBox.getValue())) {
+            return null;
+        }
+
+        return new CreditSalePlan(
+                parseInstallments(installmentsField.getText()),
+                firstDueDatePicker.getValue()
+        );
+    }
+
+    private int parseInstallments(String value) {
+        String normalizedValue = value == null ? "" : value.trim();
+
+        if (normalizedValue.isBlank()) {
+            throw new IllegalArgumentException("Informe a quantidade de parcelas.");
+        }
+
+        try {
+            int installments = Integer.parseInt(normalizedValue);
+
+            if (installments <= 0) {
+                throw new IllegalArgumentException("A quantidade de parcelas deve ser maior que zero.");
+            }
+
+            return installments;
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Informe uma quantidade valida de parcelas.");
+        }
+    }
+
     private BigDecimal parseMoneyOrZero(String value) {
         try {
             return parseMoney(value);
@@ -259,6 +307,8 @@ public class SaleController {
         cartItems.clear();
         quantityField.clear();
         discountField.clear();
+        installmentsField.clear();
+        firstDueDatePicker.setValue(null);
         updateTotals();
     }
 

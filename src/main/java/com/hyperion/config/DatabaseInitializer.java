@@ -98,6 +98,23 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String CREATE_CREDIT_INSTALLMENTS_TABLE = """
+            CREATE TABLE IF NOT EXISTS credit_installments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sale_id INTEGER NOT NULL,
+                customer_id INTEGER NOT NULL,
+                customer_name TEXT NOT NULL,
+                installment_number INTEGER NOT NULL,
+                total_installments INTEGER NOT NULL,
+                amount NUMERIC NOT NULL DEFAULT 0,
+                due_date TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'OPEN',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (sale_id) REFERENCES sales(id),
+                FOREIGN KEY (customer_id) REFERENCES customers(id)
+            );
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -112,6 +129,7 @@ public final class DatabaseInitializer {
             statement.execute(CREATE_STOCK_MOVEMENTS_TABLE);
             statement.execute(CREATE_SALES_TABLE);
             statement.execute(CREATE_SALE_ITEMS_TABLE);
+            statement.execute(CREATE_CREDIT_INSTALLMENTS_TABLE);
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);
         }

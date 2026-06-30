@@ -1,20 +1,23 @@
 package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
+import com.hyperion.model.CreditSalePlan;
 import com.hyperion.model.DailySalesSummary;
 import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 
 public class SaleRepository {
 
-    public void save(Sale sale) {
+    public void save(Sale sale, CreditSalePlan creditSalePlan) {
         String insertSaleSql = """
                 INSERT INTO sales (customer_id, customer_name, subtotal, discount, total, payment_method)
                 VALUES (?, ?, ?, ?, ?, ?);
@@ -37,13 +40,27 @@ public class SaleRepository {
                 VALUES (?, 'OUT', ?, ?);
                 """;
 
+        String insertInstallmentSql = """
+                INSERT INTO credit_installments (
+                    sale_id,
+                    customer_id,
+                    customer_name,
+                    installment_number,
+                    total_installments,
+                    amount,
+                    due_date
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                """;
+
         try (Connection connection = DatabaseConfig.getConnection()) {
             connection.setAutoCommit(false);
 
             try (PreparedStatement saleStatement = connection.prepareStatement(insertSaleSql, Statement.RETURN_GENERATED_KEYS);
                  PreparedStatement itemStatement = connection.prepareStatement(insertSaleItemSql);
                  PreparedStatement stockStatement = connection.prepareStatement(updateStockSql);
-                 PreparedStatement movementStatement = connection.prepareStatement(insertStockMovementSql)) {
+                 PreparedStatement movementStatement = connection.prepareStatement(insertStockMovementSql);
+                 PreparedStatement installmentStatement = connection.prepareStatement(insertInstallmentSql)) {
 
                 saleStatement.setLong(1, sale.getCustomerId());
                 saleStatement.setString(2, sale.getCustomerName());
@@ -78,6 +95,11 @@ public class SaleRepository {
                 stockStatement.executeBatch();
                 movementStatement.executeBatch();
 
+                if (creditSalePlan != null) {
+                    addInstallmentBatch(installmentStatement, sale, saleId, creditSalePlan);
+                    installmentStatement.executeBatch();
+                }
+
                 connection.commit();
             } catch (SQLException exception) {
                 connection.rollback();
@@ -87,6 +109,38 @@ public class SaleRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not save sale.", exception);
+        }
+    }
+
+    private void addInstallmentBatch(
+            PreparedStatement statement,
+            Sale sale,
+            Long saleId,
+            CreditSalePlan creditSalePlan
+    ) throws SQLException {
+        int installments = creditSalePlan.getInstallments();
+        BigDecimal installmentAmount = sale.getTotal().divide(BigDecimal.valueOf(installments), 2, RoundingMode.HALF_UP);
+        BigDecimal allocatedAmount = BigDecimal.ZERO;
+
+        for (int installmentNumber = 1; installmentNumber <= installments; installmentNumber++) {
+            BigDecimal amount = installmentAmount;
+
+            if (installmentNumber == installments) {
+                amount = sale.getTotal().subtract(allocatedAmount);
+            }
+
+            LocalDate dueDate = creditSalePlan.getFirstDueDate().plusMonths(installmentNumber - 1L);
+
+            statement.setLong(1, saleId);
+            statement.setLong(2, sale.getCustomerId());
+            statement.setString(3, sale.getCustomerName());
+            statement.setInt(4, installmentNumber);
+            statement.setInt(5, installments);
+            statement.setBigDecimal(6, amount);
+            statement.setString(7, dueDate.toString());
+            statement.addBatch();
+
+            allocatedAmount = allocatedAmount.add(amount);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.hyperion.service;
 
 import com.hyperion.model.Customer;
+import com.hyperion.model.CreditSalePlan;
 import com.hyperion.model.DailySalesSummary;
 import com.hyperion.model.Product;
 import com.hyperion.model.Sale;
@@ -19,7 +20,13 @@ public class SaleService {
     private final ProductRepository productRepository = new ProductRepository();
     private final SaleRepository saleRepository = new SaleRepository();
 
-    public void finishSale(Customer customer, List<SaleItem> items, BigDecimal discount, String paymentMethod) {
+    public void finishSale(
+            Customer customer,
+            List<SaleItem> items,
+            BigDecimal discount,
+            String paymentMethod,
+            CreditSalePlan creditSalePlan
+    ) {
         if (customer == null || customer.getId() == null) {
             throw new IllegalArgumentException("Selecione um cliente.");
         }
@@ -48,6 +55,7 @@ public class SaleService {
         }
 
         BigDecimal total = subtotal.subtract(normalizedDiscount);
+        CreditSalePlan validatedCreditSalePlan = validateCreditSalePlan(normalizedPaymentMethod, creditSalePlan);
 
         Sale sale = new Sale(
                 customer.getId(),
@@ -59,7 +67,11 @@ public class SaleService {
                 validatedItems
         );
 
-        saleRepository.save(sale);
+        saleRepository.save(sale, validatedCreditSalePlan);
+    }
+
+    public void finishSale(Customer customer, List<SaleItem> items, BigDecimal discount, String paymentMethod) {
+        finishSale(customer, items, discount, paymentMethod, null);
     }
 
     public DailySalesSummary getTodaySummary() {
@@ -105,6 +117,26 @@ public class SaleService {
         }
 
         return subtotal;
+    }
+
+    private CreditSalePlan validateCreditSalePlan(String paymentMethod, CreditSalePlan creditSalePlan) {
+        if (!"Crediario".equals(paymentMethod)) {
+            return null;
+        }
+
+        if (creditSalePlan == null) {
+            throw new IllegalArgumentException("Informe os dados do crediario.");
+        }
+
+        if (creditSalePlan.getInstallments() <= 0) {
+            throw new IllegalArgumentException("Informe uma quantidade valida de parcelas.");
+        }
+
+        if (creditSalePlan.getFirstDueDate() == null) {
+            throw new IllegalArgumentException("Informe a data de vencimento da primeira parcela.");
+        }
+
+        return creditSalePlan;
     }
 
     private String normalize(String value) {

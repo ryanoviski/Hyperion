@@ -2,20 +2,27 @@ package com.hyperion.controller;
 
 import com.hyperion.model.DailySalesSummary;
 import com.hyperion.model.Product;
+import com.hyperion.model.CreditInstallment;
+import com.hyperion.service.CreditInstallmentService;
 import com.hyperion.service.CustomerService;
 import com.hyperion.service.ProductService;
 import com.hyperion.service.SaleService;
+import javafx.scene.layout.VBox;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
 public class DashboardController {
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    private final CreditInstallmentService creditInstallmentService = new CreditInstallmentService();
     private final CustomerService customerService = new CustomerService();
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
@@ -42,8 +49,15 @@ public class DashboardController {
     private Label productsFootnoteLabel;
 
     @FXML
+    private VBox alertsList;
+
+    @FXML
+    private Label emptyAlertsLabel;
+
+    @FXML
     private void initialize() {
         loadDashboardData();
+        loadCreditAlerts();
     }
 
     @FXML
@@ -81,5 +95,41 @@ public class DashboardController {
                 : dailySalesSummary.getSalesCount() + " vendas registradas hoje");
         customersFootnoteLabel.setText(activeCustomers == 1 ? "1 cliente ativo" : activeCustomers + " clientes ativos");
         productsFootnoteLabel.setText(activeProducts.size() == 1 ? "1 produto ativo" : activeProducts.size() + " produtos ativos");
+    }
+
+    private void loadCreditAlerts() {
+        List<CreditInstallment> alerts = creditInstallmentService.listPendingAlerts();
+        alertsList.getChildren().clear();
+
+        if (alerts.isEmpty()) {
+            alertsList.getChildren().add(emptyAlertsLabel);
+            emptyAlertsLabel.setText("Nenhum alerta por enquanto.");
+            return;
+        }
+
+        for (CreditInstallment installment : alerts) {
+            Label alertLabel = new Label(formatCreditAlert(installment));
+            alertLabel.setWrapText(true);
+            alertLabel.setPrefWidth(280);
+            alertLabel.getStyleClass().add("text-muted-left");
+            alertsList.getChildren().add(alertLabel);
+        }
+    }
+
+    private String formatCreditAlert(CreditInstallment installment) {
+        LocalDate today = LocalDate.now();
+        String dueDate = installment.getDueDate().format(DATE_FORMAT);
+        String installmentText = installment.getInstallmentNumber() + "/" + installment.getTotalInstallments();
+        String amount = MONEY_FORMAT.format(installment.getAmount());
+
+        if (installment.getDueDate().isBefore(today)) {
+            return "Vencida: " + installment.getCustomerName() + " - parcela " + installmentText + " - " + amount + " - venceu em " + dueDate;
+        }
+
+        if (installment.getDueDate().isEqual(today)) {
+            return "Vence hoje: " + installment.getCustomerName() + " - parcela " + installmentText + " - " + amount;
+        }
+
+        return "A vencer: " + installment.getCustomerName() + " - parcela " + installmentText + " - " + amount + " - " + dueDate;
     }
 }
