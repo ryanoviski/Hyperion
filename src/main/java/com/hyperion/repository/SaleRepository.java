@@ -14,8 +14,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SaleRepository {
+
+    private static final DateTimeFormatter SQLITE_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public void save(Sale sale, CreditSalePlan creditSalePlan) {
         String insertSaleSql = """
@@ -167,6 +173,54 @@ public class SaleRepository {
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not load daily sales summary.", exception);
         }
+    }
+
+    public List<Sale> findByCustomerId(Long customerId) {
+        String sql = """
+                SELECT id,
+                       customer_id,
+                       customer_name,
+                       subtotal,
+                       discount,
+                       total,
+                       payment_method,
+                       created_at
+                FROM sales
+                WHERE customer_id = ?
+                ORDER BY created_at DESC, id DESC;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, customerId);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<Sale> sales = new ArrayList<>();
+
+                while (resultSet.next()) {
+                    sales.add(mapSale(resultSet));
+                }
+
+                return sales;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not list customer purchases.", exception);
+        }
+    }
+
+    private Sale mapSale(ResultSet resultSet) throws SQLException {
+        return new Sale(
+                resultSet.getLong("id"),
+                resultSet.getLong("customer_id"),
+                resultSet.getString("customer_name"),
+                resultSet.getBigDecimal("subtotal"),
+                resultSet.getBigDecimal("discount"),
+                resultSet.getBigDecimal("total"),
+                resultSet.getString("payment_method"),
+                LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME),
+                List.of()
+        );
     }
 
     private Long readGeneratedId(PreparedStatement statement) throws SQLException {

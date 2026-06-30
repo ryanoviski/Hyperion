@@ -78,6 +78,14 @@ public class SaleService {
         return saleRepository.findTodaySummary();
     }
 
+    public List<Sale> listCustomerPurchases(Long customerId) {
+        if (customerId == null) {
+            return List.of();
+        }
+
+        return saleRepository.findByCustomerId(customerId);
+    }
+
     private List<SaleItem> validateItems(List<SaleItem> items) {
         List<SaleItem> validatedItems = new ArrayList<>();
         Map<Long, Integer> requestedQuantitiesByProduct = new HashMap<>();

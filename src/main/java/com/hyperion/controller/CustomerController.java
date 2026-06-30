@@ -1,7 +1,9 @@
 package com.hyperion.controller;
 
 import com.hyperion.model.Customer;
+import com.hyperion.model.Sale;
 import com.hyperion.service.CustomerService;
+import com.hyperion.service.SaleService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -17,13 +19,21 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 
+import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 public class CustomerController {
 
+    private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     private final CustomerService customerService = new CustomerService();
+    private final SaleService saleService = new SaleService();
 
     @FXML
     private TextField searchField;
@@ -33,6 +43,9 @@ public class CustomerController {
 
     @FXML
     private Button deactivateCustomerButton;
+
+    @FXML
+    private Button profileCustomerButton;
 
     @FXML
     private TableView<Customer> customersTable;
@@ -135,6 +148,18 @@ public class CustomerController {
     }
 
     @FXML
+    private void handleCustomerProfile() {
+        Customer selectedCustomer = getSelectedCustomer();
+
+        if (selectedCustomer == null) {
+            showMessage("Selecione um cliente para visualizar o perfil.");
+            return;
+        }
+
+        showCustomerProfileDialog(selectedCustomer);
+    }
+
+    @FXML
     private void handleDeactivateCustomer() {
         Customer selectedCustomer = getSelectedCustomer();
 
@@ -164,11 +189,13 @@ public class CustomerController {
     }
 
     private void configureSelectionState() {
+        profileCustomerButton.setDisable(true);
         editCustomerButton.setDisable(true);
         deactivateCustomerButton.setDisable(true);
 
         customersTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedCustomer) -> {
             boolean hasSelection = selectedCustomer != null;
+            profileCustomerButton.setDisable(!hasSelection);
             editCustomerButton.setDisable(!hasSelection);
             deactivateCustomerButton.setDisable(!hasSelection);
         });
@@ -221,6 +248,78 @@ public class CustomerController {
         });
 
         return dialog.showAndWait();
+    }
+
+    private void showCustomerProfileDialog(Customer customer) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Perfil do cliente");
+        dialog.setHeaderText(customer.getName());
+        dialog.initOwner(customersTable.getScene().getWindow());
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setContent(createCustomerProfileContent(customer));
+        dialog.showAndWait();
+    }
+
+    private VBox createCustomerProfileContent(Customer customer) {
+        VBox content = new VBox(14);
+        content.setPadding(new Insets(16));
+        content.setPrefWidth(720);
+
+        Label documentLabel = new Label("Documento: " + textValue(customer.getDocument()));
+        Label phoneLabel = new Label("Telefone: " + textValue(customer.getPhone()));
+        Label emailLabel = new Label("Email: " + textValue(customer.getEmail()));
+        Label addressLabel = new Label("Endereco: " + textValue(customer.getAddress()));
+        Label purchasesTitle = new Label("Historico de compras");
+        purchasesTitle.getStyleClass().add("panel-title");
+
+        TableView<Sale> purchasesTable = createPurchasesTable(customer);
+
+        content.getChildren().addAll(
+                documentLabel,
+                phoneLabel,
+                emailLabel,
+                addressLabel,
+                purchasesTitle,
+                purchasesTable
+        );
+
+        return content;
+    }
+
+    private TableView<Sale> createPurchasesTable(Customer customer) {
+        TableView<Sale> purchasesTable = new TableView<>();
+        purchasesTable.setPrefHeight(260);
+
+        TableColumn<Sale, String> dateColumn = new TableColumn<>("Data");
+        dateColumn.setPrefWidth(150);
+        dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
+        ));
+
+        TableColumn<Sale, String> paymentColumn = new TableColumn<>("Pagamento");
+        paymentColumn.setPrefWidth(160);
+        paymentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getPaymentMethod()));
+
+        TableColumn<Sale, String> totalColumn = new TableColumn<>("Total");
+        totalColumn.setPrefWidth(140);
+        totalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                MONEY_FORMAT.format(cellData.getValue().getTotal())
+        ));
+
+        TableColumn<Sale, String> discountColumn = new TableColumn<>("Desconto");
+        discountColumn.setPrefWidth(140);
+        discountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                MONEY_FORMAT.format(cellData.getValue().getDiscount())
+        ));
+
+        purchasesTable.getColumns().addAll(dateColumn, paymentColumn, totalColumn, discountColumn);
+        purchasesTable.setItems(FXCollections.observableArrayList(saleService.listCustomerPurchases(customer.getId())));
+
+        if (purchasesTable.getItems().isEmpty()) {
+            showMessage("Cliente sem compras registradas.");
+        }
+
+        return purchasesTable;
     }
 
     private GridPane createCustomerForm(Customer customer) {

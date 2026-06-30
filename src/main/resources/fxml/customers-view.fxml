@@ -51,6 +51,7 @@
                   <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
                         <Label fx:id="messageLabel" styleClass="text-muted-left" text="" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="profileCustomerButton" mnemonicParsing="false" onAction="#handleCustomerProfile" prefWidth="120.0" styleClass="secondary-button" text="Perfil" />
                         <Button fx:id="editCustomerButton" mnemonicParsing="false" onAction="#handleEditCustomer" prefWidth="120.0" styleClass="secondary-button" text="Editar" />
                         <Button fx:id="deactivateCustomerButton" mnemonicParsing="false" onAction="#handleDeactivateCustomer" prefWidth="130.0" styleClass="secondary-button" text="Desativar" />
                      </children>
