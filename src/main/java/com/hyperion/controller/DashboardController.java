@@ -7,9 +7,9 @@ import com.hyperion.service.CreditInstallmentService;
 import com.hyperion.service.CustomerService;
 import com.hyperion.service.ProductService;
 import com.hyperion.service.SaleService;
-import javafx.scene.layout.VBox;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -49,7 +49,7 @@ public class DashboardController {
     private Label productsFootnoteLabel;
 
     @FXML
-    private VBox alertsList;
+    private HBox alertsList;
 
     @FXML
     private Label emptyAlertsLabel;
@@ -110,7 +110,7 @@ public class DashboardController {
         for (CreditInstallment installment : alerts) {
             Label alertLabel = new Label(formatCreditAlert(installment));
             alertLabel.setWrapText(true);
-            alertLabel.setPrefWidth(280);
+            alertLabel.setPrefWidth(260);
             alertLabel.getStyleClass().add("text-muted-left");
             alertsList.getChildren().add(alertLabel);
         }

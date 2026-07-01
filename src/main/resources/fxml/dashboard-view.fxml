@@ -3,10 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox fx:id="contentArea" spacing="24.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.DashboardController">
@@ -52,40 +49,32 @@
             </VBox>
          </children>
       </HBox>
-      <HBox spacing="28.0">
+      <VBox spacing="18.0">
          <children>
-            <VBox fx:id="shortcutsPanel" prefHeight="300.0" prefWidth="500.0" styleClass="dashboard-panel">
+            <VBox fx:id="shortcutsPanel" prefWidth="880.0" styleClass="dashboard-panel">
                <children>
                   <Label styleClass="panel-title" text="Atalhos" />
-                  <GridPane hgap="16.0" vgap="16.0">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="210.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="210.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="44.0" prefHeight="44.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="44.0" prefHeight="44.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
+                  <HBox spacing="16.0">
                      <children>
-                        <Button fx:id="newSaleButton" mnemonicParsing="false" onAction="#handleSales" prefHeight="44.0" prefWidth="210.0" styleClass="primary-button" text="Nova venda" />
-                        <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleCustomers" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar cliente" GridPane.columnIndex="1" />
-                        <Button fx:id="newProductButton" mnemonicParsing="false" onAction="#handleProducts" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Cadastrar produto" GridPane.rowIndex="1" />
-                        <Button fx:id="viewStockButton" mnemonicParsing="false" onAction="#handleStock" prefHeight="44.0" prefWidth="210.0" styleClass="secondary-button" text="Ver estoque" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Button fx:id="newSaleButton" mnemonicParsing="false" onAction="#handleSales" prefHeight="44.0" prefWidth="190.0" styleClass="primary-button" text="Nova venda" />
+                        <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleCustomers" prefHeight="44.0" prefWidth="190.0" styleClass="secondary-button" text="Cadastrar cliente" />
+                        <Button fx:id="newProductButton" mnemonicParsing="false" onAction="#handleProducts" prefHeight="44.0" prefWidth="190.0" styleClass="secondary-button" text="Cadastrar produto" />
+                        <Button fx:id="viewStockButton" mnemonicParsing="false" onAction="#handleStock" prefHeight="44.0" prefWidth="190.0" styleClass="secondary-button" text="Ver estoque" />
                      </children>
-                  </GridPane>
+                  </HBox>
                </children>
             </VBox>
-            <VBox fx:id="alertsPanel" prefHeight="300.0" prefWidth="350.0" spacing="18.0" styleClass="dashboard-panel">
+            <VBox fx:id="alertsPanel" prefWidth="880.0" spacing="18.0" styleClass="dashboard-panel">
                <children>
                   <Label styleClass="panel-title" text="Alertas" />
-                  <VBox fx:id="alertsList" spacing="10.0">
+                  <HBox fx:id="alertsList" spacing="14.0">
                      <children>
-                        <Label fx:id="emptyAlertsLabel" prefWidth="280.0" styleClass="text-muted-left" text="Nenhum alerta por enquanto." wrapText="true" />
+                        <Label fx:id="emptyAlertsLabel" prefWidth="820.0" styleClass="text-muted-left" text="Nenhum alerta por enquanto." wrapText="true" />
                      </children>
-                  </VBox>
+                  </HBox>
                </children>
             </VBox>
          </children>
-      </HBox>
+      </VBox>
    </children>
 </VBox>
