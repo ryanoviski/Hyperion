@@ -5,6 +5,7 @@ import com.hyperion.model.Product;
 import com.hyperion.model.CreditInstallment;
 import com.hyperion.service.CreditInstallmentService;
 import com.hyperion.service.CustomerService;
+import com.hyperion.service.FinanceService;
 import com.hyperion.service.ProductService;
 import com.hyperion.service.SaleService;
 import javafx.fxml.FXML;
@@ -24,6 +25,7 @@ public class DashboardController {
 
     private final CreditInstallmentService creditInstallmentService = new CreditInstallmentService();
     private final CustomerService customerService = new CustomerService();
+    private final FinanceService financeService = new FinanceService();
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
 
@@ -88,7 +90,7 @@ public class DashboardController {
         salesTodayValueLabel.setText(MONEY_FORMAT.format(dailySalesSummary.getTotal()));
         customersValueLabel.setText(String.valueOf(activeCustomers));
         productsValueLabel.setText(String.valueOf(activeProducts.size()));
-        balanceValueLabel.setText("R$ 0");
+        balanceValueLabel.setText(MONEY_FORMAT.format(financeService.getSummary().getCurrentBalance()));
 
         salesTodayFootnoteLabel.setText(dailySalesSummary.getSalesCount() == 1
                 ? "1 venda registrada hoje"

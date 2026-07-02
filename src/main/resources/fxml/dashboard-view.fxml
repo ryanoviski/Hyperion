@@ -43,8 +43,8 @@
             <VBox prefHeight="140.0" prefWidth="160.0" styleClass="dashboard-card">
                <children>
                   <Label styleClass="card-label" text="Saldo" />
-                  <Label fx:id="balanceValueLabel" styleClass="card-value" text="R$ 0" />
-                  <Label styleClass="card-footnote" text="Inicial" />
+                  <Label fx:id="balanceValueLabel" styleClass="card-value" text="R$ 0,00" />
+                  <Label styleClass="card-footnote" text="Entradas - despesas" />
                </children>
             </VBox>
          </children>
