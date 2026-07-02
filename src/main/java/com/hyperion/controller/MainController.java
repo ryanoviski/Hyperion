@@ -17,6 +17,7 @@ public class MainController {
     private static final String PRODUCTS_VIEW = "/fxml/products-view.fxml";
     private static final String STOCK_VIEW = "/fxml/stock-view.fxml";
     private static final String SALES_VIEW = "/fxml/sales-view.fxml";
+    private static final String FINANCE_VIEW = "/fxml/finance-view.fxml";
 
     private static MainController activeController;
 
@@ -79,6 +80,11 @@ public class MainController {
     }
 
     @FXML
+    private void handleFinance() {
+        showFinance();
+    }
+
+    @FXML
     private void handleUnavailableSection() {
         // Temporary placeholder until these modules are implemented.
     }
@@ -130,6 +136,11 @@ public class MainController {
     private void showSales() {
         loadContent(SALES_VIEW);
         setActiveButton(salesButton);
+    }
+
+    private void showFinance() {
+        loadContent(FINANCE_VIEW);
+        setActiveButton(financeButton);
     }
 
     private void loadContent(String fxmlPath) {

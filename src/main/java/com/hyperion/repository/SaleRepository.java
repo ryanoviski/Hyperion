@@ -175,6 +175,25 @@ public class SaleRepository {
         }
     }
 
+    public BigDecimal getTotalSales() {
+        String sql = """
+                SELECT COALESCE(SUM(total), 0) AS total
+                FROM sales;
+                """;
+
+        return queryTotal(sql);
+    }
+
+    public BigDecimal getCurrentMonthSales() {
+        String sql = """
+                SELECT COALESCE(SUM(total), 0) AS total
+                FROM sales
+                WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
+                """;
+
+        return queryTotal(sql);
+    }
+
     public List<Sale> findByCustomerId(Long customerId) {
         String sql = """
                 SELECT id,
@@ -206,6 +225,21 @@ public class SaleRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not list customer purchases.", exception);
+        }
+    }
+
+    private BigDecimal queryTotal(String sql) {
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            if (!resultSet.next()) {
+                return BigDecimal.ZERO;
+            }
+
+            return resultSet.getBigDecimal("total");
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not load sales total.", exception);
         }
     }
 

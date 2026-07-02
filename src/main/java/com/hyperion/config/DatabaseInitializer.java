@@ -115,6 +115,16 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String CREATE_EXPENSES_TABLE = """
+            CREATE TABLE IF NOT EXISTS expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                description TEXT NOT NULL,
+                category TEXT,
+                amount NUMERIC NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -130,6 +140,7 @@ public final class DatabaseInitializer {
             statement.execute(CREATE_SALES_TABLE);
             statement.execute(CREATE_SALE_ITEMS_TABLE);
             statement.execute(CREATE_CREDIT_INSTALLMENTS_TABLE);
+            statement.execute(CREATE_EXPENSES_TABLE);
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);
         }
