@@ -3,8 +3,11 @@ package com.hyperion.repository;
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.CreditSalePlan;
 import com.hyperion.model.DailySalesSummary;
+import com.hyperion.model.PaymentMethodReport;
+import com.hyperion.model.ProductSalesReport;
 import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
+import com.hyperion.model.SalesReportSummary;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -225,6 +228,93 @@ public class SaleRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not list customer purchases.", exception);
+        }
+    }
+
+    public SalesReportSummary getSalesReportSummary() {
+        String sql = """
+                SELECT COUNT(*) AS sales_count,
+                       COALESCE(SUM(total), 0) AS total_sales,
+                       COALESCE(AVG(total), 0) AS average_ticket
+                FROM sales;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            if (!resultSet.next()) {
+                return new SalesReportSummary(0, BigDecimal.ZERO, BigDecimal.ZERO);
+            }
+
+            return new SalesReportSummary(
+                    resultSet.getInt("sales_count"),
+                    resultSet.getBigDecimal("total_sales"),
+                    resultSet.getBigDecimal("average_ticket")
+            );
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not load sales report summary.", exception);
+        }
+    }
+
+    public List<PaymentMethodReport> findSalesByPaymentMethod() {
+        String sql = """
+                SELECT payment_method,
+                       COUNT(*) AS sales_count,
+                       COALESCE(SUM(total), 0) AS total_amount
+                FROM sales
+                GROUP BY payment_method
+                ORDER BY total_amount DESC;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            List<PaymentMethodReport> reports = new ArrayList<>();
+
+            while (resultSet.next()) {
+                reports.add(new PaymentMethodReport(
+                        resultSet.getString("payment_method"),
+                        resultSet.getInt("sales_count"),
+                        resultSet.getBigDecimal("total_amount")
+                ));
+            }
+
+            return reports;
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not load payment method report.", exception);
+        }
+    }
+
+    public List<ProductSalesReport> findTopSellingProducts() {
+        String sql = """
+                SELECT product_name,
+                       COALESCE(SUM(quantity), 0) AS quantity_sold,
+                       COALESCE(SUM(subtotal), 0) AS total_amount
+                FROM sale_items
+                GROUP BY product_id, product_name
+                ORDER BY quantity_sold DESC, total_amount DESC
+                LIMIT 10;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            List<ProductSalesReport> reports = new ArrayList<>();
+
+            while (resultSet.next()) {
+                reports.add(new ProductSalesReport(
+                        resultSet.getString("product_name"),
+                        resultSet.getInt("quantity_sold"),
+                        resultSet.getBigDecimal("total_amount")
+                ));
+            }
+
+            return reports;
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not load top selling products.", exception);
         }
     }
 
