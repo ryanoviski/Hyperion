@@ -21,7 +21,7 @@
             <Button fx:id="financeButton" mnemonicParsing="false" onAction="#handleFinance" styleClass="sidebar-button" text="Financeiro" />
             <Button fx:id="reportsButton" mnemonicParsing="false" onAction="#handleReports" styleClass="sidebar-button" text="Relatórios" />
             <Region VBox.vgrow="ALWAYS" />
-            <Button fx:id="settingsButton" mnemonicParsing="false" onAction="#handleUnavailableSection" styleClass="sidebar-button" text="Configurações" />
+            <Button fx:id="settingsButton" mnemonicParsing="false" onAction="#handleSettings" styleClass="sidebar-button" text="Configurações" />
          </children>
       </VBox>
    </left>
