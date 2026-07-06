@@ -96,6 +96,41 @@ public class AppSettingsRepository {
         }
     }
 
+    public void updatePin(String pinHash) {
+        ensureSettingsRowExists();
+
+        String sql = """
+                UPDATE app_settings
+                SET pin_enabled = 1,
+                    pin_hash = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, pinHash);
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not update PIN.", exception);
+        }
+    }
+
+    public void removePin() {
+        ensureSettingsRowExists();
+
+        String sql = """
+                UPDATE app_settings
+                SET pin_enabled = 0,
+                    pin_hash = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
+                """;
+
+        executeUpdate(sql);
+    }
+
     private void ensureSettingsRowExists() {
         String sql = """
                 INSERT INTO app_settings (first_run_completed, pin_enabled)
