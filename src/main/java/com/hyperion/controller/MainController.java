@@ -17,6 +17,7 @@ public class MainController {
     private static final String PRODUCTS_VIEW = "/fxml/products-view.fxml";
     private static final String STOCK_VIEW = "/fxml/stock-view.fxml";
     private static final String SALES_VIEW = "/fxml/sales-view.fxml";
+    private static final String CREDIT_VIEW = "/fxml/credit-view.fxml";
     private static final String FINANCE_VIEW = "/fxml/finance-view.fxml";
     private static final String REPORTS_VIEW = "/fxml/reports-view.fxml";
     private static final String SETTINGS_VIEW = "/fxml/settings-view.fxml";
@@ -37,6 +38,9 @@ public class MainController {
 
     @FXML
     private Button salesButton;
+
+    @FXML
+    private Button creditButton;
 
     @FXML
     private Button financeButton;
@@ -79,6 +83,11 @@ public class MainController {
     @FXML
     private void handleSales() {
         showSales();
+    }
+
+    @FXML
+    private void handleCredit() {
+        showCredit();
     }
 
     @FXML
@@ -150,6 +159,11 @@ public class MainController {
         setActiveButton(salesButton);
     }
 
+    private void showCredit() {
+        loadContent(CREDIT_VIEW);
+        setActiveButton(creditButton);
+    }
+
     private void showFinance() {
         loadContent(FINANCE_VIEW);
         setActiveButton(financeButton);
@@ -192,6 +206,7 @@ public class MainController {
                 productsButton,
                 stockButton,
                 salesButton,
+                creditButton,
                 financeButton,
                 reportsButton,
                 settingsButton
