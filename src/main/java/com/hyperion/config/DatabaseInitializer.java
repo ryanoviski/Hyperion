@@ -126,6 +126,20 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String CREATE_ATTACHMENTS_TABLE = """
+            CREATE TABLE IF NOT EXISTS attachments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                module TEXT NOT NULL,
+                entity_id INTEGER NOT NULL,
+                original_name TEXT NOT NULL,
+                stored_name TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                content_type TEXT,
+                file_size INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            """;
+
     private static final String ADD_CREDIT_INSTALLMENTS_PAID_AT_COLUMN = """
             ALTER TABLE credit_installments
             ADD COLUMN paid_at TEXT;
@@ -147,6 +161,7 @@ public final class DatabaseInitializer {
             statement.execute(CREATE_SALE_ITEMS_TABLE);
             statement.execute(CREATE_CREDIT_INSTALLMENTS_TABLE);
             statement.execute(CREATE_EXPENSES_TABLE);
+            statement.execute(CREATE_ATTACHMENTS_TABLE);
 
             addColumnIfMissing(
                     connection,

@@ -18,19 +18,27 @@ public class ExpenseRepository {
 
     private static final DateTimeFormatter SQLITE_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public void save(Expense expense) {
+    public Long save(Expense expense) {
         String sql = """
                 INSERT INTO expenses (description, category, amount)
                 VALUES (?, ?, ?);
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setString(1, expense.getDescription());
             statement.setString(2, expense.getCategory());
             statement.setBigDecimal(3, expense.getAmount());
             statement.executeUpdate();
+
+            try (ResultSet resultSet = statement.getGeneratedKeys()) {
+                if (resultSet.next()) {
+                    return resultSet.getLong(1);
+                }
+
+                throw new IllegalStateException("Could not read generated expense id.");
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not save expense.", exception);
         }

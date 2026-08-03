@@ -14,8 +14,9 @@ public class FinanceService {
     private final ExpenseRepository expenseRepository = new ExpenseRepository();
     private final SaleRepository saleRepository = new SaleRepository();
     private final CreditInstallmentRepository creditInstallmentRepository = new CreditInstallmentRepository();
+    private final AttachmentService attachmentService = new AttachmentService();
 
-    public void registerExpense(String description, String category, BigDecimal amount) {
+    public Long registerExpense(String description, String category, BigDecimal amount) {
         String normalizedDescription = normalize(description);
 
         if (normalizedDescription.isBlank()) {
@@ -26,7 +27,7 @@ public class FinanceService {
             throw new IllegalArgumentException("Informe um valor maior que zero.");
         }
 
-        expenseRepository.save(new Expense(
+        return expenseRepository.save(new Expense(
                 normalizedDescription,
                 normalize(category),
                 amount
@@ -38,6 +39,7 @@ public class FinanceService {
             throw new IllegalArgumentException("Selecione uma despesa para remover.");
         }
 
+        attachmentService.deleteByEntity(AttachmentService.FINANCE_MODULE, expense.getId());
         expenseRepository.delete(expense.getId());
     }
 

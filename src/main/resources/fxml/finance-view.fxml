@@ -64,6 +64,13 @@
                         <TextField fx:id="descriptionField" prefHeight="42.0" promptText="Descrição" />
                         <TextField fx:id="categoryField" prefHeight="42.0" promptText="Categoria" />
                         <TextField fx:id="amountField" prefHeight="42.0" promptText="Valor em R$" />
+                        <HBox spacing="10.0">
+                           <children>
+                              <Button fx:id="selectAttachmentButton" mnemonicParsing="false" onAction="#handleSelectAttachment" prefWidth="190.0" styleClass="secondary-button" text="Anexar comprovante" />
+                              <Button fx:id="clearAttachmentButton" mnemonicParsing="false" onAction="#handleClearAttachment" prefWidth="100.0" styleClass="secondary-button" text="Limpar" />
+                           </children>
+                        </HBox>
+                        <Label fx:id="attachmentLabel" prefWidth="300.0" styleClass="text-muted-left" text="Nenhum comprovante selecionado." wrapText="true" />
                         <Button fx:id="addExpenseButton" mnemonicParsing="false" onAction="#handleAddExpense" prefWidth="300.0" styleClass="primary-button" text="Registrar despesa" />
                         <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
                      </children>
@@ -80,10 +87,11 @@
                         </HBox>
                         <TableView fx:id="expensesTable" prefHeight="360.0" VBox.vgrow="ALWAYS">
                            <columns>
-                              <TableColumn fx:id="dateColumn" prefWidth="150.0" text="Data" />
-                              <TableColumn fx:id="descriptionColumn" prefWidth="260.0" text="Descrição" />
-                              <TableColumn fx:id="categoryColumn" prefWidth="150.0" text="Categoria" />
-                              <TableColumn fx:id="amountColumn" prefWidth="140.0" text="Valor" />
+                              <TableColumn fx:id="dateColumn" prefWidth="145.0" text="Data" />
+                              <TableColumn fx:id="descriptionColumn" prefWidth="240.0" text="Descrição" />
+                              <TableColumn fx:id="categoryColumn" prefWidth="130.0" text="Categoria" />
+                              <TableColumn fx:id="amountColumn" prefWidth="130.0" text="Valor" />
+                              <TableColumn fx:id="attachmentColumn" prefWidth="100.0" text="Anexo" />
                            </columns>
                         </TableView>
                      </children>
