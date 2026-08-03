@@ -3,6 +3,7 @@ package com.hyperion.repository;
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.CreditInstallment;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -80,17 +81,40 @@ public class CreditInstallmentRepository {
                        status
                 FROM credit_installments
                 WHERE status = 'PAID'
-                ORDER BY due_date DESC, id DESC
+                ORDER BY COALESCE(paid_at, due_date) DESC, id DESC
                 LIMIT 100;
                 """;
 
         return findInstallments(sql);
     }
 
+    public BigDecimal getTotalPaidInstallments() {
+        String sql = """
+                SELECT COALESCE(SUM(amount), 0) AS total
+                FROM credit_installments
+                WHERE status = 'PAID';
+                """;
+
+        return queryTotal(sql);
+    }
+
+    public BigDecimal getCurrentMonthPaidInstallments() {
+        String sql = """
+                SELECT COALESCE(SUM(amount), 0) AS total
+                FROM credit_installments
+                WHERE status = 'PAID'
+                  AND paid_at IS NOT NULL
+                  AND strftime('%Y-%m', paid_at) = strftime('%Y-%m', 'now', 'localtime');
+                """;
+
+        return queryTotal(sql);
+    }
+
     public void markAsPaid(Long id) {
         String sql = """
                 UPDATE credit_installments
-                SET status = 'PAID'
+                SET status = 'PAID',
+                    paid_at = CURRENT_TIMESTAMP
                 WHERE id = ?;
                 """;
 
@@ -118,6 +142,22 @@ public class CreditInstallmentRepository {
             return installments;
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not list credit installments.", exception);
+        }
+    }
+
+    private BigDecimal queryTotal(String sql) {
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            if (!resultSet.next()) {
+                return BigDecimal.ZERO;
+            }
+
+            BigDecimal total = resultSet.getBigDecimal("total");
+            return total == null ? BigDecimal.ZERO : total;
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not calculate credit installment total.", exception);
         }
     }
 

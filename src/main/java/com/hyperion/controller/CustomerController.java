@@ -9,15 +9,17 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
@@ -256,8 +258,16 @@ public class CustomerController {
         dialog.setHeaderText(customer.getName());
         dialog.initOwner(customersTable.getScene().getWindow());
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().setContent(createCustomerProfileContent(customer));
+        dialog.getDialogPane().setContent(createCustomerProfileScrollContent(customer));
         dialog.showAndWait();
+    }
+
+    private ScrollPane createCustomerProfileScrollContent(Customer customer) {
+        ScrollPane scrollPane = new ScrollPane(createCustomerProfileContent(customer));
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportWidth(760);
+        scrollPane.setPrefViewportHeight(420);
+        return scrollPane;
     }
 
     private VBox createCustomerProfileContent(Customer customer) {
@@ -352,6 +362,7 @@ public class CustomerController {
         form.setVgap(12);
         form.setPadding(new Insets(16));
         form.setPrefWidth(520);
+        form.getColumnConstraints().addAll(createLabelColumn(), createFieldColumn());
 
         form.add(new Label("Nome"), 0, 0);
         form.add(customerNameField, 1, 0);
@@ -367,6 +378,20 @@ public class CustomerController {
         form.add(customerNotesArea, 1, 5);
 
         return form;
+    }
+
+    private ColumnConstraints createLabelColumn() {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setMinWidth(120);
+        column.setPrefWidth(120);
+        return column;
+    }
+
+    private ColumnConstraints createFieldColumn() {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setMinWidth(360);
+        column.setPrefWidth(360);
+        return column;
     }
 
     private String textValue(String value) {

@@ -1,6 +1,7 @@
 package com.hyperion.util;
 
 import javafx.fxml.FXMLLoader;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -25,6 +26,8 @@ public final class SceneManager {
         ensureStageIsConfigured();
 
         try {
+            boolean wasFullScreen = mainStage.isFullScreen();
+
             Parent root = FXMLLoader.load(Objects.requireNonNull(
                     SceneManager.class.getResource(fxmlPath)
             ));
@@ -35,7 +38,11 @@ public final class SceneManager {
             ).toExternalForm());
 
             mainStage.setScene(scene);
-            mainStage.centerOnScreen();
+            if (wasFullScreen) {
+                Platform.runLater(() -> mainStage.setFullScreen(true));
+            } else {
+                mainStage.centerOnScreen();
+            }
         } catch (IOException exception) {
             throw new IllegalStateException("Could not load FXML: " + fxmlPath, exception);
         }

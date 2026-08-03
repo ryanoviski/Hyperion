@@ -1,6 +1,7 @@
 package com.hyperion.config;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -125,6 +126,11 @@ public final class DatabaseInitializer {
             );
             """;
 
+    private static final String ADD_CREDIT_INSTALLMENTS_PAID_AT_COLUMN = """
+            ALTER TABLE credit_installments
+            ADD COLUMN paid_at TEXT;
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -141,8 +147,38 @@ public final class DatabaseInitializer {
             statement.execute(CREATE_SALE_ITEMS_TABLE);
             statement.execute(CREATE_CREDIT_INSTALLMENTS_TABLE);
             statement.execute(CREATE_EXPENSES_TABLE);
+
+            addColumnIfMissing(
+                    connection,
+                    "credit_installments",
+                    "paid_at",
+                    ADD_CREDIT_INSTALLMENTS_PAID_AT_COLUMN
+            );
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);
+        }
+    }
+
+    private static void addColumnIfMissing(
+            Connection connection,
+            String tableName,
+            String columnName,
+            String alterTableSql
+    ) throws SQLException {
+        String sql = "PRAGMA table_info(" + tableName + ");";
+
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            while (resultSet.next()) {
+                if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
+                    return;
+                }
+            }
+        }
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(alterTableSql);
         }
     }
 }

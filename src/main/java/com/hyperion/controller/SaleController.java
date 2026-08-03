@@ -30,7 +30,7 @@ public class SaleController {
     private final CustomerService customerService = new CustomerService();
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
-    private final ObservableList<SaleItem> cartItems = FXCollections.observableArrayList();
+    private static final ObservableList<SaleItem> CART_ITEMS = FXCollections.observableArrayList();
 
     @FXML
     private ChoiceBox<Customer> customerChoiceBox;
@@ -48,7 +48,7 @@ public class SaleController {
     private TextField discountField;
 
     @FXML
-    private TextField installmentsField;
+    private ChoiceBox<Integer> installmentsChoiceBox;
 
     @FXML
     private DatePicker firstDueDatePicker;
@@ -83,7 +83,7 @@ public class SaleController {
         configureTableColumns();
         loadCustomers();
         loadProducts();
-        cartTable.setItems(cartItems);
+        cartTable.setItems(CART_ITEMS);
         discountField.textProperty().addListener((observable, oldValue, newValue) -> updateTotals());
         updateTotals();
     }
@@ -100,7 +100,7 @@ public class SaleController {
         try {
             int quantity = parseQuantity(quantityField.getText());
             SaleItem item = new SaleItem(product.getId(), product.getName(), quantity, product.getPrice());
-            cartItems.add(item);
+            CART_ITEMS.add(item);
             quantityField.clear();
             updateTotals();
             showMessage("Produto adicionado ao carrinho.");
@@ -118,7 +118,7 @@ public class SaleController {
             return;
         }
 
-        cartItems.remove(selectedItem);
+        CART_ITEMS.remove(selectedItem);
         updateTotals();
         showMessage("Item removido do carrinho.");
     }
@@ -128,7 +128,7 @@ public class SaleController {
         try {
             saleService.finishSale(
                     customerChoiceBox.getValue(),
-                    List.copyOf(cartItems),
+                    List.copyOf(CART_ITEMS),
                     parseMoney(discountField.getText()),
                     paymentMethodChoiceBox.getValue(),
                     buildCreditSalePlan()
@@ -178,11 +178,15 @@ public class SaleController {
                 "Cartão débito",
                 "Crediário"
         ));
+
+        installmentsChoiceBox.setItems(FXCollections.observableArrayList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+        installmentsChoiceBox.setValue(1);
+
         paymentMethodChoiceBox.setValue("Dinheiro");
         paymentMethodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, paymentMethod) -> {
             boolean isCreditSale = "Crediário".equals(paymentMethod);
-            installmentsField.setVisible(isCreditSale);
-            installmentsField.setManaged(isCreditSale);
+            installmentsChoiceBox.setVisible(isCreditSale);
+            installmentsChoiceBox.setManaged(isCreditSale);
             firstDueDatePicker.setVisible(isCreditSale);
             firstDueDatePicker.setManaged(isCreditSale);
         });
@@ -219,7 +223,7 @@ public class SaleController {
     private BigDecimal calculateSubtotal() {
         BigDecimal subtotal = BigDecimal.ZERO;
 
-        for (SaleItem item : cartItems) {
+        for (SaleItem item : CART_ITEMS) {
             subtotal = subtotal.add(item.getSubtotal());
         }
 
@@ -266,29 +270,21 @@ public class SaleController {
         }
 
         return new CreditSalePlan(
-                parseInstallments(installmentsField.getText()),
+                parseInstallments(installmentsChoiceBox.getValue()),
                 firstDueDatePicker.getValue()
         );
     }
 
-    private int parseInstallments(String value) {
-        String normalizedValue = value == null ? "" : value.trim();
-
-        if (normalizedValue.isBlank()) {
+    private int parseInstallments(Integer value) {
+        if (value == null) {
             throw new IllegalArgumentException("Informe a quantidade de parcelas.");
         }
 
-        try {
-            int installments = Integer.parseInt(normalizedValue);
-
-            if (installments <= 0) {
-                throw new IllegalArgumentException("A quantidade de parcelas deve ser maior que zero.");
-            }
-
-            return installments;
-        } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe uma quantidade válida de parcelas.");
+        if (value < 1 || value > 10) {
+            throw new IllegalArgumentException("Selecione de 1 a 10 parcelas.");
         }
+
+        return value;
     }
 
     private BigDecimal parseMoneyOrZero(String value) {
@@ -304,10 +300,10 @@ public class SaleController {
     }
 
     private void clearSale() {
-        cartItems.clear();
+        CART_ITEMS.clear();
         quantityField.clear();
         discountField.clear();
-        installmentsField.clear();
+        installmentsChoiceBox.setValue(1);
         firstDueDatePicker.setValue(null);
         updateTotals();
     }

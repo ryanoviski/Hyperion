@@ -197,6 +197,27 @@ public class SaleRepository {
         return queryTotal(sql);
     }
 
+    public BigDecimal getTotalImmediateSales() {
+        String sql = """
+                SELECT COALESCE(SUM(total), 0) AS total
+                FROM sales
+                WHERE payment_method NOT IN ('Crediário', 'Crediario');
+                """;
+
+        return queryTotal(sql);
+    }
+
+    public BigDecimal getCurrentMonthImmediateSales() {
+        String sql = """
+                SELECT COALESCE(SUM(total), 0) AS total
+                FROM sales
+                WHERE payment_method NOT IN ('Crediário', 'Crediario')
+                  AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
+                """;
+
+        return queryTotal(sql);
+    }
+
     public List<Sale> findByCustomerId(Long customerId) {
         String sql = """
                 SELECT id,

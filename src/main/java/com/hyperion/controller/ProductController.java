@@ -16,6 +16,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 
 import java.math.BigDecimal;
@@ -250,8 +251,8 @@ public class ProductController {
         productDescriptionArea = new TextArea();
 
         productNameField.setPromptText("Nome do produto");
-        productPriceField.setPromptText("0,00");
-        productCostField.setPromptText("0,00");
+        productPriceField.setPromptText("R$ 0,00");
+        productCostField.setPromptText("R$ 0,00");
         productStockField.setPromptText("0");
         productCategoryField.setPromptText("Categoria");
         productBarcodeField.setPromptText("Código de barras");
@@ -259,11 +260,14 @@ public class ProductController {
         productDescriptionArea.setPromptText("Descrição");
         productDescriptionArea.setPrefRowCount(3);
 
+        configureMoneyField(productPriceField);
+        configureMoneyField(productCostField);
+
         if (product != null) {
             productNameField.setText(textValue(product.getName()));
             productDescriptionArea.setText(textValue(product.getDescription()));
-            productPriceField.setText(product.getPrice().toPlainString());
-            productCostField.setText(product.getCost().toPlainString());
+            productPriceField.setText(formatMoney(product.getPrice()));
+            productCostField.setText(formatMoney(product.getCost()));
             productStockField.setText(String.valueOf(product.getStockQuantity()));
             productCategoryField.setText(textValue(product.getCategory()));
             productBarcodeField.setText(textValue(product.getBarcode()));
@@ -275,6 +279,7 @@ public class ProductController {
         form.setVgap(12);
         form.setPadding(new Insets(16));
         form.setPrefWidth(560);
+        form.getColumnConstraints().addAll(createLabelColumn(), createFieldColumn());
 
         form.add(new Label("Nome"), 0, 0);
         form.add(productNameField, 1, 0);
@@ -297,14 +302,14 @@ public class ProductController {
     }
 
     private BigDecimal parseMoney(String value) {
-        String normalizedValue = textValue(value).replace(",", ".").trim();
+        String digits = textValue(value).replaceAll("\\D", "");
 
-        if (normalizedValue.isBlank()) {
+        if (digits.isBlank()) {
             return BigDecimal.ZERO;
         }
 
         try {
-            return new BigDecimal(normalizedValue);
+            return new BigDecimal(digits).movePointLeft(2);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Informe valores monetários válidos.");
         }
@@ -322,6 +327,42 @@ public class ProductController {
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Informe uma quantidade válida em estoque.");
         }
+    }
+
+    private void configureMoneyField(TextField field) {
+        field.textProperty().addListener((observable, oldValue, newValue) -> {
+            String formattedValue = formatDigitsAsMoney(newValue);
+
+            if (!formattedValue.equals(newValue)) {
+                field.setText(formattedValue);
+                field.positionCaret(formattedValue.length());
+            }
+        });
+    }
+
+    private String formatDigitsAsMoney(String value) {
+        String digits = textValue(value).replaceAll("\\D", "");
+
+        if (digits.isBlank()) {
+            digits = "0";
+        }
+
+        BigDecimal amount = new BigDecimal(digits).movePointLeft(2);
+        return formatMoney(amount);
+    }
+
+    private ColumnConstraints createLabelColumn() {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setMinWidth(120);
+        column.setPrefWidth(120);
+        return column;
+    }
+
+    private ColumnConstraints createFieldColumn() {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setMinWidth(380);
+        column.setPrefWidth(380);
+        return column;
     }
 
     private String formatMoney(BigDecimal value) {

@@ -2,6 +2,7 @@ package com.hyperion.service;
 
 import com.hyperion.model.Expense;
 import com.hyperion.model.FinancialSummary;
+import com.hyperion.repository.CreditInstallmentRepository;
 import com.hyperion.repository.ExpenseRepository;
 import com.hyperion.repository.SaleRepository;
 
@@ -12,6 +13,7 @@ public class FinanceService {
 
     private final ExpenseRepository expenseRepository = new ExpenseRepository();
     private final SaleRepository saleRepository = new SaleRepository();
+    private final CreditInstallmentRepository creditInstallmentRepository = new CreditInstallmentRepository();
 
     public void registerExpense(String description, String category, BigDecimal amount) {
         String normalizedDescription = normalize(description);
@@ -45,11 +47,21 @@ public class FinanceService {
 
     public FinancialSummary getSummary() {
         return new FinancialSummary(
-                saleRepository.getTotalSales(),
+                getTotalRealizedIncome(),
                 expenseRepository.getTotalExpenses(),
-                saleRepository.getCurrentMonthSales(),
+                getCurrentMonthRealizedIncome(),
                 expenseRepository.getCurrentMonthExpenses()
         );
+    }
+
+    private BigDecimal getTotalRealizedIncome() {
+        return saleRepository.getTotalImmediateSales()
+                .add(creditInstallmentRepository.getTotalPaidInstallments());
+    }
+
+    private BigDecimal getCurrentMonthRealizedIncome() {
+        return saleRepository.getCurrentMonthImmediateSales()
+                .add(creditInstallmentRepository.getCurrentMonthPaidInstallments());
     }
 
     private String normalize(String value) {
