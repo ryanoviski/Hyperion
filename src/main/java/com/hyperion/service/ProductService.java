@@ -54,6 +54,14 @@ public class ProductService {
         productRepository.deactivate(id);
     }
 
+    public void reactivateProduct(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Produto inválido para reativação.");
+        }
+
+        productRepository.reactivate(id);
+    }
+
     public Optional<Product> findById(Long id) {
         if (id == null) {
             return Optional.empty();
@@ -66,6 +74,10 @@ public class ProductService {
         return productRepository.findAllActive();
     }
 
+    public List<Product> listInactiveProducts() {
+        return productRepository.findAllInactive();
+    }
+
     public List<Product> searchActiveProducts(String term) {
         String normalizedTerm = normalize(term);
 
@@ -74,6 +86,16 @@ public class ProductService {
         }
 
         return productRepository.searchActive(normalizedTerm);
+    }
+
+    public List<Product> searchInactiveProducts(String term) {
+        String normalizedTerm = normalize(term);
+
+        if (normalizedTerm.isBlank()) {
+            return listInactiveProducts();
+        }
+
+        return productRepository.searchInactive(normalizedTerm);
     }
 
     private void validateProduct(String name, BigDecimal price, BigDecimal cost, int stockQuantity) {

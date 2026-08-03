@@ -311,3 +311,29 @@
     -fx-text-alignment: center;
     -fx-padding: 12;
 }
+
+.dialog-pane {
+    -fx-background-color: #111827;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.dialog-pane > .content {
+    -fx-background-color: #111827;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #1E293B;
+    -fx-text-fill: #F8FAFC;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-weight: bold;
+    -fx-min-height: 38;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: #2563EB;
+}

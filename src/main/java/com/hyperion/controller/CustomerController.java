@@ -12,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -31,6 +32,8 @@ import java.util.Optional;
 
 public class CustomerController {
 
+    private static final String ACTIVE_FILTER = "Ativos";
+    private static final String INACTIVE_FILTER = "Inativos";
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -41,10 +44,16 @@ public class CustomerController {
     private TextField searchField;
 
     @FXML
+    private ChoiceBox<String> statusFilterChoiceBox;
+
+    @FXML
     private Button editCustomerButton;
 
     @FXML
     private Button deactivateCustomerButton;
+
+    @FXML
+    private Button reactivateCustomerButton;
 
     @FXML
     private Button profileCustomerButton;
@@ -72,6 +81,7 @@ public class CustomerController {
 
     @FXML
     private void initialize() {
+        configureFilter();
         configureTableColumns();
         configureSelectionState();
         loadCustomers();
@@ -79,10 +89,7 @@ public class CustomerController {
 
     @FXML
     private void handleSearch() {
-        String searchTerm = searchField.getText();
-        List<Customer> customers = customerService.searchActiveCustomers(searchTerm);
-        updateTable(customers);
-        showMessage(customers.size() + " cliente(s) encontrado(s).");
+        loadCustomers();
     }
 
     @FXML
@@ -106,6 +113,7 @@ public class CustomerController {
                         formData.notes()
                 );
 
+                statusFilterChoiceBox.setValue(ACTIVE_FILTER);
                 loadCustomers();
                 showMessage("Cliente cadastrado: " + formData.name() + ".");
             } catch (IllegalArgumentException | IllegalStateException exception) {
@@ -179,11 +187,35 @@ public class CustomerController {
         }
     }
 
+    @FXML
+    private void handleReactivateCustomer() {
+        Customer selectedCustomer = getSelectedCustomer();
+
+        if (selectedCustomer == null) {
+            showMessage("Selecione um cliente para reativar.");
+            return;
+        }
+
+        try {
+            customerService.reactivateCustomer(selectedCustomer.getId());
+            loadCustomers();
+            showMessage("Cliente reativado: " + selectedCustomer.getName() + ".");
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            showMessage(exception.getMessage());
+        }
+    }
+
+    private void configureFilter() {
+        statusFilterChoiceBox.setItems(FXCollections.observableArrayList(ACTIVE_FILTER, INACTIVE_FILTER));
+        statusFilterChoiceBox.setValue(ACTIVE_FILTER);
+        statusFilterChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> loadCustomers());
+    }
+
     private void configureTableColumns() {
-        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getName()));
-        documentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getDocument()));
-        phoneColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getPhone()));
-        emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getEmail()));
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getName())));
+        documentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getDocument())));
+        phoneColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getPhone())));
+        emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getEmail())));
         statusColumn.setCellValueFactory(cellData -> {
             String status = cellData.getValue().isActive() ? "Ativo" : "Inativo";
             return new ReadOnlyStringWrapper(status);
@@ -191,26 +223,41 @@ public class CustomerController {
     }
 
     private void configureSelectionState() {
-        profileCustomerButton.setDisable(true);
-        editCustomerButton.setDisable(true);
-        deactivateCustomerButton.setDisable(true);
+        updateActionButtons(null);
 
-        customersTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedCustomer) -> {
-            boolean hasSelection = selectedCustomer != null;
-            profileCustomerButton.setDisable(!hasSelection);
-            editCustomerButton.setDisable(!hasSelection);
-            deactivateCustomerButton.setDisable(!hasSelection);
-        });
+        customersTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedCustomer) ->
+                updateActionButtons(selectedCustomer)
+        );
+    }
+
+    private void updateActionButtons(Customer selectedCustomer) {
+        boolean hasSelection = selectedCustomer != null;
+        boolean isActive = hasSelection && selectedCustomer.isActive();
+
+        profileCustomerButton.setDisable(!hasSelection);
+        editCustomerButton.setDisable(!hasSelection);
+        deactivateCustomerButton.setDisable(!isActive);
+        reactivateCustomerButton.setDisable(!hasSelection || isActive);
     }
 
     private void loadCustomers() {
-        List<Customer> customers = customerService.listActiveCustomers();
+        boolean showingActive = isShowingActive();
+        String searchTerm = searchField.getText();
+        List<Customer> customers = showingActive
+                ? customerService.searchActiveCustomers(searchTerm)
+                : customerService.searchInactiveCustomers(searchTerm);
+
         updateTable(customers);
-        showMessage(customers.size() + " cliente(s) ativo(s).");
+        showMessage(customers.size() + (showingActive ? " cliente(s) ativo(s)." : " cliente(s) inativo(s)."));
+    }
+
+    private boolean isShowingActive() {
+        return !INACTIVE_FILTER.equals(statusFilterChoiceBox.getValue());
     }
 
     private void updateTable(List<Customer> customers) {
         customersTable.setItems(FXCollections.observableArrayList(customers));
+        updateActionButtons(customersTable.getSelectionModel().getSelectedItem());
     }
 
     private Customer getSelectedCustomer() {
@@ -282,15 +329,13 @@ public class CustomerController {
         Label purchasesTitle = new Label("Histórico de compras");
         purchasesTitle.getStyleClass().add("panel-title");
 
-        TableView<Sale> purchasesTable = createPurchasesTable(customer);
-
         content.getChildren().addAll(
                 documentLabel,
                 phoneLabel,
                 emailLabel,
                 addressLabel,
                 purchasesTitle,
-                purchasesTable
+                createPurchasesTable(customer)
         );
 
         return content;

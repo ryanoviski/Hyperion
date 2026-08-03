@@ -34,8 +34,18 @@
                         <VBox prefWidth="360.0" spacing="14.0" styleClass="dashboard-panel">
                            <children>
                               <Label styleClass="panel-title" text="Etapa 1 - Carrinho" />
-                              <ChoiceBox fx:id="customerChoiceBox" prefHeight="42.0" prefWidth="320.0" />
-                              <ChoiceBox fx:id="productChoiceBox" prefHeight="42.0" prefWidth="320.0" />
+                              <HBox spacing="10.0">
+                                 <children>
+                                    <TextField fx:id="selectedCustomerField" prefHeight="42.0" promptText="Nenhum cliente selecionado" HBox.hgrow="ALWAYS" />
+                                    <Button mnemonicParsing="false" onAction="#handleSearchCustomer" prefWidth="96.0" styleClass="secondary-button" text="Buscar" />
+                                 </children>
+                              </HBox>
+                              <HBox spacing="10.0">
+                                 <children>
+                                    <TextField fx:id="selectedProductField" prefHeight="42.0" promptText="Nenhum produto selecionado" HBox.hgrow="ALWAYS" />
+                                    <Button mnemonicParsing="false" onAction="#handleSearchProduct" prefWidth="96.0" styleClass="secondary-button" text="Buscar" />
+                                 </children>
+                              </HBox>
                               <TextField fx:id="quantityField" prefHeight="42.0" promptText="Quantidade" />
                               <Button fx:id="addItemButton" mnemonicParsing="false" onAction="#handleAddItem" prefWidth="320.0" styleClass="secondary-button" text="Adicionar ao carrinho" />
                               <Label styleClass="panel-title" text="Etapa 2 - Pagamento" />

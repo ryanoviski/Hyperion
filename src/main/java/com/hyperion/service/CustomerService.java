@@ -47,6 +47,14 @@ public class CustomerService {
         customerRepository.deactivate(id);
     }
 
+    public void reactivateCustomer(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Cliente inválido para reativação.");
+        }
+
+        customerRepository.reactivate(id);
+    }
+
     public Optional<Customer> findById(Long id) {
         if (id == null) {
             return Optional.empty();
@@ -59,6 +67,10 @@ public class CustomerService {
         return customerRepository.findAllActive();
     }
 
+    public List<Customer> listInactiveCustomers() {
+        return customerRepository.findAllInactive();
+    }
+
     public List<Customer> searchActiveCustomers(String term) {
         String normalizedTerm = normalize(term);
 
@@ -67,6 +79,16 @@ public class CustomerService {
         }
 
         return customerRepository.searchActive(normalizedTerm);
+    }
+
+    public List<Customer> searchInactiveCustomers(String term) {
+        String normalizedTerm = normalize(term);
+
+        if (normalizedTerm.isBlank()) {
+            return listInactiveCustomers();
+        }
+
+        return customerRepository.searchInactive(normalizedTerm);
     }
 
     private String normalize(String value) {

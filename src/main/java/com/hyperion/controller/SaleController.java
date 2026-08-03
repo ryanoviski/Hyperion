@@ -11,32 +11,48 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class SaleController {
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
+    private static final ObservableList<SaleItem> CART_ITEMS = FXCollections.observableArrayList();
+    private static Customer draftCustomer;
+    private static Product draftProduct;
+    private static String draftDiscount = "";
+    private static String draftPaymentMethod = "Dinheiro";
+    private static Integer draftInstallments = 1;
+    private static LocalDate draftFirstDueDate;
 
     private final CustomerService customerService = new CustomerService();
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
-    private static final ObservableList<SaleItem> CART_ITEMS = FXCollections.observableArrayList();
+
+    private Customer selectedCustomer;
+    private Product selectedProduct;
 
     @FXML
-    private ChoiceBox<Customer> customerChoiceBox;
+    private TextField selectedCustomerField;
 
     @FXML
-    private ChoiceBox<Product> productChoiceBox;
+    private TextField selectedProductField;
 
     @FXML
     private ChoiceBox<String> paymentMethodChoiceBox;
@@ -81,26 +97,57 @@ public class SaleController {
     private void initialize() {
         configureChoiceBoxes();
         configureTableColumns();
-        loadCustomers();
-        loadProducts();
+        configureSelectedFields();
         cartTable.setItems(CART_ITEMS);
-        discountField.textProperty().addListener((observable, oldValue, newValue) -> updateTotals());
+        restoreDraft();
+        configureDraftPersistence();
         updateTotals();
     }
 
     @FXML
-    private void handleAddItem() {
-        Product product = productChoiceBox.getValue();
+    private void handleSearchCustomer() {
+        Optional<Customer> customer = showCustomerSearchDialog();
 
-        if (product == null) {
+        customer.ifPresent(selected -> {
+            selectedCustomer = selected;
+            draftCustomer = selected;
+            selectedCustomerField.setText(formatCustomer(selected));
+            showMessage("Cliente selecionado: " + selected.getName() + ".");
+        });
+    }
+
+    @FXML
+    private void handleSearchProduct() {
+        Optional<Product> product = showProductSearchDialog();
+
+        product.ifPresent(selected -> {
+            selectedProduct = selected;
+            draftProduct = selected;
+            selectedProductField.setText(formatProduct(selected));
+            showMessage("Produto selecionado: " + selected.getName() + ".");
+        });
+    }
+
+    @FXML
+    private void handleAddItem() {
+        if (selectedProduct == null) {
             showMessage("Selecione um produto.");
             return;
         }
 
         try {
             int quantity = parseQuantity(quantityField.getText());
-            SaleItem item = new SaleItem(product.getId(), product.getName(), quantity, product.getPrice());
+            SaleItem item = new SaleItem(
+                    selectedProduct.getId(),
+                    selectedProduct.getName(),
+                    quantity,
+                    selectedProduct.getPrice()
+            );
+
             CART_ITEMS.add(item);
+            selectedProduct = null;
+            draftProduct = null;
+            selectedProductField.clear();
             quantityField.clear();
             updateTotals();
             showMessage("Produto adicionado ao carrinho.");
@@ -127,7 +174,7 @@ public class SaleController {
     private void handleFinishSale() {
         try {
             saleService.finishSale(
-                    customerChoiceBox.getValue(),
+                    selectedCustomer,
                     List.copyOf(CART_ITEMS),
                     parseMoney(discountField.getText()),
                     paymentMethodChoiceBox.getValue(),
@@ -135,7 +182,6 @@ public class SaleController {
             );
 
             clearSale();
-            loadProducts();
             showMessage("Venda finalizada com sucesso.");
         } catch (IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
@@ -143,34 +189,6 @@ public class SaleController {
     }
 
     private void configureChoiceBoxes() {
-        customerChoiceBox.setConverter(new javafx.util.StringConverter<>() {
-            @Override
-            public String toString(Customer customer) {
-                return customer == null ? "" : customer.getName();
-            }
-
-            @Override
-            public Customer fromString(String value) {
-                return null;
-            }
-        });
-
-        productChoiceBox.setConverter(new javafx.util.StringConverter<>() {
-            @Override
-            public String toString(Product product) {
-                if (product == null) {
-                    return "";
-                }
-
-                return product.getName() + " - estoque: " + product.getStockQuantity();
-            }
-
-            @Override
-            public Product fromString(String value) {
-                return null;
-            }
-        });
-
         paymentMethodChoiceBox.setItems(FXCollections.observableArrayList(
                 "Dinheiro",
                 "PIX",
@@ -199,12 +217,199 @@ public class SaleController {
         subtotalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getSubtotal())));
     }
 
-    private void loadCustomers() {
-        customerChoiceBox.setItems(FXCollections.observableArrayList(customerService.listActiveCustomers()));
+    private void configureSelectedFields() {
+        selectedCustomerField.setEditable(false);
+        selectedCustomerField.setFocusTraversable(false);
+        selectedProductField.setEditable(false);
+        selectedProductField.setFocusTraversable(false);
     }
 
-    private void loadProducts() {
-        productChoiceBox.setItems(FXCollections.observableArrayList(productService.listActiveProducts()));
+    private void restoreDraft() {
+        selectedCustomer = draftCustomer;
+        selectedProduct = draftProduct;
+
+        if (selectedCustomer != null) {
+            selectedCustomerField.setText(formatCustomer(selectedCustomer));
+        }
+
+        if (selectedProduct != null) {
+            selectedProductField.setText(formatProduct(selectedProduct));
+        }
+
+        discountField.setText(draftDiscount);
+        paymentMethodChoiceBox.setValue(draftPaymentMethod);
+        installmentsChoiceBox.setValue(draftInstallments);
+        firstDueDatePicker.setValue(draftFirstDueDate);
+    }
+
+    private void configureDraftPersistence() {
+        discountField.textProperty().addListener((observable, oldValue, newValue) -> {
+            draftDiscount = textValue(newValue);
+            updateTotals();
+        });
+
+        paymentMethodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, paymentMethod) ->
+                draftPaymentMethod = paymentMethod
+        );
+
+        installmentsChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, installments) ->
+                draftInstallments = installments
+        );
+
+        firstDueDatePicker.valueProperty().addListener((observable, oldValue, dueDate) ->
+                draftFirstDueDate = dueDate
+        );
+    }
+
+    private Optional<Customer> showCustomerSearchDialog() {
+        Dialog<Customer> dialog = new Dialog<>();
+        dialog.setTitle("Buscar cliente");
+        dialog.setHeaderText(null);
+        dialog.initOwner(cartTable.getScene().getWindow());
+        addDialogStyles(dialog);
+
+        ButtonType selectButtonType = new ButtonType("Selecionar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(selectButtonType, ButtonType.CANCEL);
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Buscar por nome, CPF/CNPJ, telefone ou email");
+
+        TableView<Customer> table = createCustomerSearchTable();
+        table.setItems(FXCollections.observableArrayList(customerService.listActiveCustomers()));
+        searchField.textProperty().addListener((observable, oldValue, term) ->
+                table.setItems(FXCollections.observableArrayList(customerService.searchActiveCustomers(term)))
+        );
+
+        Node selectButton = dialog.getDialogPane().lookupButton(selectButtonType);
+        selectButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+
+        VBox content = new VBox(12, searchField, table);
+        content.setPrefWidth(720);
+        content.setPrefHeight(440);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType != selectButtonType) {
+                return null;
+            }
+
+            return table.getSelectionModel().getSelectedItem();
+        });
+
+        return dialog.showAndWait();
+    }
+
+    private Optional<Product> showProductSearchDialog() {
+        Dialog<Product> dialog = new Dialog<>();
+        dialog.setTitle("Buscar produto");
+        dialog.setHeaderText(null);
+        dialog.initOwner(cartTable.getScene().getWindow());
+        addDialogStyles(dialog);
+
+        ButtonType selectButtonType = new ButtonType("Selecionar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(selectButtonType, ButtonType.CANCEL);
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Buscar por nome, categoria, código ou fornecedor");
+
+        TableView<Product> table = createProductSearchTable();
+        table.setItems(FXCollections.observableArrayList(productService.listActiveProducts()));
+        searchField.textProperty().addListener((observable, oldValue, term) ->
+                table.setItems(FXCollections.observableArrayList(productService.searchActiveProducts(term)))
+        );
+
+        Node selectButton = dialog.getDialogPane().lookupButton(selectButtonType);
+        selectButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+
+        VBox content = new VBox(12, searchField, table);
+        content.setPrefWidth(780);
+        content.setPrefHeight(460);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType != selectButtonType) {
+                return null;
+            }
+
+            return table.getSelectionModel().getSelectedItem();
+        });
+
+        return dialog.showAndWait();
+    }
+
+    private TableView<Customer> createCustomerSearchTable() {
+        TableView<Customer> table = new TableView<>();
+        table.setPrefHeight(360);
+
+        TableColumn<Customer, String> nameColumn = new TableColumn<>("Cliente");
+        nameColumn.setPrefWidth(240);
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getName()));
+
+        TableColumn<Customer, String> documentColumn = new TableColumn<>("Documento");
+        documentColumn.setPrefWidth(160);
+        documentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getDocument())));
+
+        TableColumn<Customer, String> phoneColumn = new TableColumn<>("Telefone");
+        phoneColumn.setPrefWidth(140);
+        phoneColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getPhone())));
+
+        TableColumn<Customer, String> emailColumn = new TableColumn<>("Email");
+        emailColumn.setPrefWidth(180);
+        emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getEmail())));
+
+        table.getColumns().addAll(nameColumn, documentColumn, phoneColumn, emailColumn);
+        return table;
+    }
+
+    private TableView<Product> createProductSearchTable() {
+        TableView<Product> table = new TableView<>();
+        table.setPrefHeight(380);
+
+        TableColumn<Product, String> nameColumn = new TableColumn<>("Produto");
+        nameColumn.setPrefWidth(240);
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getName()));
+
+        TableColumn<Product, String> barcodeColumn = new TableColumn<>("Código");
+        barcodeColumn.setPrefWidth(140);
+        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getBarcode())));
+
+        TableColumn<Product, String> stockColumn = new TableColumn<>("Estoque");
+        stockColumn.setPrefWidth(100);
+        stockColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getStockQuantity())));
+
+        TableColumn<Product, String> priceColumn = new TableColumn<>("Preço");
+        priceColumn.setPrefWidth(120);
+        priceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getPrice())));
+
+        TableColumn<Product, String> supplierColumn = new TableColumn<>("Fornecedor");
+        supplierColumn.setPrefWidth(180);
+        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getSupplier())));
+
+        table.getColumns().addAll(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn);
+        return table;
+    }
+
+    private void addDialogStyles(Dialog<?> dialog) {
+        String stylesheet = SaleController.class.getResource("/css/app.css").toExternalForm();
+        dialog.getDialogPane().getStylesheets().add(stylesheet);
+    }
+
+    private String formatCustomer(Customer customer) {
+        String document = textValue(customer.getDocument());
+
+        if (document.isBlank()) {
+            return customer.getName();
+        }
+
+        return customer.getName() + " - " + document;
+    }
+
+    private String formatProduct(Product product) {
+        return product.getName()
+                + " - estoque: "
+                + product.getStockQuantity()
+                + " - "
+                + formatMoney(product.getPrice());
     }
 
     private void updateTotals() {
@@ -301,8 +506,19 @@ public class SaleController {
 
     private void clearSale() {
         CART_ITEMS.clear();
+        selectedCustomer = null;
+        selectedProduct = null;
+        draftCustomer = null;
+        draftProduct = null;
+        draftDiscount = "";
+        draftPaymentMethod = "Dinheiro";
+        draftInstallments = 1;
+        draftFirstDueDate = null;
+        selectedCustomerField.clear();
+        selectedProductField.clear();
         quantityField.clear();
         discountField.clear();
+        paymentMethodChoiceBox.setValue("Dinheiro");
         installmentsChoiceBox.setValue(1);
         firstDueDatePicker.setValue(null);
         updateTotals();
@@ -310,5 +526,9 @@ public class SaleController {
 
     private void showMessage(String message) {
         messageLabel.setText(message);
+    }
+
+    private String textValue(String value) {
+        return value == null ? "" : value;
     }
 }

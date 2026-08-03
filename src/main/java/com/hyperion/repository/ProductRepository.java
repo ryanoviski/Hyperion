@@ -79,6 +79,24 @@ public class ProductRepository {
         }
     }
 
+    public void reactivate(Long id) {
+        String sql = """
+                UPDATE products
+                SET active = 1,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not reactivate product.", exception);
+        }
+    }
+
     public Optional<Product> findById(Long id) {
         String sql = """
                 SELECT id, name, description, price, cost, stock_quantity, category, barcode, supplier, active, created_at, updated_at
@@ -104,28 +122,47 @@ public class ProductRepository {
     }
 
     public List<Product> findAllActive() {
+        return findByActiveStatus(true);
+    }
+
+    public List<Product> findAllInactive() {
+        return findByActiveStatus(false);
+    }
+
+    public List<Product> searchActive(String term) {
+        return searchByActiveStatus(term, true);
+    }
+
+    public List<Product> searchInactive(String term) {
+        return searchByActiveStatus(term, false);
+    }
+
+    private List<Product> findByActiveStatus(boolean active) {
         String sql = """
                 SELECT id, name, description, price, cost, stock_quantity, category, barcode, supplier, active, created_at, updated_at
                 FROM products
-                WHERE active = 1
+                WHERE active = ?
                 ORDER BY name;
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            return mapProducts(resultSet);
+            statement.setInt(1, active ? 1 : 0);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return mapProducts(resultSet);
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not list products.", exception);
         }
     }
 
-    public List<Product> searchActive(String term) {
+    private List<Product> searchByActiveStatus(String term, boolean active) {
         String sql = """
                 SELECT id, name, description, price, cost, stock_quantity, category, barcode, supplier, active, created_at, updated_at
                 FROM products
-                WHERE active = 1
+                WHERE active = ?
                   AND (
                       LOWER(name) LIKE LOWER(?)
                       OR LOWER(COALESCE(category, '')) LIKE LOWER(?)
@@ -140,10 +177,11 @@ public class ProductRepository {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setString(1, searchTerm);
+            statement.setInt(1, active ? 1 : 0);
             statement.setString(2, searchTerm);
             statement.setString(3, searchTerm);
             statement.setString(4, searchTerm);
+            statement.setString(5, searchTerm);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 return mapProducts(resultSet);

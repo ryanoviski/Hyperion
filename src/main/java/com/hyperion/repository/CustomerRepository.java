@@ -76,6 +76,24 @@ public class CustomerRepository {
         }
     }
 
+    public void reactivate(Long id) {
+        String sql = """
+                UPDATE customers
+                SET active = 1,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not reactivate customer.", exception);
+        }
+    }
+
     public Optional<Customer> findById(Long id) {
         String sql = """
                 SELECT id, name, document, phone, email, address, notes, active, created_at, updated_at
@@ -101,28 +119,47 @@ public class CustomerRepository {
     }
 
     public List<Customer> findAllActive() {
+        return findByActiveStatus(true);
+    }
+
+    public List<Customer> findAllInactive() {
+        return findByActiveStatus(false);
+    }
+
+    public List<Customer> searchActive(String term) {
+        return searchByActiveStatus(term, true);
+    }
+
+    public List<Customer> searchInactive(String term) {
+        return searchByActiveStatus(term, false);
+    }
+
+    private List<Customer> findByActiveStatus(boolean active) {
         String sql = """
                 SELECT id, name, document, phone, email, address, notes, active, created_at, updated_at
                 FROM customers
-                WHERE active = 1
+                WHERE active = ?
                 ORDER BY name;
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+             PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            return mapCustomers(resultSet);
+            statement.setInt(1, active ? 1 : 0);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return mapCustomers(resultSet);
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not list customers.", exception);
         }
     }
 
-    public List<Customer> searchActive(String term) {
+    private List<Customer> searchByActiveStatus(String term, boolean active) {
         String sql = """
                 SELECT id, name, document, phone, email, address, notes, active, created_at, updated_at
                 FROM customers
-                WHERE active = 1
+                WHERE active = ?
                   AND (
                       LOWER(name) LIKE LOWER(?)
                       OR LOWER(COALESCE(document, '')) LIKE LOWER(?)
@@ -137,10 +174,11 @@ public class CustomerRepository {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setString(1, searchTerm);
+            statement.setInt(1, active ? 1 : 0);
             statement.setString(2, searchTerm);
             statement.setString(3, searchTerm);
             statement.setString(4, searchTerm);
+            statement.setString(5, searchTerm);
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 return mapCustomers(resultSet);

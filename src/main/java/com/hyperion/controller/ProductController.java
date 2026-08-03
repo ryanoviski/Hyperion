@@ -10,6 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -27,6 +28,8 @@ import java.util.Optional;
 
 public class ProductController {
 
+    private static final String ACTIVE_FILTER = "Ativos";
+    private static final String INACTIVE_FILTER = "Inativos";
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
 
     private final ProductService productService = new ProductService();
@@ -35,10 +38,16 @@ public class ProductController {
     private TextField searchField;
 
     @FXML
+    private ChoiceBox<String> statusFilterChoiceBox;
+
+    @FXML
     private Button editProductButton;
 
     @FXML
     private Button deactivateProductButton;
+
+    @FXML
+    private Button reactivateProductButton;
 
     @FXML
     private TableView<Product> productsTable;
@@ -69,6 +78,7 @@ public class ProductController {
 
     @FXML
     private void initialize() {
+        configureFilter();
         configureTableColumns();
         configureSelectionState();
         loadProducts();
@@ -76,10 +86,7 @@ public class ProductController {
 
     @FXML
     private void handleSearch() {
-        String searchTerm = searchField.getText();
-        List<Product> products = productService.searchActiveProducts(searchTerm);
-        updateTable(products);
-        showMessage(products.size() + " produto(s) encontrado(s).");
+        loadProducts();
     }
 
     @FXML
@@ -105,6 +112,7 @@ public class ProductController {
                         formData.supplier()
                 );
 
+                statusFilterChoiceBox.setValue(ACTIVE_FILTER);
                 loadProducts();
                 showMessage("Produto cadastrado: " + formData.name() + ".");
             });
@@ -168,35 +176,75 @@ public class ProductController {
         }
     }
 
+    @FXML
+    private void handleReactivateProduct() {
+        Product selectedProduct = getSelectedProduct();
+
+        if (selectedProduct == null) {
+            showMessage("Selecione um produto para reativar.");
+            return;
+        }
+
+        try {
+            productService.reactivateProduct(selectedProduct.getId());
+            loadProducts();
+            showMessage("Produto reativado: " + selectedProduct.getName() + ".");
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            showMessage(exception.getMessage());
+        }
+    }
+
+    private void configureFilter() {
+        statusFilterChoiceBox.setItems(FXCollections.observableArrayList(ACTIVE_FILTER, INACTIVE_FILTER));
+        statusFilterChoiceBox.setValue(ACTIVE_FILTER);
+        statusFilterChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> loadProducts());
+    }
+
     private void configureTableColumns() {
-        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getName()));
-        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getCategory()));
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getName())));
+        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getCategory())));
         priceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getPrice())));
         costColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getCost())));
         stockColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getStockQuantity())));
-        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getBarcode()));
-        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getSupplier()));
+        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getBarcode())));
+        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getSupplier())));
     }
 
     private void configureSelectionState() {
-        editProductButton.setDisable(true);
-        deactivateProductButton.setDisable(true);
+        updateActionButtons(null);
 
-        productsTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedProduct) -> {
-            boolean hasSelection = selectedProduct != null;
-            editProductButton.setDisable(!hasSelection);
-            deactivateProductButton.setDisable(!hasSelection);
-        });
+        productsTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedProduct) ->
+                updateActionButtons(selectedProduct)
+        );
+    }
+
+    private void updateActionButtons(Product selectedProduct) {
+        boolean hasSelection = selectedProduct != null;
+        boolean isActive = hasSelection && selectedProduct.isActive();
+
+        editProductButton.setDisable(!hasSelection);
+        deactivateProductButton.setDisable(!isActive);
+        reactivateProductButton.setDisable(!hasSelection || isActive);
     }
 
     private void loadProducts() {
-        List<Product> products = productService.listActiveProducts();
+        boolean showingActive = isShowingActive();
+        String searchTerm = searchField.getText();
+        List<Product> products = showingActive
+                ? productService.searchActiveProducts(searchTerm)
+                : productService.searchInactiveProducts(searchTerm);
+
         updateTable(products);
-        showMessage(products.size() + " produto(s) ativo(s).");
+        showMessage(products.size() + (showingActive ? " produto(s) ativo(s)." : " produto(s) inativo(s)."));
+    }
+
+    private boolean isShowingActive() {
+        return !INACTIVE_FILTER.equals(statusFilterChoiceBox.getValue());
     }
 
     private void updateTable(List<Product> products) {
         productsTable.setItems(FXCollections.observableArrayList(products));
+        updateActionButtons(productsTable.getSelectionModel().getSelectedItem());
     }
 
     private Product getSelectedProduct() {
