@@ -14,13 +14,23 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.text.NumberFormat;
@@ -230,14 +240,14 @@ public class FinanceController {
         dialog.initOwner(expensesTable.getScene().getWindow());
         addDialogStyles(dialog);
 
-        ButtonType openButtonType = new ButtonType("Abrir", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(openButtonType, ButtonType.CLOSE);
+        ButtonType previewButtonType = new ButtonType("Visualizar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(previewButtonType, ButtonType.CLOSE);
 
         TableView<Attachment> attachmentsTable = createAttachmentsTable();
         attachmentsTable.setItems(FXCollections.observableArrayList(attachments));
 
-        Node openButton = dialog.getDialogPane().lookupButton(openButtonType);
-        openButton.disableProperty().bind(attachmentsTable.getSelectionModel().selectedItemProperty().isNull());
+        Node previewButton = dialog.getDialogPane().lookupButton(previewButtonType);
+        previewButton.disableProperty().bind(attachmentsTable.getSelectionModel().selectedItemProperty().isNull());
 
         VBox content = new VBox(12, attachmentsTable);
         content.setPrefWidth(720);
@@ -245,7 +255,7 @@ public class FinanceController {
         dialog.getDialogPane().setContent(content);
 
         dialog.setResultConverter(buttonType -> {
-            if (buttonType != openButtonType) {
+            if (buttonType != previewButtonType) {
                 return null;
             }
 
@@ -254,7 +264,7 @@ public class FinanceController {
 
         dialog.showAndWait().ifPresent(attachment -> {
             try {
-                attachmentService.openAttachment(attachment);
+                showAttachmentPreviewDialog(attachment);
             } catch (IllegalArgumentException | IllegalStateException exception) {
                 showMessage(exception.getMessage());
             }
@@ -279,6 +289,85 @@ public class FinanceController {
 
         table.getColumns().addAll(nameColumn, sizeColumn, pathColumn);
         return table;
+    }
+
+    private void showAttachmentPreviewDialog(Attachment attachment) {
+        Path filePath = attachmentService.resolveAttachmentPath(attachment);
+        String extension = getFileExtension(filePath);
+
+        if (isImage(extension)) {
+            showImagePreviewDialog(attachment, filePath);
+            return;
+        }
+
+        if ("pdf".equals(extension)) {
+            showPdfPreviewDialog(attachment, filePath);
+            return;
+        }
+
+        showMessage("Formato de anexo não suportado para visualização interna.");
+    }
+
+    private void showImagePreviewDialog(Attachment attachment, Path filePath) {
+        ImageView imageView = new ImageView(new Image(filePath.toUri().toString()));
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(840);
+
+        ScrollPane scrollPane = new ScrollPane(imageView);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportWidth(880);
+        scrollPane.setPrefViewportHeight(620);
+
+        showPreviewDialog(attachment.getOriginalName(), scrollPane);
+    }
+
+    private void showPdfPreviewDialog(Attachment attachment, Path filePath) {
+        VBox pagesContainer = new VBox(18);
+
+        try (PDDocument document = Loader.loadPDF(filePath.toFile())) {
+            PDFRenderer renderer = new PDFRenderer(document);
+
+            for (int pageIndex = 0; pageIndex < document.getNumberOfPages(); pageIndex++) {
+                BufferedImage pageImage = renderer.renderImageWithDPI(pageIndex, 130);
+                ImageView pageView = new ImageView(toFxImage(pageImage));
+                pageView.setPreserveRatio(true);
+                pageView.setFitWidth(840);
+                pagesContainer.getChildren().add(pageView);
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Não foi possível renderizar o PDF.", exception);
+        }
+
+        ScrollPane scrollPane = new ScrollPane(pagesContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportWidth(880);
+        scrollPane.setPrefViewportHeight(620);
+
+        showPreviewDialog(attachment.getOriginalName(), scrollPane);
+    }
+
+    private void showPreviewDialog(String title, Node content) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Visualizar anexo");
+        dialog.setHeaderText(title);
+        dialog.initOwner(expensesTable.getScene().getWindow());
+        addDialogStyles(dialog);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setContent(content);
+        dialog.showAndWait();
+    }
+
+    private WritableImage toFxImage(BufferedImage bufferedImage) {
+        WritableImage writableImage = new WritableImage(bufferedImage.getWidth(), bufferedImage.getHeight());
+        PixelWriter pixelWriter = writableImage.getPixelWriter();
+
+        for (int y = 0; y < bufferedImage.getHeight(); y++) {
+            for (int x = 0; x < bufferedImage.getWidth(); x++) {
+                pixelWriter.setArgb(x, y, bufferedImage.getRGB(x, y));
+            }
+        }
+
+        return writableImage;
     }
 
     private BigDecimal parseMoney(String value) {
@@ -336,6 +425,23 @@ public class FinanceController {
 
     private String formatMoney(BigDecimal value) {
         return MONEY_FORMAT.format(value == null ? BigDecimal.ZERO : value);
+    }
+
+    private String getFileExtension(Path filePath) {
+        String fileName = filePath.getFileName().toString();
+        int extensionStart = fileName.lastIndexOf('.');
+
+        if (extensionStart < 0 || extensionStart == fileName.length() - 1) {
+            return "";
+        }
+
+        return fileName.substring(extensionStart + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isImage(String extension) {
+        return "png".equals(extension)
+                || "jpg".equals(extension)
+                || "jpeg".equals(extension);
     }
 
     private void addDialogStyles(Dialog<?> dialog) {

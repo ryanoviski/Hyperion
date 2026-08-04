@@ -3,7 +3,6 @@ package com.hyperion.service;
 import com.hyperion.model.Attachment;
 import com.hyperion.repository.AttachmentRepository;
 
-import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -78,9 +77,9 @@ public class AttachmentService {
         return attachmentRepository.countByEntity(normalize(module), entityId);
     }
 
-    public void openAttachment(Attachment attachment) {
+    public Path resolveAttachmentPath(Attachment attachment) {
         if (attachment == null) {
-            throw new IllegalArgumentException("Selecione um anexo para abrir.");
+            throw new IllegalArgumentException("Selecione um anexo para visualizar.");
         }
 
         Path filePath = Path.of(attachment.getFilePath());
@@ -89,15 +88,7 @@ public class AttachmentService {
             throw new IllegalStateException("O arquivo do anexo não foi encontrado.");
         }
 
-        if (!Desktop.isDesktopSupported()) {
-            throw new IllegalStateException("Este sistema não permite abrir arquivos automaticamente.");
-        }
-
-        try {
-            Desktop.getDesktop().open(filePath.toFile());
-        } catch (IOException exception) {
-            throw new IllegalStateException("Não foi possível abrir o anexo.", exception);
-        }
+        return filePath;
     }
 
     public void deleteByEntity(String module, Long entityId) {
