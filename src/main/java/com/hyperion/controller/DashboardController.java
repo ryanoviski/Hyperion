@@ -1,16 +1,21 @@
 package com.hyperion.controller;
 
+import com.hyperion.model.CreditInstallment;
 import com.hyperion.model.DailySalesSummary;
 import com.hyperion.model.Product;
-import com.hyperion.model.CreditInstallment;
+import com.hyperion.model.Sale;
 import com.hyperion.service.CreditInstallmentService;
 import com.hyperion.service.CustomerService;
 import com.hyperion.service.FinanceService;
 import com.hyperion.service.ProductService;
 import com.hyperion.service.SaleService;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.layout.VBox;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -22,6 +27,7 @@ public class DashboardController {
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final CreditInstallmentService creditInstallmentService = new CreditInstallmentService();
     private final CustomerService customerService = new CustomerService();
@@ -51,14 +57,31 @@ public class DashboardController {
     private Label productsFootnoteLabel;
 
     @FXML
-    private HBox alertsList;
+    private TableView<Sale> latestSalesTable;
+
+    @FXML
+    private TableColumn<Sale, String> saleTimeColumn;
+
+    @FXML
+    private TableColumn<Sale, String> saleIdColumn;
+
+    @FXML
+    private TableColumn<Sale, String> saleCustomerColumn;
+
+    @FXML
+    private TableColumn<Sale, String> saleTotalColumn;
+
+    @FXML
+    private VBox alertsList;
 
     @FXML
     private Label emptyAlertsLabel;
 
     @FXML
     private void initialize() {
+        configureLatestSalesTable();
         loadDashboardData();
+        loadLatestSales();
         loadCreditAlerts();
     }
 
@@ -82,6 +105,22 @@ public class DashboardController {
         MainController.openSalesView();
     }
 
+    private void configureLatestSalesTable() {
+        saleTimeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                cellData.getValue().getCreatedAt().format(TIME_FORMAT)
+        ));
+        saleIdColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                "Venda #" + String.format("%03d", cellData.getValue().getId())
+        ));
+        saleCustomerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                textValue(cellData.getValue().getCustomerName())
+        ));
+        saleTotalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                MONEY_FORMAT.format(cellData.getValue().getTotal())
+        ));
+        latestSalesTable.setPlaceholder(new Label("Nenhuma venda registrada ainda."));
+    }
+
     private void loadDashboardData() {
         int activeCustomers = customerService.listActiveCustomers().size();
         List<Product> activeProducts = productService.listActiveProducts();
@@ -99,6 +138,10 @@ public class DashboardController {
         productsFootnoteLabel.setText(activeProducts.size() == 1 ? "1 produto ativo" : activeProducts.size() + " produtos ativos");
     }
 
+    private void loadLatestSales() {
+        latestSalesTable.setItems(FXCollections.observableArrayList(saleService.listLatestSales(8)));
+    }
+
     private void loadCreditAlerts() {
         List<CreditInstallment> alerts = creditInstallmentService.listPendingAlerts();
         alertsList.getChildren().clear();
@@ -112,7 +155,7 @@ public class DashboardController {
         for (CreditInstallment installment : alerts) {
             Label alertLabel = new Label(formatCreditAlert(installment));
             alertLabel.setWrapText(true);
-            alertLabel.setPrefWidth(260);
+            alertLabel.setPrefWidth(292);
             alertLabel.getStyleClass().add("text-muted-left");
             alertsList.getChildren().add(alertLabel);
         }
@@ -133,5 +176,9 @@ public class DashboardController {
         }
 
         return "A vencer: " + installment.getCustomerName() + " - parcela " + installmentText + " - " + amount + " - " + dueDate;
+    }
+
+    private String textValue(String value) {
+        return value == null ? "" : value;
     }
 }

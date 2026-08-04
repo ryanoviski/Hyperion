@@ -78,6 +78,10 @@ public class SaleService {
         return saleRepository.findTodaySummary();
     }
 
+    public List<Sale> listLatestSales(int limit) {
+        return saleRepository.findLatest(limit);
+    }
+
     public List<Sale> listCustomerPurchases(Long customerId) {
         if (customerId == null) {
             return List.of();

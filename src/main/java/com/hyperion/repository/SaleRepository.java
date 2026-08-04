@@ -252,6 +252,40 @@ public class SaleRepository {
         }
     }
 
+    public List<Sale> findLatest(int limit) {
+        String sql = """
+                SELECT id,
+                       customer_id,
+                       customer_name,
+                       subtotal,
+                       discount,
+                       total,
+                       payment_method,
+                       created_at
+                FROM sales
+                ORDER BY created_at DESC, id DESC
+                LIMIT ?;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, limit);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<Sale> sales = new ArrayList<>();
+
+                while (resultSet.next()) {
+                    sales.add(mapSale(resultSet));
+                }
+
+                return sales;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not list latest sales.", exception);
+        }
+    }
+
     public SalesReportSummary getSalesReportSummary() {
         String sql = """
                 SELECT COUNT(*) AS sales_count,

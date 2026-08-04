@@ -237,6 +237,7 @@
     -fx-font-size: 28px;
     -fx-font-weight: 700;
     -fx-text-fill: #F8FAFC;
+    -fx-wrap-text: true;
 }
 
 .card-footnote {
@@ -258,6 +259,10 @@
     -fx-font-size: 22px;
     -fx-font-weight: 700;
     -fx-text-fill: #F8FAFC;
+}
+
+.dashboard-card {
+    -fx-min-width: 190;
 }
 
 .text-muted-left {

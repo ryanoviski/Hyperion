@@ -3,7 +3,10 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox fx:id="contentArea" spacing="24.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.DashboardController">
@@ -11,70 +14,98 @@
       <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
    </padding>
    <children>
-      <VBox>
+      <HBox alignment="CENTER_LEFT" spacing="16.0">
          <children>
-            <Label styleClass="page-title" text="Dashboard" />
-            <Label styleClass="page-subtitle" text="Visão geral do seu negócio hoje." />
+            <VBox spacing="4.0">
+               <children>
+                  <Label styleClass="page-title" text="Dashboard" />
+                  <Label styleClass="page-subtitle" text="Visão geral do seu negócio hoje." />
+               </children>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="newSaleButton" mnemonicParsing="false" onAction="#handleSales" prefWidth="190.0" styleClass="primary-button" text="Nova venda" />
          </children>
-      </VBox>
+      </HBox>
       <HBox spacing="20.0">
          <children>
-            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
+            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Vendas hoje" />
                   <Label fx:id="salesTodayValueLabel" styleClass="card-value" text="R$ 0,00" />
                   <Label fx:id="salesTodayFootnoteLabel" styleClass="card-footnote" text="Nenhuma venda registrada" />
                </children>
             </VBox>
-            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
+            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Clientes" />
                   <Label fx:id="customersValueLabel" styleClass="card-value" text="0" />
                   <Label fx:id="customersFootnoteLabel" styleClass="card-footnote-success" text="Comece cadastrando clientes" />
                </children>
             </VBox>
-            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
+            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Produtos" />
                   <Label fx:id="productsValueLabel" styleClass="card-value" text="0" />
                   <Label fx:id="productsFootnoteLabel" styleClass="card-footnote-warning" text="Estoque ainda vazio" />
                </children>
             </VBox>
-            <VBox prefHeight="140.0" prefWidth="160.0" styleClass="dashboard-card">
+            <VBox prefHeight="140.0" prefWidth="280.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Saldo" />
-                  <Label fx:id="balanceValueLabel" styleClass="card-value" text="R$ 0,00" />
-                  <Label styleClass="card-footnote" text="Entradas - despesas" />
+                  <Label fx:id="balanceValueLabel" styleClass="card-value" text="R$ 0,00" wrapText="true" />
+                  <Label styleClass="card-footnote" text="Líquido" />
                </children>
             </VBox>
          </children>
       </HBox>
-      <VBox spacing="18.0">
+      <HBox spacing="20.0" VBox.vgrow="ALWAYS">
          <children>
-            <VBox fx:id="shortcutsPanel" prefWidth="880.0" styleClass="dashboard-panel">
+            <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
                <children>
-                  <Label styleClass="panel-title" text="Atalhos" />
-                  <HBox spacing="16.0">
+                  <VBox spacing="4.0">
                      <children>
-                        <Button fx:id="newSaleButton" mnemonicParsing="false" onAction="#handleSales" prefHeight="44.0" prefWidth="190.0" styleClass="primary-button" text="Nova venda" />
-                        <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleCustomers" prefHeight="44.0" prefWidth="190.0" styleClass="secondary-button" text="Cadastrar cliente" />
-                        <Button fx:id="newProductButton" mnemonicParsing="false" onAction="#handleProducts" prefHeight="44.0" prefWidth="190.0" styleClass="secondary-button" text="Cadastrar produto" />
-                        <Button fx:id="viewStockButton" mnemonicParsing="false" onAction="#handleStock" prefHeight="44.0" prefWidth="190.0" styleClass="secondary-button" text="Ver estoque" />
+                        <Label styleClass="panel-title" text="Últimas vendas" />
+                        <Label styleClass="page-subtitle" text="Movimentações registradas recentemente." />
+                     </children>
+                  </VBox>
+                  <TableView fx:id="latestSalesTable" prefHeight="360.0" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="saleTimeColumn" prefWidth="120.0" text="Horário" />
+                        <TableColumn fx:id="saleIdColumn" prefWidth="140.0" text="Venda" />
+                        <TableColumn fx:id="saleCustomerColumn" prefWidth="260.0" text="Cliente" />
+                        <TableColumn fx:id="saleTotalColumn" prefWidth="140.0" text="Valor" />
+                     </columns>
+                  </TableView>
+                  <HBox alignment="CENTER_RIGHT">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#handleSales" prefWidth="160.0" styleClass="secondary-button" text="Ver vendas" />
                      </children>
                   </HBox>
                </children>
             </VBox>
-            <VBox fx:id="alertsPanel" prefWidth="880.0" spacing="18.0" styleClass="dashboard-panel">
+            <VBox prefWidth="340.0" spacing="20.0">
                <children>
-                  <Label styleClass="panel-title" text="Alertas" />
-                  <HBox fx:id="alertsList" spacing="14.0">
+                  <VBox fx:id="shortcutsPanel" spacing="12.0" styleClass="dashboard-panel">
                      <children>
-                        <Label fx:id="emptyAlertsLabel" prefWidth="820.0" styleClass="text-muted-left" text="Nenhum alerta por enquanto." wrapText="true" />
+                        <Label styleClass="panel-title" text="Ações rápidas" />
+                        <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleCustomers" prefWidth="292.0" styleClass="secondary-button" text="Cadastrar cliente" />
+                        <Button fx:id="newProductButton" mnemonicParsing="false" onAction="#handleProducts" prefWidth="292.0" styleClass="secondary-button" text="Cadastrar produto" />
+                        <Button fx:id="viewStockButton" mnemonicParsing="false" onAction="#handleStock" prefWidth="292.0" styleClass="secondary-button" text="Ver estoque" />
                      </children>
-                  </HBox>
+                  </VBox>
+                  <VBox fx:id="alertsPanel" spacing="14.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Label styleClass="panel-title" text="Alertas do sistema" />
+                        <VBox fx:id="alertsList" spacing="10.0">
+                           <children>
+                              <Label fx:id="emptyAlertsLabel" prefWidth="292.0" styleClass="text-muted-left" text="Nenhum alerta por enquanto." wrapText="true" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
                </children>
             </VBox>
          </children>
-      </VBox>
+      </HBox>
    </children>
 </VBox>
