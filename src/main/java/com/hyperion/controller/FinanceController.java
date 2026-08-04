@@ -1,5 +1,6 @@
 package com.hyperion.controller;
 
+import com.hyperion.model.Attachment;
 import com.hyperion.model.Expense;
 import com.hyperion.model.FinancialSummary;
 import com.hyperion.service.AttachmentService;
@@ -7,11 +8,16 @@ import com.hyperion.service.FinanceService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -55,6 +61,9 @@ public class FinanceController {
 
     @FXML
     private Button removeExpenseButton;
+
+    @FXML
+    private Button viewAttachmentsButton;
 
     @FXML
     private Button clearAttachmentButton;
@@ -128,6 +137,28 @@ public class FinanceController {
     }
 
     @FXML
+    private void handleViewAttachments() {
+        Expense selectedExpense = expensesTable.getSelectionModel().getSelectedItem();
+
+        if (selectedExpense == null) {
+            showMessage("Selecione uma despesa para ver os anexos.");
+            return;
+        }
+
+        List<Attachment> attachments = attachmentService.listAttachments(
+                AttachmentService.FINANCE_MODULE,
+                selectedExpense.getId()
+        );
+
+        if (attachments.isEmpty()) {
+            showMessage("Esta despesa não possui anexos.");
+            return;
+        }
+
+        showAttachmentsDialog(selectedExpense, attachments);
+    }
+
+    @FXML
     private void handleSelectAttachment() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecionar comprovante");
@@ -158,17 +189,26 @@ public class FinanceController {
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
         ));
-        descriptionColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getDescription()));
-        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getCategory()));
+        descriptionColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getDescription())));
+        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getCategory())));
         amountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getAmount())));
         attachmentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatAttachmentCount(cellData.getValue())));
     }
 
     private void configureSelectionState() {
-        removeExpenseButton.setDisable(true);
+        updateActionButtons(null);
         expensesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedExpense) ->
-                removeExpenseButton.setDisable(selectedExpense == null)
+                updateActionButtons(selectedExpense)
         );
+    }
+
+    private void updateActionButtons(Expense selectedExpense) {
+        boolean hasSelection = selectedExpense != null;
+        boolean hasAttachments = hasSelection
+                && attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, selectedExpense.getId()) > 0;
+
+        removeExpenseButton.setDisable(!hasSelection);
+        viewAttachmentsButton.setDisable(!hasAttachments);
     }
 
     private void loadFinanceData() {
@@ -180,6 +220,65 @@ public class FinanceController {
         currentBalanceLabel.setText(formatMoney(summary.getCurrentBalance()));
         monthlyProfitLabel.setText(formatMoney(summary.getMonthlyProfit()));
         expensesTable.setItems(FXCollections.observableArrayList(expenses));
+        updateActionButtons(expensesTable.getSelectionModel().getSelectedItem());
+    }
+
+    private void showAttachmentsDialog(Expense expense, List<Attachment> attachments) {
+        Dialog<Attachment> dialog = new Dialog<>();
+        dialog.setTitle("Anexos da despesa");
+        dialog.setHeaderText(expense.getDescription());
+        dialog.initOwner(expensesTable.getScene().getWindow());
+        addDialogStyles(dialog);
+
+        ButtonType openButtonType = new ButtonType("Abrir", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(openButtonType, ButtonType.CLOSE);
+
+        TableView<Attachment> attachmentsTable = createAttachmentsTable();
+        attachmentsTable.setItems(FXCollections.observableArrayList(attachments));
+
+        Node openButton = dialog.getDialogPane().lookupButton(openButtonType);
+        openButton.disableProperty().bind(attachmentsTable.getSelectionModel().selectedItemProperty().isNull());
+
+        VBox content = new VBox(12, attachmentsTable);
+        content.setPrefWidth(720);
+        content.setPrefHeight(360);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType != openButtonType) {
+                return null;
+            }
+
+            return attachmentsTable.getSelectionModel().getSelectedItem();
+        });
+
+        dialog.showAndWait().ifPresent(attachment -> {
+            try {
+                attachmentService.openAttachment(attachment);
+            } catch (IllegalArgumentException | IllegalStateException exception) {
+                showMessage(exception.getMessage());
+            }
+        });
+    }
+
+    private TableView<Attachment> createAttachmentsTable() {
+        TableView<Attachment> table = new TableView<>();
+        table.setPrefHeight(300);
+
+        TableColumn<Attachment, String> nameColumn = new TableColumn<>("Arquivo");
+        nameColumn.setPrefWidth(280);
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getOriginalName()));
+
+        TableColumn<Attachment, String> sizeColumn = new TableColumn<>("Tamanho");
+        sizeColumn.setPrefWidth(120);
+        sizeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatFileSize(cellData.getValue().getFileSize())));
+
+        TableColumn<Attachment, String> pathColumn = new TableColumn<>("Local");
+        pathColumn.setPrefWidth(320);
+        pathColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getFilePath()));
+
+        table.getColumns().addAll(nameColumn, sizeColumn, pathColumn);
+        return table;
     }
 
     private BigDecimal parseMoney(String value) {
@@ -220,8 +319,32 @@ public class FinanceController {
         return count == 0 ? "-" : count + " arquivo(s)";
     }
 
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+
+        double kilobytes = bytes / 1024.0;
+
+        if (kilobytes < 1024) {
+            return String.format(Locale.of("pt", "BR"), "%.1f KB", kilobytes);
+        }
+
+        double megabytes = kilobytes / 1024.0;
+        return String.format(Locale.of("pt", "BR"), "%.1f MB", megabytes);
+    }
+
     private String formatMoney(BigDecimal value) {
         return MONEY_FORMAT.format(value == null ? BigDecimal.ZERO : value);
+    }
+
+    private void addDialogStyles(Dialog<?> dialog) {
+        String stylesheet = FinanceController.class.getResource("/css/app.css").toExternalForm();
+        dialog.getDialogPane().getStylesheets().add(stylesheet);
+    }
+
+    private String textValue(String value) {
+        return value == null ? "" : value;
     }
 
     private void showMessage(String message) {

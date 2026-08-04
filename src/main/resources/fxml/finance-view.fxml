@@ -77,11 +77,12 @@
                   </VBox>
                   <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
                      <children>
-                        <HBox alignment="CENTER_LEFT">
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
                               <Label styleClass="panel-title" text="Despesas recentes" />
                               <Region HBox.hgrow="ALWAYS" />
                               <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
+                              <Button fx:id="viewAttachmentsButton" mnemonicParsing="false" onAction="#handleViewAttachments" prefWidth="120.0" styleClass="secondary-button" text="Ver anexos" />
                               <Button fx:id="removeExpenseButton" mnemonicParsing="false" onAction="#handleRemoveExpense" prefWidth="130.0" styleClass="secondary-button" text="Remover" />
                            </children>
                         </HBox>
