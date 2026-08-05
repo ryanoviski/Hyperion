@@ -2,10 +2,12 @@ package com.hyperion.controller;
 
 import com.hyperion.model.Product;
 import com.hyperion.service.ProductService;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -13,12 +15,16 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.shape.SVGPath;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -32,6 +38,10 @@ public class ProductController {
     private static final String INACTIVE_FILTER = "Inativos";
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
 
+    private static final String EDIT_ICON = "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04c.39-.39.39-1.02 0-1.41l-2.51-2.51a.9959.9959 0 0 0-1.41 0l-1.96 1.96L18.75 9.17l1.96-1.96z";
+    private static final String HIDE_ICON = "M12 6.5c3.79 0 6.17 2.13 7.44 3.76-.45.58-1.03 1.22-1.76 1.82L19.1 13.5c1.15-.94 2.02-2.1 2.54-3.01.18-.31.18-.69 0-1C20.62 7.73 17.46 4.5 12 4.5c-1.39 0-2.61.21-3.67.55l1.62 1.62c.64-.11 1.32-.17 2.05-.17zM2.71 3.16 1.39 4.48l3.1 3.1c-.9.77-1.6 1.62-2.13 2.41-.2.3-.2.7 0 1C3.38 12.76 6.54 16 12 16c1.27 0 2.41-.18 3.42-.48l3.1 3.09 1.32-1.32L2.71 3.16zM12 14c-3.79 0-6.17-2.13-7.44-3.76.35-.45.8-.94 1.34-1.4l1.45 1.45c-.03.17-.05.34-.05.51 0 1.49 1.21 2.7 2.7 2.7.17 0 .34-.02.51-.05l1.5 1.5H12zm.67-2.07-3.6-3.6c.31-.15.66-.23 1.03-.23 1.49 0 2.7 1.21 2.7 2.7 0 .4-.05.77-.13 1.13z";
+    private static final String SHOW_ICON = "M12 4.5c-5.46 0-8.62 3.23-9.64 4.99-.18.31-.18.69 0 1C3.38 12.27 6.54 15.5 12 15.5s8.62-3.23 9.64-5.01c.18-.31.18-.69 0-1C20.62 7.73 17.46 4.5 12 4.5zm0 9c-3.79 0-6.17-2.13-7.44-3.76C5.83 8.11 8.21 6.5 12 6.5s6.17 1.61 7.44 3.24C18.17 11.37 15.79 13.5 12 13.5zm0-5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z";
+
     private final ProductService productService = new ProductService();
 
     @FXML
@@ -39,15 +49,6 @@ public class ProductController {
 
     @FXML
     private ChoiceBox<String> statusFilterChoiceBox;
-
-    @FXML
-    private Button editProductButton;
-
-    @FXML
-    private Button deactivateProductButton;
-
-    @FXML
-    private Button reactivateProductButton;
 
     @FXML
     private TableView<Product> productsTable;
@@ -74,13 +75,18 @@ public class ProductController {
     private TableColumn<Product, String> supplierColumn;
 
     @FXML
+    private TableColumn<Product, String> statusColumn;
+
+    @FXML
+    private TableColumn<Product, Product> actionsColumn;
+
+    @FXML
     private Label messageLabel;
 
     @FXML
     private void initialize() {
         configureFilter();
         configureTableColumns();
-        configureSelectionState();
         loadProducts();
     }
 
@@ -121,15 +127,7 @@ public class ProductController {
         }
     }
 
-    @FXML
-    private void handleEditProduct() {
-        Product selectedProduct = getSelectedProduct();
-
-        if (selectedProduct == null) {
-            showMessage("Selecione um produto para editar.");
-            return;
-        }
-
+    private void handleEditProduct(Product selectedProduct) {
         try {
             Optional<ProductFormData> result = showProductDialog("Editar produto", selectedProduct);
 
@@ -158,15 +156,7 @@ public class ProductController {
         }
     }
 
-    @FXML
-    private void handleDeactivateProduct() {
-        Product selectedProduct = getSelectedProduct();
-
-        if (selectedProduct == null) {
-            showMessage("Selecione um produto para desativar.");
-            return;
-        }
-
+    private void handleDeactivateProduct(Product selectedProduct) {
         try {
             productService.deactivateProduct(selectedProduct.getId());
             loadProducts();
@@ -176,15 +166,7 @@ public class ProductController {
         }
     }
 
-    @FXML
-    private void handleReactivateProduct() {
-        Product selectedProduct = getSelectedProduct();
-
-        if (selectedProduct == null) {
-            showMessage("Selecione um produto para reativar.");
-            return;
-        }
-
+    private void handleReactivateProduct(Product selectedProduct) {
         try {
             productService.reactivateProduct(selectedProduct.getId());
             loadProducts();
@@ -201,6 +183,10 @@ public class ProductController {
     }
 
     private void configureTableColumns() {
+        nameColumn.getStyleClass().add("left-aligned-column");
+        categoryColumn.getStyleClass().add("left-aligned-column");
+        supplierColumn.getStyleClass().add("left-aligned-column");
+
         nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getName())));
         categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getCategory())));
         priceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getPrice())));
@@ -208,23 +194,76 @@ public class ProductController {
         stockColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getStockQuantity())));
         barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getBarcode())));
         supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getSupplier())));
+        statusColumn.setCellValueFactory(cellData -> {
+            String status = cellData.getValue().isActive() ? "Ativo" : "Inativo";
+            return new ReadOnlyStringWrapper(status);
+        });
+        statusColumn.setCellFactory(column -> createStatusCell());
+
+        actionsColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+        actionsColumn.setCellFactory(column -> createActionsCell());
     }
 
-    private void configureSelectionState() {
-        updateActionButtons(null);
+    private TableCell<Product, String> createStatusCell() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(String status, boolean empty) {
+                super.updateItem(status, empty);
 
-        productsTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedProduct) ->
-                updateActionButtons(selectedProduct)
-        );
+                if (empty || status == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+
+                Label badge = new Label(status);
+                badge.getStyleClass().addAll("status-badge", "Ativo".equals(status) ? "status-active" : "status-inactive");
+                setGraphic(badge);
+                setText(null);
+                setAlignment(Pos.CENTER);
+            }
+        };
     }
 
-    private void updateActionButtons(Product selectedProduct) {
-        boolean hasSelection = selectedProduct != null;
-        boolean isActive = hasSelection && selectedProduct.isActive();
+    private TableCell<Product, Product> createActionsCell() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(Product product, boolean empty) {
+                super.updateItem(product, empty);
 
-        editProductButton.setDisable(!hasSelection);
-        deactivateProductButton.setDisable(!isActive);
-        reactivateProductButton.setDisable(!hasSelection || isActive);
+                if (empty || product == null) {
+                    setGraphic(null);
+                    return;
+                }
+
+                Button editButton = createIconButton("Editar", EDIT_ICON, () -> handleEditProduct(product));
+                Button activeToggleButton = product.isActive()
+                        ? createIconButton("Desativar", HIDE_ICON, () -> handleDeactivateProduct(product))
+                        : createIconButton("Reativar", SHOW_ICON, () -> handleReactivateProduct(product));
+
+                HBox actions = new HBox(8, editButton, activeToggleButton);
+                actions.setAlignment(Pos.CENTER);
+                setGraphic(actions);
+                setText(null);
+                setAlignment(Pos.CENTER);
+            }
+        };
+    }
+
+    private Button createIconButton(String tooltipText, String svgContent, Runnable action) {
+        SVGPath icon = new SVGPath();
+        icon.setContent(svgContent);
+        icon.getStyleClass().add("action-icon-shape");
+
+        Button button = new Button();
+        button.setGraphic(icon);
+        button.setTooltip(new Tooltip(tooltipText));
+        button.setMinSize(36, 36);
+        button.setPrefSize(36, 36);
+        button.setMaxSize(36, 36);
+        button.getStyleClass().add("action-icon-button");
+        button.setOnAction(event -> action.run());
+        return button;
     }
 
     private void loadProducts() {
@@ -234,21 +273,12 @@ public class ProductController {
                 ? productService.searchActiveProducts(searchTerm)
                 : productService.searchInactiveProducts(searchTerm);
 
-        updateTable(products);
+        productsTable.setItems(FXCollections.observableArrayList(products));
         showMessage(products.size() + (showingActive ? " produto(s) ativo(s)." : " produto(s) inativo(s)."));
     }
 
     private boolean isShowingActive() {
         return !INACTIVE_FILTER.equals(statusFilterChoiceBox.getValue());
-    }
-
-    private void updateTable(List<Product> products) {
-        productsTable.setItems(FXCollections.observableArrayList(products));
-        updateActionButtons(productsTable.getSelectionModel().getSelectedItem());
-    }
-
-    private Product getSelectedProduct() {
-        return productsTable.getSelectionModel().getSelectedItem();
     }
 
     private void showMessage(String message) {
@@ -260,6 +290,7 @@ public class ProductController {
         dialog.setTitle(title);
         dialog.setHeaderText(null);
         dialog.initOwner(productsTable.getScene().getWindow());
+        addDialogStyles(dialog);
 
         ButtonType saveButtonType = new ButtonType("Salvar", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
@@ -419,6 +450,11 @@ public class ProductController {
 
     private String textValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private void addDialogStyles(Dialog<?> dialog) {
+        String stylesheet = ProductController.class.getResource("/css/app.css").toExternalForm();
+        dialog.getDialogPane().getStylesheets().add(stylesheet);
     }
 
     private TextField productNameField;

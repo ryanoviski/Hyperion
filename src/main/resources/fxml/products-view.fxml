@@ -43,21 +43,20 @@
                   </HBox>
                   <TableView fx:id="productsTable" prefHeight="430.0" VBox.vgrow="ALWAYS">
                      <columns>
-                        <TableColumn fx:id="nameColumn" prefWidth="220.0" text="Nome" />
-                        <TableColumn fx:id="categoryColumn" prefWidth="150.0" text="Categoria" />
-                        <TableColumn fx:id="priceColumn" prefWidth="120.0" text="Preço" />
-                        <TableColumn fx:id="costColumn" prefWidth="120.0" text="Custo" />
-                        <TableColumn fx:id="stockColumn" prefWidth="100.0" text="Estoque" />
-                        <TableColumn fx:id="barcodeColumn" prefWidth="150.0" text="Código" />
-                        <TableColumn fx:id="supplierColumn" prefWidth="180.0" text="Fornecedor" />
+                        <TableColumn fx:id="nameColumn" prefWidth="210.0" text="Nome" />
+                        <TableColumn fx:id="categoryColumn" prefWidth="140.0" text="Categoria" />
+                        <TableColumn fx:id="priceColumn" prefWidth="115.0" text="Preço" />
+                        <TableColumn fx:id="costColumn" prefWidth="115.0" text="Custo" />
+                        <TableColumn fx:id="stockColumn" prefWidth="90.0" text="Estoque" />
+                        <TableColumn fx:id="barcodeColumn" prefWidth="140.0" text="Código" />
+                        <TableColumn fx:id="supplierColumn" prefWidth="170.0" text="Fornecedor" />
+                        <TableColumn fx:id="statusColumn" prefWidth="110.0" text="Status" />
+                        <TableColumn fx:id="actionsColumn" prefWidth="110.0" text="Ações" />
                      </columns>
                   </TableView>
                   <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
                         <Label fx:id="messageLabel" styleClass="text-muted-left" text="" HBox.hgrow="ALWAYS" />
-                        <Button fx:id="editProductButton" mnemonicParsing="false" onAction="#handleEditProduct" prefWidth="120.0" styleClass="secondary-button" text="Editar" />
-                        <Button fx:id="deactivateProductButton" mnemonicParsing="false" onAction="#handleDeactivateProduct" prefWidth="130.0" styleClass="secondary-button" text="Desativar" />
-                        <Button fx:id="reactivateProductButton" mnemonicParsing="false" onAction="#handleReactivateProduct" prefWidth="130.0" styleClass="secondary-button" text="Reativar" />
                      </children>
                   </HBox>
                </children>
