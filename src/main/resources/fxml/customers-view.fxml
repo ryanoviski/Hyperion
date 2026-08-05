@@ -48,15 +48,12 @@
                         <TableColumn fx:id="phoneColumn" prefWidth="150.0" text="Telefone" />
                         <TableColumn fx:id="emailColumn" prefWidth="260.0" text="Email" />
                         <TableColumn fx:id="statusColumn" prefWidth="110.0" text="Status" />
+                        <TableColumn fx:id="actionsColumn" prefWidth="150.0" text="Ações" />
                      </columns>
                   </TableView>
                   <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
                         <Label fx:id="messageLabel" styleClass="text-muted-left" text="" HBox.hgrow="ALWAYS" />
-                        <Button fx:id="profileCustomerButton" mnemonicParsing="false" onAction="#handleCustomerProfile" prefWidth="120.0" styleClass="secondary-button" text="Perfil" />
-                        <Button fx:id="editCustomerButton" mnemonicParsing="false" onAction="#handleEditCustomer" prefWidth="120.0" styleClass="secondary-button" text="Editar" />
-                        <Button fx:id="deactivateCustomerButton" mnemonicParsing="false" onAction="#handleDeactivateCustomer" prefWidth="130.0" styleClass="secondary-button" text="Desativar" />
-                        <Button fx:id="reactivateCustomerButton" mnemonicParsing="false" onAction="#handleReactivateCustomer" prefWidth="130.0" styleClass="secondary-button" text="Reativar" />
                      </children>
                   </HBox>
                </children>

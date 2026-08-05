@@ -317,6 +317,61 @@
     -fx-padding: 12;
 }
 
+.table-cell.left-aligned-column {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+}
+
+.column-header.left-aligned-column .label {
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
+}
+
+.status-badge {
+    -fx-background-radius: 999;
+    -fx-padding: 4 10;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.status-active {
+    -fx-background-color: rgba(34, 197, 94, 0.16);
+    -fx-text-fill: #22C55E;
+}
+
+.status-inactive {
+    -fx-background-color: rgba(239, 68, 68, 0.16);
+    -fx-text-fill: #EF4444;
+}
+
+.status-active {
+    -fx-graphic-text-gap: 6;
+}
+
+.action-icon-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #334155;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8;
+    -fx-cursor: hand;
+}
+
+.action-icon-button:hover {
+    -fx-background-color: #1E293B;
+    -fx-border-color: #2563EB;
+}
+
+.action-icon-shape {
+    -fx-fill: #CBD5E1;
+    -fx-scale-x: 0.72;
+    -fx-scale-y: 0.72;
+}
+
+.action-icon-button:hover .action-icon-shape {
+    -fx-fill: #60A5FA;
+}
+
 .dialog-pane {
     -fx-background-color: #111827;
     -fx-border-color: #334155;
