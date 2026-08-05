@@ -247,6 +247,16 @@
     -fx-background-color: #0F172A;
 }
 
+.scroll-pane.content-area,
+.scroll-pane.content-area > .viewport,
+.scroll-pane.content-area .corner {
+    -fx-background-color: #0F172A;
+}
+
+.scroll-pane.content-area > .viewport > * {
+    -fx-background-color: #0F172A;
+}
+
 .page-title {
     -fx-font-size: 32px;
     -fx-font-weight: 700;
@@ -303,6 +313,41 @@
 .panel-title {
     -fx-font-size: 22px;
     -fx-font-weight: 700;
+    -fx-text-fill: #F8FAFC;
+}
+
+.sale-step-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #F8FAFC;
+}
+
+.field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #CBD5E1;
+}
+
+.sale-total-caption {
+    -fx-font-size: 13px;
+    -fx-text-fill: #94A3B8;
+}
+
+.sale-subtotal-value {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #F8FAFC;
+}
+
+.sale-total-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #F8FAFC;
+}
+
+.sale-total-value {
+    -fx-font-size: 26px;
+    -fx-font-weight: 800;
     -fx-text-fill: #F8FAFC;
 }
 

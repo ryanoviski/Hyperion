@@ -70,6 +70,12 @@ public class SaleController {
     private DatePicker firstDueDatePicker;
 
     @FXML
+    private VBox installmentsGroup;
+
+    @FXML
+    private VBox firstDueDateGroup;
+
+    @FXML
     private TableView<SaleItem> cartTable;
 
     @FXML
@@ -201,16 +207,27 @@ public class SaleController {
         installmentsChoiceBox.setValue(1);
 
         paymentMethodChoiceBox.setValue("Dinheiro");
-        paymentMethodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, paymentMethod) -> {
-            boolean isCreditSale = "Crediário".equals(paymentMethod);
-            installmentsChoiceBox.setVisible(isCreditSale);
-            installmentsChoiceBox.setManaged(isCreditSale);
-            firstDueDatePicker.setVisible(isCreditSale);
-            firstDueDatePicker.setManaged(isCreditSale);
-        });
+        paymentMethodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, paymentMethod) ->
+                updateCreditSaleFieldsVisibility(paymentMethod)
+        );
+        updateCreditSaleFieldsVisibility(paymentMethodChoiceBox.getValue());
+    }
+
+    private void updateCreditSaleFieldsVisibility(String paymentMethod) {
+        boolean isCreditSale = "Crediário".equals(paymentMethod);
+        installmentsGroup.setVisible(isCreditSale);
+        installmentsGroup.setManaged(isCreditSale);
+        installmentsChoiceBox.setVisible(isCreditSale);
+        installmentsChoiceBox.setManaged(isCreditSale);
+        firstDueDateGroup.setVisible(isCreditSale);
+        firstDueDateGroup.setManaged(isCreditSale);
+        firstDueDatePicker.setVisible(isCreditSale);
+        firstDueDatePicker.setManaged(isCreditSale);
     }
 
     private void configureTableColumns() {
+        cartTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+
         productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getProductName()));
         quantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantity())));
         unitPriceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getUnitPrice())));
