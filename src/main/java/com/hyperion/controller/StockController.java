@@ -7,25 +7,37 @@ import com.hyperion.service.StockService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.Node;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 public class StockController {
 
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
 
     private final ProductService productService = new ProductService();
     private final StockService stockService = new StockService();
 
+    private Product selectedProduct;
+
     @FXML
-    private ChoiceBox<Product> productChoiceBox;
+    private TextField selectedProductField;
 
     @FXML
     private TextField quantityField;
@@ -56,9 +68,7 @@ public class StockController {
 
     @FXML
     private void initialize() {
-        configureProductChoiceBox();
         configureTableColumns();
-        loadProducts();
         loadMovements();
     }
 
@@ -74,14 +84,20 @@ public class StockController {
 
     @FXML
     private void handleRefresh() {
-        loadProducts();
         loadMovements();
         showMessage("Estoque atualizado.");
     }
 
-    private void registerMovement(String type) {
-        Product selectedProduct = productChoiceBox.getValue();
+    @FXML
+    private void handleSearchProduct() {
+        showProductSearchDialog().ifPresent(product -> {
+            selectedProduct = product;
+            selectedProductField.setText(formatSelectedProduct(product));
+            showMessage("Produto selecionado: " + product.getName() + ".");
+        });
+    }
 
+    private void registerMovement(String type) {
         if (selectedProduct == null) {
             showMessage("Selecione um produto.");
             return;
@@ -99,47 +115,128 @@ public class StockController {
             }
 
             clearForm();
-            loadProducts();
             loadMovements();
         } catch (IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
 
-    private void configureProductChoiceBox() {
-        productChoiceBox.setConverter(new javafx.util.StringConverter<>() {
-            @Override
-            public String toString(Product product) {
-                if (product == null) {
-                    return "";
-                }
-
-                return product.getName() + " - estoque: " + product.getStockQuantity();
-            }
-
-            @Override
-            public Product fromString(String value) {
-                return null;
-            }
-        });
-    }
-
     private void configureTableColumns() {
+        movementsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
         ));
         productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getProductName()));
-        typeColumn.setCellValueFactory(cellData -> {
-            String type = StockService.MOVEMENT_TYPE_IN.equals(cellData.getValue().getType()) ? "Entrada" : "Saída";
-            return new ReadOnlyStringWrapper(type);
+        typeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMovementType(cellData.getValue().getType())));
+        typeColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String type, boolean empty) {
+                super.updateItem(type, empty);
+                getStyleClass().removeAll("movement-entry", "movement-exit");
+
+                if (empty || type == null) {
+                    setText(null);
+                    return;
+                }
+
+                setText(type);
+                getStyleClass().add("Entrada".equals(type) ? "movement-entry" : "movement-exit");
+            }
         });
         quantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantity())));
         notesColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getNotes()));
     }
 
-    private void loadProducts() {
-        List<Product> products = productService.listActiveProducts();
-        productChoiceBox.setItems(FXCollections.observableArrayList(products));
+    private String formatMovementType(String type) {
+        return StockService.MOVEMENT_TYPE_IN.equals(type) ? "Entrada" : "Saída";
+    }
+
+    private Optional<Product> showProductSearchDialog() {
+        Dialog<Product> dialog = new Dialog<>();
+        dialog.setTitle("Buscar produto");
+        dialog.setHeaderText(null);
+        dialog.initOwner(selectedProductField.getScene().getWindow());
+        addDialogStyles(dialog);
+
+        ButtonType selectButtonType = new ButtonType("Selecionar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(selectButtonType, ButtonType.CANCEL);
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Buscar por nome, categoria, código ou fornecedor");
+
+        TableView<Product> table = createProductSearchTable();
+        table.setItems(FXCollections.observableArrayList(productService.listActiveProducts()));
+        searchField.textProperty().addListener((observable, oldValue, term) ->
+                table.setItems(FXCollections.observableArrayList(productService.searchActiveProducts(term)))
+        );
+
+        Node selectButton = dialog.getDialogPane().lookupButton(selectButtonType);
+        selectButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+
+        VBox content = new VBox(12, searchField, table);
+        content.setPrefWidth(780);
+        content.setPrefHeight(460);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(buttonType -> {
+            if (buttonType != selectButtonType) {
+                return null;
+            }
+
+            return table.getSelectionModel().getSelectedItem();
+        });
+
+        return dialog.showAndWait();
+    }
+
+    private TableView<Product> createProductSearchTable() {
+        TableView<Product> table = new TableView<>();
+        table.setPrefHeight(380);
+
+        TableColumn<Product, String> nameColumn = new TableColumn<>("Produto");
+        nameColumn.setPrefWidth(240);
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getName()));
+
+        TableColumn<Product, String> barcodeColumn = new TableColumn<>("Código");
+        barcodeColumn.setPrefWidth(140);
+        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getBarcode())));
+
+        TableColumn<Product, String> stockColumn = new TableColumn<>("Estoque");
+        stockColumn.setPrefWidth(100);
+        stockColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getStockQuantity())));
+
+        TableColumn<Product, String> priceColumn = new TableColumn<>("Preço");
+        priceColumn.setPrefWidth(120);
+        priceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getPrice())));
+
+        TableColumn<Product, String> supplierColumn = new TableColumn<>("Fornecedor");
+        supplierColumn.setPrefWidth(180);
+        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getSupplier())));
+
+        table.getColumns().addAll(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn);
+        return table;
+    }
+
+    private void addDialogStyles(Dialog<?> dialog) {
+        String stylesheet = StockController.class.getResource("/css/app.css").toExternalForm();
+        dialog.getDialogPane().getStylesheets().add(stylesheet);
+    }
+
+    private String formatSelectedProduct(Product product) {
+        return product.getName() + " - estoque: " + product.getStockQuantity();
+    }
+
+    private String formatMoney(BigDecimal value) {
+        if (value == null) {
+            return "R$ 0,00";
+        }
+
+        return CURRENCY_FORMAT.format(value);
+    }
+
+    private String textValue(String value) {
+        return value == null ? "" : value;
     }
 
     private void loadMovements() {

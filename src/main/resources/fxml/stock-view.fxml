@@ -2,7 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -15,7 +14,7 @@
 
 <BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.StockController">
    <center>
-      <VBox spacing="22.0" BorderPane.alignment="CENTER">
+      <VBox spacing="22.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
          <padding>
             <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
          </padding>
@@ -26,45 +25,50 @@
                   <Label styleClass="page-subtitle" text="Registre entradas, saídas e acompanhe o histórico de movimentações." />
                </children>
             </VBox>
-            <HBox spacing="20.0">
+
+            <VBox spacing="16.0" styleClass="dashboard-panel">
                <children>
-                  <VBox prefWidth="360.0" spacing="14.0" styleClass="dashboard-panel">
+                  <Label styleClass="panel-title" text="Nova movimentação" />
+                  <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
-                        <Label styleClass="panel-title" text="Nova movimentação" />
-                        <ChoiceBox fx:id="productChoiceBox" prefHeight="42.0" prefWidth="320.0" />
-                        <TextField fx:id="quantityField" prefHeight="42.0" promptText="Quantidade" />
-                        <TextArea fx:id="notesArea" prefRowCount="4" promptText="Observação" />
-                        <HBox spacing="12.0">
-                           <children>
-                              <Button fx:id="entryButton" mnemonicParsing="false" onAction="#handleEntry" prefWidth="150.0" styleClass="primary-button" text="Entrada" />
-                              <Button fx:id="exitButton" mnemonicParsing="false" onAction="#handleExit" prefWidth="150.0" styleClass="secondary-button" text="Saída" />
-                           </children>
-                        </HBox>
-                        <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
+                        <TextField fx:id="selectedProductField" editable="false" focusTraversable="false" prefHeight="42.0" prefWidth="230.0" promptText="Selecione o produto" />
+                        <Button fx:id="searchProductButton" mnemonicParsing="false" onAction="#handleSearchProduct" prefHeight="42.0" prefWidth="90.0" styleClass="secondary-button" text="Buscar" />
+                        <TextField fx:id="quantityField" prefHeight="42.0" prefWidth="150.0" promptText="Quantidade" />
+                        <TextArea fx:id="notesArea" prefHeight="42.0" prefRowCount="1" prefWidth="320.0" promptText="Observação" styleClass="stock-notes-area" wrapText="true" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="entryButton" mnemonicParsing="false" onAction="#handleEntry" prefHeight="42.0" prefWidth="110.0" styleClass="primary-button" text="Entrada" />
+                        <Button fx:id="exitButton" mnemonicParsing="false" onAction="#handleExit" prefHeight="42.0" prefWidth="110.0" styleClass="secondary-button" text="Saída" />
                      </children>
-                  </VBox>
-                  <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                  </HBox>
+                  <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
+               </children>
+            </VBox>
+
+            <VBox spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+               <children>
+                  <HBox alignment="CENTER_LEFT">
                      <children>
-                        <HBox alignment="CENTER_LEFT">
+                        <VBox spacing="4.0">
                            <children>
                               <Label styleClass="panel-title" text="Histórico recente" />
-                              <Region HBox.hgrow="ALWAYS" />
-                              <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
+                              <Label styleClass="text-muted-left" text="Últimas entradas e saídas registradas no estoque." />
                            </children>
-                        </HBox>
-                        <TableView fx:id="movementsTable" prefHeight="430.0" VBox.vgrow="ALWAYS">
-                           <columns>
-                              <TableColumn fx:id="dateColumn" prefWidth="150.0" text="Data" />
-                              <TableColumn fx:id="productColumn" prefWidth="220.0" text="Produto" />
-                              <TableColumn fx:id="typeColumn" prefWidth="100.0" text="Tipo" />
-                              <TableColumn fx:id="quantityColumn" prefWidth="100.0" text="Qtd." />
-                              <TableColumn fx:id="notesColumn" prefWidth="260.0" text="Observação" />
-                           </columns>
-                        </TableView>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefHeight="42.0" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
                      </children>
-                  </VBox>
+                  </HBox>
+                  <TableView fx:id="movementsTable" prefHeight="430.0" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="dateColumn" prefWidth="170.0" text="Data" />
+                        <TableColumn fx:id="productColumn" prefWidth="330.0" styleClass="left-aligned-column" text="Produto" />
+                        <TableColumn fx:id="typeColumn" prefWidth="120.0" text="Tipo" />
+                        <TableColumn fx:id="quantityColumn" prefWidth="80.0" text="Qtd." />
+                        <TableColumn fx:id="notesColumn" prefWidth="360.0" styleClass="left-aligned-column" text="Observação" />
+                     </columns>
+                  </TableView>
                </children>
-            </HBox>
+            </VBox>
          </children>
       </VBox>
    </center>
