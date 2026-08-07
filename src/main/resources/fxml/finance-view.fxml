@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -13,9 +14,9 @@
 
 <BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.FinanceController">
    <center>
-      <VBox spacing="22.0" BorderPane.alignment="CENTER">
+      <VBox spacing="16.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
          <padding>
-            <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
+            <Insets bottom="32.0" left="32.0" right="32.0" top="28.0" />
          </padding>
          <children>
             <VBox spacing="4.0">
@@ -24,30 +25,31 @@
                   <Label styleClass="page-subtitle" text="Acompanhe vendas, despesas e saldo do negócio." />
                </children>
             </VBox>
-            <HBox spacing="20.0">
+
+            <HBox spacing="14.0">
                <children>
-                  <VBox prefHeight="140.0" prefWidth="210.0" styleClass="dashboard-card">
+                  <VBox prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card">
                      <children>
                         <Label styleClass="card-label" text="Entradas" />
                         <Label fx:id="totalIncomeLabel" styleClass="card-value" text="R$ 0,00" />
                         <Label styleClass="card-footnote-success" text="Vendas registradas" />
                      </children>
                   </VBox>
-                  <VBox prefHeight="140.0" prefWidth="210.0" styleClass="dashboard-card">
+                  <VBox prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card">
                      <children>
                         <Label styleClass="card-label" text="Despesas" />
                         <Label fx:id="totalExpensesLabel" styleClass="card-value" text="R$ 0,00" />
                         <Label styleClass="card-footnote-warning" text="Saídas manuais" />
                      </children>
                   </VBox>
-                  <VBox prefHeight="140.0" prefWidth="210.0" styleClass="dashboard-card">
+                  <VBox prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card">
                      <children>
                         <Label styleClass="card-label" text="Saldo atual" />
                         <Label fx:id="currentBalanceLabel" styleClass="card-value" text="R$ 0,00" />
                         <Label styleClass="card-footnote" text="Entradas - despesas" />
                      </children>
                   </VBox>
-                  <VBox prefHeight="140.0" prefWidth="210.0" styleClass="dashboard-card">
+                  <VBox prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card">
                      <children>
                         <Label styleClass="card-label" text="Lucro do mês" />
                         <Label fx:id="monthlyProfitLabel" styleClass="card-value" text="R$ 0,00" />
@@ -56,49 +58,58 @@
                   </VBox>
                </children>
             </HBox>
-            <HBox spacing="20.0">
+
+            <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="dashboard-panel">
                <children>
-                  <VBox prefWidth="340.0" spacing="14.0" styleClass="dashboard-panel">
+                  <VBox spacing="6.0">
                      <children>
-                        <Label styleClass="panel-title" text="Nova despesa" />
-                        <TextField fx:id="descriptionField" prefHeight="42.0" promptText="Descrição" />
-                        <TextField fx:id="categoryField" prefHeight="42.0" promptText="Categoria" />
-                        <TextField fx:id="amountField" prefHeight="42.0" promptText="Valor em R$" />
-                        <HBox spacing="10.0">
-                           <children>
-                              <Button fx:id="selectAttachmentButton" mnemonicParsing="false" onAction="#handleSelectAttachment" prefWidth="190.0" styleClass="secondary-button" text="Anexar comprovante" />
-                              <Button fx:id="clearAttachmentButton" mnemonicParsing="false" onAction="#handleClearAttachment" prefWidth="100.0" styleClass="secondary-button" text="Limpar" />
-                           </children>
-                        </HBox>
-                        <Label fx:id="attachmentLabel" prefWidth="300.0" styleClass="text-muted-left" text="Nenhum comprovante selecionado." wrapText="true" />
-                        <Button fx:id="addExpenseButton" mnemonicParsing="false" onAction="#handleAddExpense" prefWidth="300.0" styleClass="primary-button" text="Registrar despesa" />
-                        <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
+                        <Label styleClass="field-label" text="Período" />
+                        <ChoiceBox fx:id="periodChoiceBox" prefHeight="42.0" prefWidth="190.0" />
                      </children>
                   </VBox>
-                  <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                  <Region prefWidth="1.0" styleClass="vertical-divider" />
+                  <VBox spacing="6.0">
                      <children>
+                        <Label styleClass="sale-step-title" text="Nova despesa" />
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
-                              <Label styleClass="panel-title" text="Despesas recentes" />
-                              <Region HBox.hgrow="ALWAYS" />
-                              <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
-                              <Button fx:id="viewAttachmentsButton" mnemonicParsing="false" onAction="#handleViewAttachments" prefWidth="120.0" styleClass="secondary-button" text="Ver anexos" />
-                              <Button fx:id="removeExpenseButton" mnemonicParsing="false" onAction="#handleRemoveExpense" prefWidth="130.0" styleClass="secondary-button" text="Remover" />
+                              <TextField fx:id="descriptionField" prefHeight="42.0" prefWidth="180.0" promptText="Descrição" />
+                              <TextField fx:id="categoryField" prefHeight="42.0" prefWidth="150.0" promptText="Categoria" />
+                              <TextField fx:id="amountField" prefHeight="42.0" prefWidth="130.0" promptText="Valor em R$" />
+                              <Label fx:id="attachmentLabel" prefHeight="42.0" prefWidth="220.0" styleClass="text-muted-left" text="Nenhum comprovante selecionado." wrapText="true" />
+                              <Button fx:id="selectAttachmentButton" mnemonicParsing="false" onAction="#handleSelectAttachment" prefHeight="42.0" prefWidth="160.0" styleClass="secondary-button" text="Anexar comprovante" />
+                              <Button fx:id="clearAttachmentButton" mnemonicParsing="false" onAction="#handleClearAttachment" prefHeight="42.0" prefWidth="44.0" styleClass="secondary-button" text="X" />
+                              <Button fx:id="addExpenseButton" mnemonicParsing="false" onAction="#handleAddExpense" prefHeight="42.0" prefWidth="150.0" styleClass="primary-button" text="Registrar despesa" />
                            </children>
                         </HBox>
-                        <TableView fx:id="expensesTable" prefHeight="360.0" VBox.vgrow="ALWAYS">
-                           <columns>
-                              <TableColumn fx:id="dateColumn" prefWidth="145.0" text="Data" />
-                              <TableColumn fx:id="descriptionColumn" prefWidth="240.0" text="Descrição" />
-                              <TableColumn fx:id="categoryColumn" prefWidth="130.0" text="Categoria" />
-                              <TableColumn fx:id="amountColumn" prefWidth="130.0" text="Valor" />
-                              <TableColumn fx:id="attachmentColumn" prefWidth="100.0" text="Anexo" />
-                           </columns>
-                        </TableView>
                      </children>
                   </VBox>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefHeight="42.0" prefWidth="44.0" styleClass="secondary-button" text="R" />
                </children>
             </HBox>
+
+            <VBox spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+               <children>
+                  <HBox alignment="CENTER_LEFT">
+                     <children>
+                        <Label styleClass="panel-title" text="Despesas recentes" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
+                     </children>
+                  </HBox>
+                  <TableView fx:id="expensesTable" prefHeight="390.0" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="dateColumn" prefWidth="155.0" text="Data" />
+                        <TableColumn fx:id="descriptionColumn" prefWidth="260.0" styleClass="left-aligned-column" text="Descrição" />
+                        <TableColumn fx:id="categoryColumn" prefWidth="170.0" text="Categoria" />
+                        <TableColumn fx:id="amountColumn" prefWidth="140.0" text="Valor" />
+                        <TableColumn fx:id="attachmentColumn" prefWidth="130.0" text="Anexos" />
+                        <TableColumn fx:id="actionsColumn" prefWidth="140.0" text="Ações" />
+                     </columns>
+                  </TableView>
+               </children>
+            </VBox>
          </children>
       </VBox>
    </center>

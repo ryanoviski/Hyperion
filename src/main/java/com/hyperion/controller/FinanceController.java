@@ -5,16 +5,21 @@ import com.hyperion.model.Expense;
 import com.hyperion.model.FinancialSummary;
 import com.hyperion.service.AttachmentService;
 import com.hyperion.service.FinanceService;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -22,6 +27,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
+import javafx.scene.shape.SVGPath;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import org.apache.pdfbox.Loader;
@@ -35,6 +42,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,11 +50,18 @@ public class FinanceController {
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final String ALL_PERIODS_FILTER = "Todos os períodos";
+    private static final String CLIP_ICON = "M16.5 6.5 7.4 15.6c-1.7 1.7-4.4 1.7-6.1 0s-1.7-4.4 0-6.1l9.9-9.9c1.1-1.1 2.9-1.1 4 0s1.1 2.9 0 4l-9.6 9.6c-.5.5-1.3.5-1.8 0s-.5-1.3 0-1.8l8.6-8.6";
+    private static final String EYE_ICON = "M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6";
+    private static final String TRASH_ICON = "M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7";
+    private static final String REFRESH_ICON = "M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8M18 3v4h-4M6 21v-4h4";
 
     private final FinanceService financeService = new FinanceService();
     private final AttachmentService attachmentService = new AttachmentService();
+    private final ObservableList<Expense> allExpenses = FXCollections.observableArrayList();
 
     private Path selectedAttachmentPath;
+    private String currentMonthFilter;
 
     @FXML
     private Label totalIncomeLabel;
@@ -70,16 +85,16 @@ public class FinanceController {
     private TextField amountField;
 
     @FXML
-    private Button removeExpenseButton;
-
-    @FXML
-    private Button viewAttachmentsButton;
-
-    @FXML
     private Button clearAttachmentButton;
 
     @FXML
+    private Button refreshButton;
+
+    @FXML
     private Label attachmentLabel;
+
+    @FXML
+    private ChoiceBox<String> periodChoiceBox;
 
     @FXML
     private TableView<Expense> expensesTable;
@@ -100,12 +115,16 @@ public class FinanceController {
     private TableColumn<Expense, String> attachmentColumn;
 
     @FXML
+    private TableColumn<Expense, Expense> actionsColumn;
+
+    @FXML
     private Label messageLabel;
 
     @FXML
     private void initialize() {
+        configureIconButtons();
+        configurePeriodFilter();
         configureTableColumns();
-        configureSelectionState();
         updateAttachmentSelection(null);
         loadFinanceData();
     }
@@ -137,8 +156,12 @@ public class FinanceController {
 
     @FXML
     private void handleRemoveExpense() {
+        handleRemoveExpense(expensesTable.getSelectionModel().getSelectedItem());
+    }
+
+    private void handleRemoveExpense(Expense expense) {
         try {
-            financeService.deleteExpense(expensesTable.getSelectionModel().getSelectedItem());
+            financeService.deleteExpense(expense);
             loadFinanceData();
             showMessage("Despesa removida com sucesso.");
         } catch (IllegalArgumentException | IllegalStateException exception) {
@@ -148,16 +171,18 @@ public class FinanceController {
 
     @FXML
     private void handleViewAttachments() {
-        Expense selectedExpense = expensesTable.getSelectionModel().getSelectedItem();
+        handleViewAttachments(expensesTable.getSelectionModel().getSelectedItem());
+    }
 
-        if (selectedExpense == null) {
+    private void handleViewAttachments(Expense expense) {
+        if (expense == null) {
             showMessage("Selecione uma despesa para ver os anexos.");
             return;
         }
 
         List<Attachment> attachments = attachmentService.listAttachments(
                 AttachmentService.FINANCE_MODULE,
-                selectedExpense.getId()
+                expense.getId()
         );
 
         if (attachments.isEmpty()) {
@@ -165,7 +190,7 @@ public class FinanceController {
             return;
         }
 
-        showAttachmentsDialog(selectedExpense, attachments);
+        showAttachmentsDialog(expense, attachments);
     }
 
     @FXML
@@ -196,6 +221,8 @@ public class FinanceController {
     }
 
     private void configureTableColumns() {
+        expensesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
         ));
@@ -203,22 +230,87 @@ public class FinanceController {
         categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getCategory())));
         amountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getAmount())));
         attachmentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatAttachmentCount(cellData.getValue())));
+        attachmentColumn.setCellFactory(column -> createAttachmentCell());
+        actionsColumn.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(cellData.getValue()));
+        actionsColumn.setCellFactory(column -> createActionsCell());
     }
 
-    private void configureSelectionState() {
-        updateActionButtons(null);
-        expensesTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, selectedExpense) ->
-                updateActionButtons(selectedExpense)
-        );
+    private void configurePeriodFilter() {
+        currentMonthFilter = "Este mês (" + YearMonth.now().format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.of("pt", "BR"))) + ")";
+        periodChoiceBox.setItems(FXCollections.observableArrayList(currentMonthFilter, ALL_PERIODS_FILTER));
+        periodChoiceBox.setValue(currentMonthFilter);
+        periodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> applyPeriodFilter());
     }
 
-    private void updateActionButtons(Expense selectedExpense) {
-        boolean hasSelection = selectedExpense != null;
-        boolean hasAttachments = hasSelection
-                && attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, selectedExpense.getId()) > 0;
+    private void configureIconButtons() {
+        clearAttachmentButton.setText("");
+        clearAttachmentButton.setGraphic(createIcon(TRASH_ICON));
+        clearAttachmentButton.setTooltip(new javafx.scene.control.Tooltip("Remover comprovante selecionado"));
 
-        removeExpenseButton.setDisable(!hasSelection);
-        viewAttachmentsButton.setDisable(!hasAttachments);
+        refreshButton.setText("");
+        refreshButton.setGraphic(createIcon(REFRESH_ICON));
+        refreshButton.setTooltip(new javafx.scene.control.Tooltip("Atualizar financeiro"));
+    }
+
+    private TableCell<Expense, String> createAttachmentCell() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(String text, boolean empty) {
+                super.updateItem(text, empty);
+
+                if (empty || text == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+
+                Label label = new Label(text);
+                label.setGraphic(createIcon(CLIP_ICON));
+                label.getStyleClass().add("text-muted-left");
+                setGraphic(label);
+                setText(null);
+            }
+        };
+    }
+
+    private TableCell<Expense, Expense> createActionsCell() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(Expense expense, boolean empty) {
+                super.updateItem(expense, empty);
+
+                if (empty || expense == null) {
+                    setGraphic(null);
+                    return;
+                }
+
+                Button attachmentButton = createIconButton("Ver anexos", EYE_ICON);
+                attachmentButton.setDisable(attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, expense.getId()) == 0);
+                attachmentButton.setOnAction(event -> handleViewAttachments(expense));
+
+                Button removeButton = createIconButton("Remover despesa", TRASH_ICON);
+                removeButton.setOnAction(event -> handleRemoveExpense(expense));
+
+                HBox actions = new HBox(8, attachmentButton, removeButton);
+                actions.setAlignment(Pos.CENTER);
+                setGraphic(actions);
+            }
+        };
+    }
+
+    private Button createIconButton(String tooltipText, String svgContent) {
+        Button button = new Button();
+        button.getStyleClass().add("action-icon-button");
+        button.setGraphic(createIcon(svgContent));
+        button.setTooltip(new javafx.scene.control.Tooltip(tooltipText));
+        return button;
+    }
+
+    private SVGPath createIcon(String svgContent) {
+        SVGPath icon = new SVGPath();
+        icon.setContent(svgContent);
+        icon.getStyleClass().addAll("action-icon-shape", "line-icon-shape");
+        return icon;
     }
 
     private void loadFinanceData() {
@@ -229,8 +321,26 @@ public class FinanceController {
         totalExpensesLabel.setText(formatMoney(summary.getTotalExpenses()));
         currentBalanceLabel.setText(formatMoney(summary.getCurrentBalance()));
         monthlyProfitLabel.setText(formatMoney(summary.getMonthlyProfit()));
-        expensesTable.setItems(FXCollections.observableArrayList(expenses));
-        updateActionButtons(expensesTable.getSelectionModel().getSelectedItem());
+        allExpenses.setAll(expenses);
+        applyPeriodFilter();
+    }
+
+    private void applyPeriodFilter() {
+        if (periodChoiceBox == null || currentMonthFilter == null) {
+            expensesTable.setItems(FXCollections.observableArrayList(allExpenses));
+            return;
+        }
+
+        if (ALL_PERIODS_FILTER.equals(periodChoiceBox.getValue())) {
+            expensesTable.setItems(FXCollections.observableArrayList(allExpenses));
+            return;
+        }
+
+        YearMonth currentMonth = YearMonth.now();
+        List<Expense> filteredExpenses = allExpenses.stream()
+                .filter(expense -> YearMonth.from(expense.getCreatedAt()).equals(currentMonth))
+                .toList();
+        expensesTable.setItems(FXCollections.observableArrayList(filteredExpenses));
     }
 
     private void showAttachmentsDialog(Expense expense, List<Attachment> attachments) {
@@ -394,6 +504,7 @@ public class FinanceController {
     private void updateAttachmentSelection(Path attachmentPath) {
         selectedAttachmentPath = attachmentPath;
         clearAttachmentButton.setDisable(attachmentPath == null);
+        attachmentLabel.setGraphic(createIcon(CLIP_ICON));
 
         if (attachmentPath == null) {
             attachmentLabel.setText("Nenhum comprovante selecionado.");
@@ -405,7 +516,7 @@ public class FinanceController {
 
     private String formatAttachmentCount(Expense expense) {
         int count = attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, expense.getId());
-        return count == 0 ? "-" : count + " arquivo(s)";
+        return count == 0 ? "-" : String.valueOf(count);
     }
 
     private String formatFileSize(long bytes) {

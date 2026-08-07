@@ -511,8 +511,29 @@
     -fx-scale-y: 0.72;
 }
 
+.line-icon-shape {
+    -fx-fill: transparent;
+    -fx-stroke: #CBD5E1;
+    -fx-stroke-width: 2;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
 .action-icon-button:hover .action-icon-shape {
     -fx-fill: #60A5FA;
+}
+
+.action-icon-button:hover .line-icon-shape {
+    -fx-fill: transparent;
+    -fx-stroke: #60A5FA;
+}
+
+.vertical-divider {
+    -fx-background-color: #334155;
+    -fx-pref-width: 1;
+    -fx-min-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 88;
 }
 
 .dialog-pane {
