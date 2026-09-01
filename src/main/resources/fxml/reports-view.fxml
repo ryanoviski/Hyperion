@@ -2,7 +2,9 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
@@ -10,13 +12,15 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.ReportController">
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.ReportController">
    <center>
-      <VBox spacing="22.0" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
-         </padding>
-         <children>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-area" BorderPane.alignment="CENTER">
+         <content>
+            <VBox maxWidth="1.7976931348623157E308" spacing="16.0">
+               <padding>
+                  <Insets bottom="28.0" left="32.0" right="32.0" top="28.0" />
+               </padding>
+               <children>
             <HBox alignment="CENTER_LEFT" spacing="16.0">
                <children>
                   <VBox spacing="4.0">
@@ -26,26 +30,28 @@
                      </children>
                   </VBox>
                   <Region HBox.hgrow="ALWAYS" />
+                  <ChoiceBox fx:id="periodChoiceBox" prefWidth="170.0" />
                   <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
                </children>
             </HBox>
-            <HBox spacing="20.0">
+
+            <HBox spacing="16.0">
                <children>
-                  <VBox prefHeight="140.0" prefWidth="250.0" styleClass="dashboard-card">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="106.0" prefWidth="250.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Total vendido" />
                         <Label fx:id="totalSalesLabel" styleClass="card-value" text="R$ 0,00" />
-                        <Label styleClass="card-footnote" text="Todas as vendas" />
+                        <Label styleClass="card-footnote" text="Vendas no período" />
                      </children>
                   </VBox>
-                  <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="106.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Quantidade de vendas" />
                         <Label fx:id="salesCountLabel" styleClass="card-value" text="0" />
                         <Label styleClass="card-footnote" text="Pedidos finalizados" />
                      </children>
                   </VBox>
-                  <VBox prefHeight="140.0" prefWidth="240.0" styleClass="dashboard-card">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="106.0" prefWidth="240.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Ticket médio" />
                         <Label fx:id="averageTicketLabel" styleClass="card-value" text="R$ 0,00" />
@@ -54,36 +60,50 @@
                   </VBox>
                </children>
             </HBox>
-            <HBox spacing="20.0">
+
+            <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
                <children>
-                  <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                  <VBox spacing="2.0">
                      <children>
-                        <Label styleClass="panel-title" text="Vendas por pagamento" />
-                        <TableView fx:id="paymentMethodsTable" prefHeight="360.0" VBox.vgrow="ALWAYS">
-                           <columns>
-                              <TableColumn fx:id="paymentMethodColumn" prefWidth="180.0" text="Pagamento" />
-                              <TableColumn fx:id="paymentSalesCountColumn" prefWidth="120.0" text="Vendas" />
-                              <TableColumn fx:id="paymentTotalColumn" prefWidth="160.0" text="Total" />
-                           </columns>
-                        </TableView>
+                        <Label styleClass="panel-title" text="Vendas por Pagamento" />
+                        <Label styleClass="page-subtitle" text="Resumo detalhado por forma de pagamento." />
                      </children>
                   </VBox>
-                  <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label styleClass="panel-title" text="Produtos mais vendidos" />
-                        <TableView fx:id="topProductsTable" prefHeight="360.0" VBox.vgrow="ALWAYS">
-                           <columns>
-                              <TableColumn fx:id="productNameColumn" prefWidth="240.0" text="Produto" />
-                              <TableColumn fx:id="productQuantityColumn" prefWidth="120.0" text="Qtd." />
-                              <TableColumn fx:id="productTotalColumn" prefWidth="150.0" text="Total" />
-                           </columns>
-                        </TableView>
-                     </children>
-                  </VBox>
+                  <TableView fx:id="paymentMethodsTable" prefHeight="210.0" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="paymentMethodColumn" prefWidth="220.0" text="Pagamento" />
+                        <TableColumn fx:id="paymentSalesCountColumn" prefWidth="130.0" text="Vendas (Qtd)" />
+                        <TableColumn fx:id="paymentTotalColumn" prefWidth="160.0" text="Total (R$)" />
+                        <TableColumn fx:id="paymentPercentColumn" prefWidth="130.0" text="Total (%)" />
+                        <TableColumn fx:id="paymentShareColumn" prefWidth="220.0" text="Participação" />
+                     </columns>
+                  </TableView>
                </children>
-            </HBox>
+            </VBox>
+
+            <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+               <children>
+                  <VBox spacing="2.0">
+                     <children>
+                        <Label styleClass="panel-title" text="Produtos Mais Vendidos" />
+                        <Label styleClass="page-subtitle" text="Produtos com maior saída no período selecionado." />
+                     </children>
+                  </VBox>
+                  <TableView fx:id="topProductsTable" prefHeight="230.0" VBox.vgrow="ALWAYS">
+                     <columns>
+                        <TableColumn fx:id="productNameColumn" prefWidth="360.0" text="Produto" />
+                        <TableColumn fx:id="productUnitPriceColumn" prefWidth="160.0" text="Preço Unitário" />
+                        <TableColumn fx:id="productQuantityColumn" prefWidth="140.0" text="Vendas (Qtd)" />
+                        <TableColumn fx:id="productTotalColumn" prefWidth="180.0" text="Total (R$)" />
+                     </columns>
+                  </TableView>
+               </children>
+            </VBox>
+
             <Label fx:id="messageLabel" styleClass="text-muted-left" text="" />
-         </children>
-      </VBox>
+               </children>
+            </VBox>
+         </content>
+      </ScrollPane>
    </center>
 </BorderPane>

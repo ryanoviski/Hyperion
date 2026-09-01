@@ -183,6 +183,8 @@ public class ProductController {
     }
 
     private void configureTableColumns() {
+        productsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+
         nameColumn.getStyleClass().add("left-aligned-column");
         categoryColumn.getStyleClass().add("left-aligned-column");
         supplierColumn.getStyleClass().add("left-aligned-column");

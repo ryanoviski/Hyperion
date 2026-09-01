@@ -177,6 +177,8 @@ public class CustomerController {
     }
 
     private void configureTableColumns() {
+        customersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+
         nameColumn.getStyleClass().add("left-aligned-column");
         emailColumn.getStyleClass().add("left-aligned-column");
 
@@ -331,6 +333,7 @@ public class CustomerController {
         VBox content = new VBox(14);
         content.setPadding(new Insets(16));
         content.setPrefWidth(720);
+        content.setMaxWidth(Double.MAX_VALUE);
 
         Label documentLabel = new Label("Documento: " + formatDocument(customer.getDocument()));
         Label phoneLabel = new Label("Telefone: " + formatPhone(customer.getPhone()));
@@ -354,6 +357,7 @@ public class CustomerController {
     private TableView<Sale> createPurchasesTable(Customer customer) {
         TableView<Sale> purchasesTable = new TableView<>();
         purchasesTable.setPrefHeight(260);
+        purchasesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<Sale, String> dateColumn = new TableColumn<>("Data");
         dateColumn.setPrefWidth(150);

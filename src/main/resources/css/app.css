@@ -257,6 +257,44 @@
     -fx-background-color: #0F172A;
 }
 
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: #0F172A;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 10;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 10;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #0F172A;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #334155;
+    -fx-background-radius: 999;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #475569;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
 .page-title {
     -fx-font-size: 32px;
     -fx-font-weight: 700;
@@ -534,6 +572,27 @@
     -fx-min-width: 1;
     -fx-max-width: 1;
     -fx-min-height: 88;
+}
+
+.report-share-cell {
+    -fx-padding: 0 8;
+}
+
+.report-share-bar {
+    -fx-pref-height: 8;
+    -fx-min-height: 8;
+    -fx-accent: #93A4BD;
+}
+
+.report-share-bar > .track {
+    -fx-background-color: #1E293B;
+    -fx-background-radius: 999;
+}
+
+.report-share-bar > .bar {
+    -fx-background-color: #93A4BD;
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
 }
 
 .dialog-pane {

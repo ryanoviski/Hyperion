@@ -142,7 +142,7 @@ public class CreditController {
 
     private void configureInstallmentsTable() {
         installmentsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        installmentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        installmentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         customerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getCustomerName()));
         installmentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatInstallment(cellData.getValue())));

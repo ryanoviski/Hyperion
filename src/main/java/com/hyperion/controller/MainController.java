@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
@@ -184,6 +185,10 @@ public class MainController {
             Parent content = FXMLLoader.load(Objects.requireNonNull(
                     MainController.class.getResource(fxmlPath)
             ));
+
+            if (content instanceof Region region) {
+                region.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            }
 
             contentContainer.getChildren().setAll(content);
         } catch (IOException exception) {

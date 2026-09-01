@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="contentArea" spacing="24.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.DashboardController">
+<VBox fx:id="contentArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="24.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.DashboardController">
    <padding>
       <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
    </padding>
@@ -28,28 +28,28 @@
       </HBox>
       <HBox spacing="20.0">
          <children>
-            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Vendas hoje" />
                   <Label fx:id="salesTodayValueLabel" styleClass="card-value" text="R$ 0,00" />
                   <Label fx:id="salesTodayFootnoteLabel" styleClass="card-footnote" text="Nenhuma venda registrada" />
                </children>
             </VBox>
-            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Clientes" />
                   <Label fx:id="customersValueLabel" styleClass="card-value" text="0" />
                   <Label fx:id="customersFootnoteLabel" styleClass="card-footnote-success" text="Comece cadastrando clientes" />
                </children>
             </VBox>
-            <VBox prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Produtos" />
                   <Label fx:id="productsValueLabel" styleClass="card-value" text="0" />
                   <Label fx:id="productsFootnoteLabel" styleClass="card-footnote-warning" text="Estoque ainda vazio" />
                </children>
             </VBox>
-            <VBox prefHeight="140.0" prefWidth="280.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="280.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                <children>
                   <Label styleClass="card-label" text="Saldo" />
                   <Label fx:id="balanceValueLabel" styleClass="card-value" text="R$ 0,00" wrapText="true" />
@@ -60,7 +60,7 @@
       </HBox>
       <HBox spacing="20.0" VBox.vgrow="ALWAYS">
          <children>
-            <VBox spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
                <children>
                   <VBox spacing="4.0">
                      <children>
@@ -83,14 +83,14 @@
                   </HBox>
                </children>
             </VBox>
-            <VBox prefWidth="340.0" spacing="20.0">
+            <VBox maxWidth="380.0" minWidth="300.0" prefWidth="340.0" spacing="20.0">
                <children>
-                  <VBox fx:id="shortcutsPanel" spacing="12.0" styleClass="dashboard-panel">
+                  <VBox fx:id="shortcutsPanel" maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel">
                      <children>
                         <Label styleClass="panel-title" text="Ações rápidas" />
-                        <Button fx:id="newCustomerButton" mnemonicParsing="false" onAction="#handleCustomers" prefWidth="292.0" styleClass="secondary-button" text="Cadastrar cliente" />
-                        <Button fx:id="newProductButton" mnemonicParsing="false" onAction="#handleProducts" prefWidth="292.0" styleClass="secondary-button" text="Cadastrar produto" />
-                        <Button fx:id="viewStockButton" mnemonicParsing="false" onAction="#handleStock" prefWidth="292.0" styleClass="secondary-button" text="Ver estoque" />
+                        <Button fx:id="newCustomerButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCustomers" styleClass="secondary-button" text="Cadastrar cliente" />
+                        <Button fx:id="newProductButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleProducts" styleClass="secondary-button" text="Cadastrar produto" />
+                        <Button fx:id="viewStockButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleStock" styleClass="secondary-button" text="Ver estoque" />
                      </children>
                   </VBox>
                   <VBox fx:id="alertsPanel" spacing="14.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
@@ -98,7 +98,7 @@
                         <Label styleClass="panel-title" text="Alertas do sistema" />
                         <VBox fx:id="alertsList" spacing="10.0">
                            <children>
-                              <Label fx:id="emptyAlertsLabel" prefWidth="292.0" styleClass="text-muted-left" text="Nenhum alerta por enquanto." wrapText="true" />
+                              <Label fx:id="emptyAlertsLabel" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Nenhum alerta por enquanto." wrapText="true" />
                            </children>
                         </VBox>
                      </children>

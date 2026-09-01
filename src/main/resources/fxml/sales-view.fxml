@@ -14,11 +14,11 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.SaleController">
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.SaleController">
    <center>
       <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-area" BorderPane.alignment="CENTER">
          <content>
-            <VBox spacing="10.0" styleClass="content-area">
+            <VBox maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="content-area">
                <padding>
                   <Insets bottom="24.0" left="32.0" right="32.0" top="32.0" />
                </padding>
@@ -30,7 +30,7 @@
                      </children>
                   </VBox>
 
-                  <VBox spacing="14.0" styleClass="dashboard-panel">
+                  <VBox maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="dashboard-panel">
                      <children>
                         <Label styleClass="sale-step-title" text="1. Inserir itens" />
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -73,7 +73,7 @@
                      </children>
                   </VBox>
 
-                  <VBox spacing="14.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
                      <children>
                         <HBox alignment="CENTER_LEFT">
                            <children>
@@ -93,7 +93,7 @@
                      </children>
                   </VBox>
 
-                  <VBox spacing="12.0" styleClass="dashboard-panel">
+                  <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel">
                      <children>
                         <Label styleClass="sale-step-title" text="3. Pagamento e finalização" />
                         <HBox alignment="CENTER_LEFT" spacing="18.0">

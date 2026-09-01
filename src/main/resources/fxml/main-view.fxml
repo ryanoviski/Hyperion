@@ -27,6 +27,6 @@
       </VBox>
    </left>
    <center>
-      <StackPane fx:id="contentContainer" styleClass="content-area" BorderPane.alignment="CENTER" />
+      <StackPane fx:id="contentContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="content-area" BorderPane.alignment="CENTER" />
    </center>
 </BorderPane>

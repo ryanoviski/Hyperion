@@ -12,9 +12,9 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.StockController">
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.StockController">
    <center>
-      <VBox spacing="22.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="22.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
          <padding>
             <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
          </padding>
@@ -26,16 +26,15 @@
                </children>
             </VBox>
 
-            <VBox spacing="16.0" styleClass="dashboard-panel">
+            <VBox maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel">
                <children>
                   <Label styleClass="panel-title" text="Nova movimentação" />
                   <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
-                        <TextField fx:id="selectedProductField" editable="false" focusTraversable="false" prefHeight="42.0" prefWidth="230.0" promptText="Selecione o produto" />
+                        <TextField fx:id="selectedProductField" editable="false" focusTraversable="false" prefHeight="42.0" promptText="Selecione o produto" HBox.hgrow="ALWAYS" />
                         <Button fx:id="searchProductButton" mnemonicParsing="false" onAction="#handleSearchProduct" prefHeight="42.0" prefWidth="90.0" styleClass="secondary-button" text="Buscar" />
                         <TextField fx:id="quantityField" prefHeight="42.0" prefWidth="150.0" promptText="Quantidade" />
-                        <TextArea fx:id="notesArea" prefHeight="42.0" prefRowCount="1" prefWidth="320.0" promptText="Observação" styleClass="stock-notes-area" wrapText="true" />
-                        <Region HBox.hgrow="ALWAYS" />
+                        <TextArea fx:id="notesArea" prefHeight="42.0" prefRowCount="1" prefWidth="320.0" promptText="Observação" styleClass="stock-notes-area" wrapText="true" HBox.hgrow="ALWAYS" />
                         <Button fx:id="entryButton" mnemonicParsing="false" onAction="#handleEntry" prefHeight="42.0" prefWidth="110.0" styleClass="primary-button" text="Entrada" />
                         <Button fx:id="exitButton" mnemonicParsing="false" onAction="#handleExit" prefHeight="42.0" prefWidth="110.0" styleClass="secondary-button" text="Saída" />
                      </children>
@@ -44,7 +43,7 @@
                </children>
             </VBox>
 
-            <VBox spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
                <children>
                   <HBox alignment="CENTER_LEFT">
                      <children>

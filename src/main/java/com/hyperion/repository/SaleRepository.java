@@ -287,16 +287,26 @@ public class SaleRepository {
     }
 
     public SalesReportSummary getSalesReportSummary() {
+        return getSalesReportSummary(null, null);
+    }
+
+    public SalesReportSummary getSalesReportSummary(LocalDate startDate, LocalDate endDateExclusive) {
         String sql = """
                 SELECT COUNT(*) AS sales_count,
                        COALESCE(SUM(total), 0) AS total_sales,
                        COALESCE(AVG(total), 0) AS average_ticket
-                FROM sales;
+                FROM sales
+                %s;
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+             PreparedStatement statement = prepareDateFilteredStatement(
+                     connection,
+                     sql.formatted(buildSalesDateWhereClause(startDate, endDateExclusive)),
+                     startDate,
+                     endDateExclusive
+             );
+             ResultSet resultSet = statement.executeQuery()) {
 
             if (!resultSet.next()) {
                 return new SalesReportSummary(0, BigDecimal.ZERO, BigDecimal.ZERO);
@@ -313,18 +323,28 @@ public class SaleRepository {
     }
 
     public List<PaymentMethodReport> findSalesByPaymentMethod() {
+        return findSalesByPaymentMethod(null, null);
+    }
+
+    public List<PaymentMethodReport> findSalesByPaymentMethod(LocalDate startDate, LocalDate endDateExclusive) {
         String sql = """
                 SELECT payment_method,
                        COUNT(*) AS sales_count,
                        COALESCE(SUM(total), 0) AS total_amount
                 FROM sales
+                %s
                 GROUP BY payment_method
                 ORDER BY total_amount DESC;
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+             PreparedStatement statement = prepareDateFilteredStatement(
+                     connection,
+                     sql.formatted(buildSalesDateWhereClause(startDate, endDateExclusive)),
+                     startDate,
+                     endDateExclusive
+             );
+             ResultSet resultSet = statement.executeQuery()) {
 
             List<PaymentMethodReport> reports = new ArrayList<>();
 
@@ -343,25 +363,38 @@ public class SaleRepository {
     }
 
     public List<ProductSalesReport> findTopSellingProducts() {
+        return findTopSellingProducts(null, null);
+    }
+
+    public List<ProductSalesReport> findTopSellingProducts(LocalDate startDate, LocalDate endDateExclusive) {
         String sql = """
-                SELECT product_name,
-                       COALESCE(SUM(quantity), 0) AS quantity_sold,
-                       COALESCE(SUM(subtotal), 0) AS total_amount
-                FROM sale_items
-                GROUP BY product_id, product_name
+                SELECT si.product_name,
+                       COALESCE(SUM(si.subtotal) / NULLIF(SUM(si.quantity), 0), 0) AS unit_price,
+                       COALESCE(SUM(si.quantity), 0) AS quantity_sold,
+                       COALESCE(SUM(si.subtotal), 0) AS total_amount
+                FROM sale_items si
+                JOIN sales s ON s.id = si.sale_id
+                %s
+                GROUP BY si.product_id, si.product_name
                 ORDER BY quantity_sold DESC, total_amount DESC
                 LIMIT 10;
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+             PreparedStatement statement = prepareDateFilteredStatement(
+                     connection,
+                     sql.formatted(buildSalesDateWhereClause("s.created_at", startDate, endDateExclusive)),
+                     startDate,
+                     endDateExclusive
+             );
+             ResultSet resultSet = statement.executeQuery()) {
 
             List<ProductSalesReport> reports = new ArrayList<>();
 
             while (resultSet.next()) {
                 reports.add(new ProductSalesReport(
                         resultSet.getString("product_name"),
+                        resultSet.getBigDecimal("unit_price"),
                         resultSet.getInt("quantity_sold"),
                         resultSet.getBigDecimal("total_amount")
                 ));
@@ -386,6 +419,34 @@ public class SaleRepository {
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not load sales total.", exception);
         }
+    }
+
+    private String buildSalesDateWhereClause(LocalDate startDate, LocalDate endDateExclusive) {
+        return buildSalesDateWhereClause("created_at", startDate, endDateExclusive);
+    }
+
+    private String buildSalesDateWhereClause(String columnName, LocalDate startDate, LocalDate endDateExclusive) {
+        if (startDate == null || endDateExclusive == null) {
+            return "";
+        }
+
+        return "WHERE DATE(" + columnName + ") >= DATE(?) AND DATE(" + columnName + ") < DATE(?)";
+    }
+
+    private PreparedStatement prepareDateFilteredStatement(
+            Connection connection,
+            String sql,
+            LocalDate startDate,
+            LocalDate endDateExclusive
+    ) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement(sql);
+
+        if (startDate != null && endDateExclusive != null) {
+            statement.setString(1, startDate.toString());
+            statement.setString(2, endDateExclusive.toString());
+        }
+
+        return statement;
     }
 
     private Sale mapSale(ResultSet resultSet) throws SQLException {

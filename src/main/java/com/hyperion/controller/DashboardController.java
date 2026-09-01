@@ -106,6 +106,9 @@ public class DashboardController {
     }
 
     private void configureLatestSalesTable() {
+        latestSalesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        saleCustomerColumn.getStyleClass().add("left-aligned-column");
+
         saleTimeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(TIME_FORMAT)
         ));
@@ -155,7 +158,7 @@ public class DashboardController {
         for (CreditInstallment installment : alerts) {
             Label alertLabel = new Label(formatCreditAlert(installment));
             alertLabel.setWrapText(true);
-            alertLabel.setPrefWidth(292);
+            alertLabel.setMaxWidth(Double.MAX_VALUE);
             alertLabel.getStyleClass().add("text-muted-left");
             alertsList.getChildren().add(alertLabel);
         }

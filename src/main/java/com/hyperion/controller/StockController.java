@@ -122,7 +122,7 @@ public class StockController {
     }
 
     private void configureTableColumns() {
-        movementsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        movementsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
@@ -164,6 +164,7 @@ public class StockController {
 
         TextField searchField = new TextField();
         searchField.setPromptText("Buscar por nome, categoria, código ou fornecedor");
+        searchField.setMaxWidth(Double.MAX_VALUE);
 
         TableView<Product> table = createProductSearchTable();
         table.setItems(FXCollections.observableArrayList(productService.listActiveProducts()));
@@ -177,6 +178,7 @@ public class StockController {
         VBox content = new VBox(12, searchField, table);
         content.setPrefWidth(780);
         content.setPrefHeight(460);
+        content.setMaxWidth(Double.MAX_VALUE);
         dialog.getDialogPane().setContent(content);
 
         dialog.setResultConverter(buttonType -> {
@@ -193,6 +195,7 @@ public class StockController {
     private TableView<Product> createProductSearchTable() {
         TableView<Product> table = new TableView<>();
         table.setPrefHeight(380);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<Product, String> nameColumn = new TableColumn<>("Produto");
         nameColumn.setPrefWidth(240);

@@ -221,7 +221,7 @@ public class FinanceController {
     }
 
     private void configureTableColumns() {
-        expensesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        expensesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
@@ -362,6 +362,7 @@ public class FinanceController {
         VBox content = new VBox(12, attachmentsTable);
         content.setPrefWidth(720);
         content.setPrefHeight(360);
+        content.setMaxWidth(Double.MAX_VALUE);
         dialog.getDialogPane().setContent(content);
 
         dialog.setResultConverter(buttonType -> {
@@ -384,6 +385,7 @@ public class FinanceController {
     private TableView<Attachment> createAttachmentsTable() {
         TableView<Attachment> table = new TableView<>();
         table.setPrefHeight(300);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<Attachment, String> nameColumn = new TableColumn<>("Arquivo");
         nameColumn.setPrefWidth(280);

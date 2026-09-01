@@ -12,9 +12,9 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.CreditController">
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.CreditController">
    <center>
-      <VBox spacing="16.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
          <padding>
             <Insets bottom="32.0" left="32.0" right="32.0" top="28.0" />
          </padding>
@@ -34,21 +34,21 @@
 
             <HBox spacing="14.0">
                <children>
-                  <VBox prefHeight="110.0" prefWidth="190.0" styleClass="dashboard-card">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="110.0" prefWidth="190.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Total em aberto" />
                         <Label fx:id="openAmountLabel" styleClass="card-value" text="R$ 0,00" />
                         <Label fx:id="openCountLabel" styleClass="card-footnote" text="0 parcelas não pagas" />
                      </children>
                   </VBox>
-                  <VBox prefHeight="110.0" prefWidth="170.0" styleClass="dashboard-card">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="110.0" prefWidth="170.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Vencidas" />
                         <Label fx:id="overdueCountLabel" styleClass="card-value" text="0" />
                         <Label styleClass="card-footnote-warning" text="Precisam de atenção" />
                      </children>
                   </VBox>
-                  <VBox prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Vencendo" />
                         <Label fx:id="dueSoonCountLabel" styleClass="card-value" text="0" />
@@ -58,11 +58,11 @@
                </children>
             </HBox>
 
-            <VBox spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="10.0">
                      <children>
-                        <TextField fx:id="searchField" prefHeight="42.0" prefWidth="300.0" promptText="Buscar por cliente" />
+                        <TextField fx:id="searchField" prefHeight="42.0" prefWidth="300.0" promptText="Buscar por cliente" HBox.hgrow="ALWAYS" />
                         <ChoiceBox fx:id="statusFilterChoiceBox" prefHeight="42.0" prefWidth="180.0" />
                         <Region HBox.hgrow="ALWAYS" />
                         <Button fx:id="markPaidButton" mnemonicParsing="false" onAction="#handleMarkSelectedAsPaid" prefHeight="42.0" prefWidth="230.0" styleClass="primary-button" text="Marcar selecionadas como pagas" />

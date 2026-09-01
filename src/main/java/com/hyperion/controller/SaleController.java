@@ -226,7 +226,7 @@ public class SaleController {
     }
 
     private void configureTableColumns() {
-        cartTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        cartTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getProductName()));
         quantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantity())));
@@ -290,6 +290,7 @@ public class SaleController {
 
         TextField searchField = new TextField();
         searchField.setPromptText("Buscar por nome, CPF/CNPJ, telefone ou email");
+        searchField.setMaxWidth(Double.MAX_VALUE);
 
         TableView<Customer> table = createCustomerSearchTable();
         table.setItems(FXCollections.observableArrayList(customerService.listActiveCustomers()));
@@ -303,6 +304,7 @@ public class SaleController {
         VBox content = new VBox(12, searchField, table);
         content.setPrefWidth(720);
         content.setPrefHeight(440);
+        content.setMaxWidth(Double.MAX_VALUE);
         dialog.getDialogPane().setContent(content);
 
         dialog.setResultConverter(buttonType -> {
@@ -328,6 +330,7 @@ public class SaleController {
 
         TextField searchField = new TextField();
         searchField.setPromptText("Buscar por nome, categoria, código ou fornecedor");
+        searchField.setMaxWidth(Double.MAX_VALUE);
 
         TableView<Product> table = createProductSearchTable();
         table.setItems(FXCollections.observableArrayList(productService.listActiveProducts()));
@@ -341,6 +344,7 @@ public class SaleController {
         VBox content = new VBox(12, searchField, table);
         content.setPrefWidth(780);
         content.setPrefHeight(460);
+        content.setMaxWidth(Double.MAX_VALUE);
         dialog.getDialogPane().setContent(content);
 
         dialog.setResultConverter(buttonType -> {
@@ -357,6 +361,7 @@ public class SaleController {
     private TableView<Customer> createCustomerSearchTable() {
         TableView<Customer> table = new TableView<>();
         table.setPrefHeight(360);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<Customer, String> nameColumn = new TableColumn<>("Cliente");
         nameColumn.setPrefWidth(240);
@@ -381,6 +386,7 @@ public class SaleController {
     private TableView<Product> createProductSearchTable() {
         TableView<Product> table = new TableView<>();
         table.setPrefHeight(380);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<Product, String> nameColumn = new TableColumn<>("Produto");
         nameColumn.setPrefWidth(240);
