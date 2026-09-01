@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
@@ -14,11 +15,13 @@
 
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.FinanceController">
    <center>
-      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" BorderPane.alignment="CENTER" VBox.vgrow="ALWAYS">
-         <padding>
-            <Insets bottom="32.0" left="32.0" right="32.0" top="28.0" />
-         </padding>
-         <children>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-area" BorderPane.alignment="CENTER">
+         <content>
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="content-area" VBox.vgrow="ALWAYS">
+               <padding>
+                  <Insets bottom="24.0" left="32.0" right="32.0" top="24.0" />
+               </padding>
+               <children>
             <VBox spacing="4.0">
                <children>
                   <Label styleClass="page-title" text="Financeiro" />
@@ -28,28 +31,28 @@
 
             <HBox spacing="14.0">
                <children>
-                  <VBox maxWidth="1.7976931348623157E308" prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="96.0" prefWidth="180.0" styleClass="dashboard-card, compact-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Entradas" />
                         <Label fx:id="totalIncomeLabel" styleClass="card-value" text="R$ 0,00" />
                         <Label styleClass="card-footnote-success" text="Vendas registradas" />
                      </children>
                   </VBox>
-                  <VBox maxWidth="1.7976931348623157E308" prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="96.0" prefWidth="180.0" styleClass="dashboard-card, compact-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Despesas" />
                         <Label fx:id="totalExpensesLabel" styleClass="card-value" text="R$ 0,00" />
                         <Label styleClass="card-footnote-warning" text="Saídas manuais" />
                      </children>
                   </VBox>
-                  <VBox maxWidth="1.7976931348623157E308" prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="96.0" prefWidth="180.0" styleClass="dashboard-card, compact-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Saldo atual" />
                         <Label fx:id="currentBalanceLabel" styleClass="card-value" text="R$ 0,00" />
                         <Label styleClass="card-footnote" text="Entradas - despesas" />
                      </children>
                   </VBox>
-                  <VBox maxWidth="1.7976931348623157E308" prefHeight="110.0" prefWidth="180.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="96.0" prefWidth="180.0" styleClass="dashboard-card, compact-card" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="card-label" text="Lucro do mês" />
                         <Label fx:id="monthlyProfitLabel" styleClass="card-value" text="R$ 0,00" />
@@ -59,7 +62,7 @@
                </children>
             </HBox>
 
-            <VBox maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel">
+            <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel, compact-panel">
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
@@ -92,7 +95,7 @@
                </children>
             </VBox>
 
-            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="260.0" spacing="14.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
                <children>
                   <HBox alignment="CENTER_LEFT">
                      <children>
@@ -101,7 +104,7 @@
                         <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
                      </children>
                   </HBox>
-                  <TableView fx:id="expensesTable" prefHeight="390.0" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="expensesTable" minHeight="200.0" prefHeight="340.0" VBox.vgrow="ALWAYS">
                      <columns>
                         <TableColumn fx:id="dateColumn" prefWidth="155.0" text="Data" />
                         <TableColumn fx:id="descriptionColumn" prefWidth="260.0" styleClass="left-aligned-column" text="Descrição" />
@@ -113,7 +116,9 @@
                   </TableView>
                </children>
             </VBox>
-         </children>
-      </VBox>
+               </children>
+            </VBox>
+         </content>
+      </ScrollPane>
    </center>
 </BorderPane>

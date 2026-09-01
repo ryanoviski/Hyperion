@@ -416,6 +416,15 @@
     -fx-min-width: 190;
 }
 
+.compact-card {
+    -fx-padding: 18;
+}
+
+.compact-panel {
+    -fx-padding: 18;
+    -fx-spacing: 12;
+}
+
 .text-muted-left {
     -fx-font-size: 13px;
     -fx-text-fill: #94A3B8;
@@ -427,6 +436,50 @@
     -fx-border-color: #334155;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
+}
+
+.table-view .virtual-flow,
+.table-view .virtual-flow .clipped-container,
+.table-view .virtual-flow .sheet {
+    -fx-background-color: #0F172A;
+}
+
+.table-view .virtual-flow .scroll-bar:vertical,
+.table-view .virtual-flow .scroll-bar:horizontal {
+    -fx-background-color: #0F172A;
+}
+
+.table-view .virtual-flow .scroll-bar:vertical {
+    -fx-pref-width: 10;
+}
+
+.table-view .virtual-flow .scroll-bar:horizontal {
+    -fx-pref-height: 10;
+}
+
+.table-view .virtual-flow .scroll-bar .track {
+    -fx-background-color: #0F172A;
+}
+
+.table-view .virtual-flow .scroll-bar .thumb {
+    -fx-background-color: #334155;
+    -fx-background-radius: 999;
+}
+
+.table-view .virtual-flow .scroll-bar .thumb:hover {
+    -fx-background-color: #475569;
+}
+
+.table-view .virtual-flow .scroll-bar .increment-button,
+.table-view .virtual-flow .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.table-view .virtual-flow .scroll-bar .increment-arrow,
+.table-view .virtual-flow .scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
 }
 
 .table-view .column-header-background {
