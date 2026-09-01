@@ -360,6 +360,7 @@ public class FinanceController {
         previewButton.disableProperty().bind(attachmentsTable.getSelectionModel().selectedItemProperty().isNull());
 
         VBox content = new VBox(12, attachmentsTable);
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(720);
         content.setPrefHeight(360);
         content.setMaxWidth(Double.MAX_VALUE);
@@ -426,6 +427,7 @@ public class FinanceController {
         imageView.setFitWidth(840);
 
         ScrollPane scrollPane = new ScrollPane(imageView);
+        scrollPane.getStyleClass().add("dialog-content");
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefViewportWidth(880);
         scrollPane.setPrefViewportHeight(620);
@@ -435,6 +437,7 @@ public class FinanceController {
 
     private void showPdfPreviewDialog(Attachment attachment, Path filePath) {
         VBox pagesContainer = new VBox(18);
+        pagesContainer.getStyleClass().add("dialog-content");
 
         try (PDDocument document = Loader.loadPDF(filePath.toFile())) {
             PDFRenderer renderer = new PDFRenderer(document);
@@ -451,6 +454,7 @@ public class FinanceController {
         }
 
         ScrollPane scrollPane = new ScrollPane(pagesContainer);
+        scrollPane.getStyleClass().add("dialog-content");
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefViewportWidth(880);
         scrollPane.setPrefViewportHeight(620);

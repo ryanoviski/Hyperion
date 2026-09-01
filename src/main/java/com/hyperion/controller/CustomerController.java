@@ -323,6 +323,7 @@ public class CustomerController {
 
     private ScrollPane createCustomerProfileScrollContent(Customer customer) {
         ScrollPane scrollPane = new ScrollPane(createCustomerProfileContent(customer));
+        scrollPane.getStyleClass().add("dialog-content");
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefViewportWidth(760);
         scrollPane.setPrefViewportHeight(420);
@@ -331,6 +332,7 @@ public class CustomerController {
 
     private VBox createCustomerProfileContent(Customer customer) {
         VBox content = new VBox(14);
+        content.getStyleClass().add("dialog-content");
         content.setPadding(new Insets(16));
         content.setPrefWidth(720);
         content.setMaxWidth(Double.MAX_VALUE);

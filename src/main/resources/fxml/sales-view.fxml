@@ -96,55 +96,45 @@
                   <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel">
                      <children>
                         <Label styleClass="sale-step-title" text="3. Pagamento e finalização" />
-                        <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <HBox alignment="BOTTOM_LEFT" spacing="10.0">
                            <children>
-                              <VBox spacing="10.0">
+                              <VBox spacing="6.0">
                                  <children>
-                                    <HBox alignment="BOTTOM_LEFT" spacing="10.0">
-                                       <children>
-                                          <VBox spacing="6.0">
-                                             <children>
-                                                <Label styleClass="field-label" text="Desconto (R$)" />
-                                                <TextField fx:id="discountField" prefHeight="42.0" prefWidth="150.0" promptText="0,00" />
-                                             </children>
-                                          </VBox>
-                                          <VBox spacing="6.0">
-                                             <children>
-                                                <Label styleClass="field-label" text="Forma de pagamento" />
-                                                <ChoiceBox fx:id="paymentMethodChoiceBox" prefHeight="42.0" prefWidth="210.0" />
-                                             </children>
-                                          </VBox>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="BOTTOM_LEFT" spacing="10.0">
-                                       <children>
-                                          <VBox fx:id="installmentsGroup" managed="false" spacing="6.0" visible="false">
-                                             <children>
-                                                <Label styleClass="field-label" text="Parcelas" />
-                                                <ChoiceBox fx:id="installmentsChoiceBox" prefHeight="42.0" prefWidth="120.0" visible="false" managed="false" />
-                                             </children>
-                                          </VBox>
-                                          <VBox fx:id="firstDueDateGroup" managed="false" spacing="6.0" visible="false">
-                                             <children>
-                                                <Label styleClass="field-label" text="Primeiro vencimento" />
-                                                <DatePicker fx:id="firstDueDatePicker" prefHeight="42.0" prefWidth="190.0" promptText="Data" visible="false" managed="false" />
-                                             </children>
-                                          </VBox>
-                                       </children>
-                                    </HBox>
-                                    <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
+                                    <Label styleClass="field-label" text="Desconto (R$)" />
+                                    <TextField fx:id="discountField" prefHeight="42.0" prefWidth="150.0" promptText="0,00" />
                                  </children>
                               </VBox>
-                              <Region HBox.hgrow="ALWAYS" />
-                              <VBox alignment="CENTER_RIGHT" minWidth="300.0" prefWidth="320.0" spacing="4.0">
+                              <VBox spacing="6.0">
                                  <children>
-                                    <HBox alignment="CENTER_RIGHT" minWidth="300.0" prefWidth="320.0" spacing="12.0">
+                                    <Label styleClass="field-label" text="Forma de pagamento" />
+                                    <ChoiceBox fx:id="paymentMethodChoiceBox" prefHeight="42.0" prefWidth="210.0" />
+                                 </children>
+                              </VBox>
+                              <VBox fx:id="installmentsGroup" managed="false" spacing="6.0" visible="false">
+                                 <children>
+                                    <Label styleClass="field-label" text="Parcelas" />
+                                    <ChoiceBox fx:id="installmentsChoiceBox" prefHeight="42.0" prefWidth="120.0" visible="false" managed="false" />
+                                 </children>
+                              </VBox>
+                              <VBox fx:id="firstDueDateGroup" managed="false" spacing="6.0" visible="false">
+                                 <children>
+                                    <Label styleClass="field-label" text="Primeiro vencimento" />
+                                    <DatePicker fx:id="firstDueDatePicker" prefHeight="42.0" prefWidth="190.0" promptText="Data" visible="false" managed="false" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="18.0">
+                           <children>
+                              <VBox alignment="CENTER_LEFT" minWidth="300.0" prefWidth="360.0" spacing="4.0">
+                                 <children>
+                                    <HBox alignment="CENTER_LEFT" minWidth="300.0" prefWidth="360.0" spacing="12.0">
                                        <children>
                                           <Label styleClass="sale-total-caption" text="Subtotal" />
                                           <Label fx:id="subtotalValueLabel" minWidth="130.0" styleClass="sale-subtotal-value" text="R$ 0,00" />
                                        </children>
                                     </HBox>
-                                    <HBox alignment="CENTER_RIGHT" minWidth="300.0" prefWidth="320.0" spacing="12.0">
+                                    <HBox alignment="CENTER_LEFT" minWidth="300.0" prefWidth="360.0" spacing="12.0">
                                        <children>
                                           <Label styleClass="sale-total-label" text="TOTAL:" />
                                           <Label fx:id="totalValueLabel" minWidth="170.0" styleClass="sale-total-value" text="R$ 0,00" />
@@ -152,9 +142,11 @@
                                     </HBox>
                                  </children>
                               </VBox>
+                              <Region HBox.hgrow="ALWAYS" />
                               <Button fx:id="finishSaleButton" mnemonicParsing="false" onAction="#handleFinishSale" prefHeight="54.0" prefWidth="210.0" styleClass="primary-button" text="Finalizar venda" />
                            </children>
                         </HBox>
+                        <Label fx:id="messageLabel" styleClass="text-muted-left" text="" wrapText="true" />
                      </children>
                   </VBox>
                </children>

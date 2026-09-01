@@ -12,7 +12,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -24,7 +23,6 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -81,9 +79,6 @@ public class CreditController {
     private TableColumn<CreditInstallment, CreditInstallment> actionsColumn;
 
     @FXML
-    private Button markPaidButton;
-
-    @FXML
     private Label messageLabel;
 
     @FXML
@@ -93,32 +88,7 @@ public class CreditController {
     private void initialize() {
         configureFilters();
         configureInstallmentsTable();
-        configureSelectionState();
         loadInstallments();
-    }
-
-    @FXML
-    private void handleMarkSelectedAsPaid() {
-        List<CreditInstallment> selectedInstallments = new ArrayList<>(installmentsTable.getSelectionModel().getSelectedItems());
-        List<CreditInstallment> payableInstallments = selectedInstallments.stream()
-                .filter(this::canMarkAsPaid)
-                .toList();
-
-        if (payableInstallments.isEmpty()) {
-            messageLabel.setText("Selecione ao menos uma parcela em aberto ou vencida.");
-            return;
-        }
-
-        try {
-            for (CreditInstallment installment : payableInstallments) {
-                creditInstallmentService.markAsPaid(installment);
-            }
-
-            loadInstallments();
-            messageLabel.setText(payableInstallments.size() + " parcela(s) marcada(s) como paga(s).");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
-            messageLabel.setText(exception.getMessage());
-        }
     }
 
     @FXML
@@ -141,7 +111,6 @@ public class CreditController {
     }
 
     private void configureInstallmentsTable() {
-        installmentsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         installmentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         customerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getCustomerName()));
@@ -197,13 +166,6 @@ public class CreditController {
                 setGraphic(actions);
             }
         };
-    }
-
-    private void configureSelectionState() {
-        markPaidButton.setDisable(true);
-        installmentsTable.getSelectionModel().getSelectedItems().addListener((javafx.collections.ListChangeListener<CreditInstallment>) change ->
-                markPaidButton.setDisable(installmentsTable.getSelectionModel().getSelectedItems().stream().noneMatch(this::canMarkAsPaid))
-        );
     }
 
     private void markSingleInstallmentAsPaid(CreditInstallment installment) {
@@ -288,6 +250,7 @@ public class CreditController {
                 new Label("Status: " + formatStatus(installment)),
                 new Label("Venda ID: #" + installment.getSaleId())
         );
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(360);
         dialog.getDialogPane().setContent(content);
         dialog.showAndWait();

@@ -42,6 +42,14 @@
     -fx-cursor: hand;
 }
 
+.primary-button:hover {
+    -fx-background-color: #1D4ED8;
+}
+
+.primary-button:pressed {
+    -fx-background-color: #1E40AF;
+}
+
 .secondary-button {
     -fx-background-color: transparent;
     -fx-text-fill: #F8FAFC;
@@ -52,6 +60,16 @@
     -fx-min-height: 42;
     -fx-pref-height: 42;
     -fx-cursor: hand;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #1E293B;
+    -fx-border-color: #60A5FA;
+    -fx-text-fill: #F8FAFC;
+}
+
+.secondary-button:pressed {
+    -fx-background-color: #0F172A;
 }
 
 .text-field,
@@ -236,6 +254,11 @@
 .sidebar-button {
     -fx-background-color: transparent;
     -fx-text-fill: #CBD5E1;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #162033;
+    -fx-text-fill: #F8FAFC;
 }
 
 .sidebar-button-active {
@@ -438,6 +461,10 @@
     -fx-background-color: #2563EB;
 }
 
+.table-row-cell:hover {
+    -fx-background-color: #172033;
+}
+
 .table-cell {
     -fx-text-fill: #F8FAFC;
     -fx-alignment: center;
@@ -448,6 +475,7 @@
 .table-cell.left-aligned-column {
     -fx-alignment: center-left;
     -fx-text-alignment: left;
+    -fx-padding: 12 12 12 20;
 }
 
 .table-cell.movement-entry {
@@ -463,6 +491,7 @@
 .column-header.left-aligned-column .label {
     -fx-alignment: center-left;
     -fx-text-alignment: left;
+    -fx-padding: 0 0 0 20;
 }
 
 .status-badge {
@@ -603,6 +632,25 @@
 }
 
 .dialog-pane > .content {
+    -fx-background-color: #111827;
+}
+
+.dialog-pane:header .header-panel {
+    -fx-background-color: #111827;
+}
+
+.dialog-pane:header .header-panel .label {
+    -fx-text-fill: #F8FAFC;
+}
+
+.dialog-pane .scroll-pane,
+.dialog-pane .scroll-pane > .viewport,
+.dialog-pane .scroll-pane .corner,
+.dialog-pane .scroll-pane > .viewport > * {
+    -fx-background-color: #111827;
+}
+
+.dialog-content {
     -fx-background-color: #111827;
 }
 

@@ -59,35 +59,38 @@
                </children>
             </HBox>
 
-            <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="dashboard-panel">
+            <VBox maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel">
                <children>
-                  <VBox spacing="6.0">
+                  <HBox alignment="CENTER_LEFT" spacing="12.0">
                      <children>
-                        <Label styleClass="field-label" text="Período" />
-                        <ChoiceBox fx:id="periodChoiceBox" prefHeight="42.0" prefWidth="190.0" />
+                        <VBox spacing="6.0">
+                           <children>
+                              <Label styleClass="field-label" text="Período" />
+                              <ChoiceBox fx:id="periodChoiceBox" prefHeight="42.0" prefWidth="240.0" />
+                           </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefHeight="42.0" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
                      </children>
-                  </VBox>
-                  <Region prefWidth="1.0" styleClass="vertical-divider" />
-                  <VBox maxWidth="1.7976931348623157E308" spacing="6.0" HBox.hgrow="ALWAYS">
+                  </HBox>
+                  <VBox maxWidth="1.7976931348623157E308" spacing="8.0">
                      <children>
                         <Label styleClass="sale-step-title" text="Nova despesa" />
-                        <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+                        <HBox alignment="BOTTOM_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
                            <children>
-                              <TextField fx:id="descriptionField" prefHeight="42.0" prefWidth="180.0" promptText="Descrição" HBox.hgrow="ALWAYS" />
-                              <TextField fx:id="categoryField" prefHeight="42.0" prefWidth="150.0" promptText="Categoria" />
-                              <TextField fx:id="amountField" prefHeight="42.0" prefWidth="130.0" promptText="Valor em R$" />
-                              <Label fx:id="attachmentLabel" prefHeight="42.0" prefWidth="220.0" styleClass="text-muted-left" text="Nenhum comprovante selecionado." wrapText="true" />
-                              <Button fx:id="selectAttachmentButton" mnemonicParsing="false" onAction="#handleSelectAttachment" prefHeight="42.0" prefWidth="160.0" styleClass="secondary-button" text="Anexar comprovante" />
+                              <TextField fx:id="descriptionField" minWidth="240.0" prefHeight="42.0" prefWidth="340.0" promptText="Descrição" HBox.hgrow="ALWAYS" />
+                              <TextField fx:id="categoryField" prefHeight="42.0" prefWidth="190.0" promptText="Categoria" />
+                              <TextField fx:id="amountField" prefHeight="42.0" prefWidth="150.0" promptText="Valor em R$" />
+                              <Button fx:id="selectAttachmentButton" mnemonicParsing="false" onAction="#handleSelectAttachment" prefHeight="42.0" prefWidth="180.0" styleClass="secondary-button" text="Anexar comprovante" />
                               <Button fx:id="clearAttachmentButton" mnemonicParsing="false" onAction="#handleClearAttachment" prefHeight="42.0" prefWidth="44.0" styleClass="secondary-button" text="X" />
-                              <Button fx:id="addExpenseButton" mnemonicParsing="false" onAction="#handleAddExpense" prefHeight="42.0" prefWidth="150.0" styleClass="primary-button" text="Registrar despesa" />
+                              <Button fx:id="addExpenseButton" mnemonicParsing="false" onAction="#handleAddExpense" prefHeight="42.0" prefWidth="170.0" styleClass="primary-button" text="Registrar despesa" />
                            </children>
                         </HBox>
+                        <Label fx:id="attachmentLabel" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Nenhum comprovante selecionado." wrapText="true" />
                      </children>
                   </VBox>
-                  <Region HBox.hgrow="ALWAYS" />
-                  <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefHeight="42.0" prefWidth="44.0" styleClass="secondary-button" text="R" />
                </children>
-            </HBox>
+            </VBox>
 
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel" VBox.vgrow="ALWAYS">
                <children>

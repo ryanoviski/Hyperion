@@ -64,8 +64,6 @@
                      <children>
                         <TextField fx:id="searchField" prefHeight="42.0" prefWidth="300.0" promptText="Buscar por cliente" HBox.hgrow="ALWAYS" />
                         <ChoiceBox fx:id="statusFilterChoiceBox" prefHeight="42.0" prefWidth="180.0" />
-                        <Region HBox.hgrow="ALWAYS" />
-                        <Button fx:id="markPaidButton" mnemonicParsing="false" onAction="#handleMarkSelectedAsPaid" prefHeight="42.0" prefWidth="230.0" styleClass="primary-button" text="Marcar selecionadas como pagas" />
                         <Button mnemonicParsing="false" onAction="#handleRefresh" prefHeight="42.0" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
                      </children>
                   </HBox>

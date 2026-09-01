@@ -302,6 +302,7 @@ public class SaleController {
         selectButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
 
         VBox content = new VBox(12, searchField, table);
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(720);
         content.setPrefHeight(440);
         content.setMaxWidth(Double.MAX_VALUE);
@@ -342,6 +343,7 @@ public class SaleController {
         selectButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
 
         VBox content = new VBox(12, searchField, table);
+        content.getStyleClass().add("dialog-content");
         content.setPrefWidth(780);
         content.setPrefHeight(460);
         content.setMaxWidth(Double.MAX_VALUE);

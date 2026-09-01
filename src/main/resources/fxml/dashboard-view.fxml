@@ -28,28 +28,32 @@
       </HBox>
       <HBox spacing="20.0">
          <children>
-            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+            <HBox maxWidth="1.7976931348623157E308" spacing="20.0" HBox.hgrow="ALWAYS">
                <children>
-                  <Label styleClass="card-label" text="Vendas hoje" />
-                  <Label fx:id="salesTodayValueLabel" styleClass="card-value" text="R$ 0,00" />
-                  <Label fx:id="salesTodayFootnoteLabel" styleClass="card-footnote" text="Nenhuma venda registrada" />
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label styleClass="card-label" text="Vendas hoje" />
+                        <Label fx:id="salesTodayValueLabel" styleClass="card-value" text="R$ 0,00" />
+                        <Label fx:id="salesTodayFootnoteLabel" styleClass="card-footnote" text="Nenhuma venda registrada" />
+                     </children>
+                  </VBox>
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label styleClass="card-label" text="Clientes" />
+                        <Label fx:id="customersValueLabel" styleClass="card-value" text="0" />
+                        <Label fx:id="customersFootnoteLabel" styleClass="card-footnote-success" text="Comece cadastrando clientes" />
+                     </children>
+                  </VBox>
+                  <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label styleClass="card-label" text="Produtos" />
+                        <Label fx:id="productsValueLabel" styleClass="card-value" text="0" />
+                        <Label fx:id="productsFootnoteLabel" styleClass="card-footnote-warning" text="Estoque ainda vazio" />
+                     </children>
+                  </VBox>
                </children>
-            </VBox>
-            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
-               <children>
-                  <Label styleClass="card-label" text="Clientes" />
-                  <Label fx:id="customersValueLabel" styleClass="card-value" text="0" />
-                  <Label fx:id="customersFootnoteLabel" styleClass="card-footnote-success" text="Comece cadastrando clientes" />
-               </children>
-            </VBox>
-            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
-               <children>
-                  <Label styleClass="card-label" text="Produtos" />
-                  <Label fx:id="productsValueLabel" styleClass="card-value" text="0" />
-                  <Label fx:id="productsFootnoteLabel" styleClass="card-footnote-warning" text="Estoque ainda vazio" />
-               </children>
-            </VBox>
-            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="280.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
+            </HBox>
+            <VBox maxWidth="380.0" minWidth="300.0" prefHeight="140.0" prefWidth="340.0" styleClass="dashboard-card">
                <children>
                   <Label styleClass="card-label" text="Saldo" />
                   <Label fx:id="balanceValueLabel" styleClass="card-value" text="R$ 0,00" wrapText="true" />
