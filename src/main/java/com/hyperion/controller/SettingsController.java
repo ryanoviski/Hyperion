@@ -1,6 +1,5 @@
 package com.hyperion.controller;
 
-import com.hyperion.config.DatabaseConfig;
 import com.hyperion.service.BackupService;
 import com.hyperion.service.AppSettingsService;
 import javafx.fxml.FXML;
@@ -10,6 +9,9 @@ import javafx.scene.control.PasswordField;
 import java.nio.file.Path;
 
 public class SettingsController {
+
+    private static final String PIN_STATUS_ACTIVE_CLASS = "pin-status-active";
+    private static final String PIN_STATUS_DISABLED_CLASS = "pin-status-disabled";
 
     private final AppSettingsService appSettingsService = new AppSettingsService();
     private final BackupService backupService = new BackupService();
@@ -27,19 +29,11 @@ public class SettingsController {
     private PasswordField confirmPinField;
 
     @FXML
-    private Label databasePathLabel;
-
-    @FXML
-    private Label backupPathLabel;
-
-    @FXML
     private Label messageLabel;
 
     @FXML
     private void initialize() {
         updatePinStatus();
-        databasePathLabel.setText(DatabaseConfig.getDatabaseFile().toAbsolutePath().toString());
-        backupPathLabel.setText(backupService.getBackupDirectory().toAbsolutePath().toString());
     }
 
     @FXML
@@ -53,9 +47,9 @@ public class SettingsController {
 
             clearPinFields();
             updatePinStatus();
-            messageLabel.setText("PIN atualizado com sucesso.");
+            showMessage("PIN atualizado com sucesso.");
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            messageLabel.setText(exception.getMessage());
+            showMessage(exception.getMessage());
         }
     }
 
@@ -66,9 +60,9 @@ public class SettingsController {
 
             clearPinFields();
             updatePinStatus();
-            messageLabel.setText("PIN removido com sucesso.");
+            showMessage("PIN removido com sucesso.");
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            messageLabel.setText(exception.getMessage());
+            showMessage(exception.getMessage());
         }
     }
 
@@ -76,14 +70,17 @@ public class SettingsController {
     private void handleCreateBackup() {
         try {
             Path backupFile = backupService.createDatabaseBackup();
-            messageLabel.setText("Backup criado em: " + backupFile.toAbsolutePath());
+            showMessage("Backup criado em: " + backupFile.toAbsolutePath());
         } catch (IllegalStateException exception) {
-            messageLabel.setText(exception.getMessage());
+            showMessage(exception.getMessage());
         }
     }
 
     private void updatePinStatus() {
-        pinStatusLabel.setText(appSettingsService.isPinEnabled() ? "PIN ativo" : "PIN desativado");
+        boolean pinEnabled = appSettingsService.isPinEnabled();
+        pinStatusLabel.setText(pinEnabled ? "PIN ativo" : "PIN desativado");
+        pinStatusLabel.getStyleClass().removeAll(PIN_STATUS_ACTIVE_CLASS, PIN_STATUS_DISABLED_CLASS);
+        pinStatusLabel.getStyleClass().add(pinEnabled ? PIN_STATUS_ACTIVE_CLASS : PIN_STATUS_DISABLED_CLASS);
     }
 
     private void clearPinFields() {
@@ -91,4 +88,11 @@ public class SettingsController {
         newPinField.clear();
         confirmPinField.clear();
     }
+
+    private void showMessage(String message) {
+        messageLabel.setText(message);
+        messageLabel.setVisible(true);
+        messageLabel.setManaged(true);
+    }
+
 }

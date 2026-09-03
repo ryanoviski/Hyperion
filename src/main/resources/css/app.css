@@ -221,6 +221,16 @@
     -fx-text-alignment: center;
 }
 
+.pin-status-active {
+    -fx-font-size: 12px;
+    -fx-text-fill: #22C55E;
+}
+
+.pin-status-disabled {
+    -fx-font-size: 12px;
+    -fx-text-fill: #94A3B8;
+}
+
 .sidebar {
     -fx-background-color: #111827;
     -fx-padding: 28 20;

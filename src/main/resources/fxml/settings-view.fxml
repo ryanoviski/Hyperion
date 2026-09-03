@@ -21,15 +21,15 @@
             <VBox spacing="4.0">
                <children>
                   <Label styleClass="page-title" text="Configurações" />
-                  <Label styleClass="page-subtitle" text="Gerencie segurança, dados locais e informações do Hyperion." />
+                  <Label styleClass="page-subtitle" text="Gerencie segurança, PIN e backups do Hyperion." />
                </children>
             </VBox>
-            <HBox spacing="20.0">
+            <HBox alignment="TOP_LEFT" fillHeight="false" spacing="20.0">
                <children>
-                  <VBox maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="14.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                  <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="14.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="panel-title" text="Segurança" />
-                        <Label fx:id="pinStatusLabel" styleClass="card-footnote-success" text="PIN desativado" />
+                        <Label fx:id="pinStatusLabel" styleClass="pin-status-disabled" text="PIN desativado" />
                         <PasswordField fx:id="currentPinField" prefHeight="42.0" promptText="PIN atual" />
                         <PasswordField fx:id="newPinField" prefHeight="42.0" promptText="Novo PIN" />
                         <PasswordField fx:id="confirmPinField" prefHeight="42.0" promptText="Confirmar novo PIN" />
@@ -43,32 +43,19 @@
                   </VBox>
                   <VBox maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="14.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label styleClass="panel-title" text="Sobre" />
-                        <Label styleClass="card-label" text="Hyperion" />
-                        <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Sistema local de gestão para pequenos empreendedores." wrapText="true" />
-                        <Label styleClass="card-label" text="Créditos" />
-                        <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Hyperion © 2026 Ryan dos Santos | @ryanoviski" wrapText="true" />
+                        <Label styleClass="panel-title" text="Backup manual" />
+                        <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Crie uma cópia do banco de dados local antes de grandes alterações ou ao fim do expediente." wrapText="true" />
+                        <Button fx:id="createBackupButton" mnemonicParsing="false" onAction="#handleCreateBackup" prefWidth="220.0" styleClass="primary-button" text="Criar backup agora" />
+                        <Label fx:id="messageLabel" managed="false" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="" visible="false" wrapText="true" />
                      </children>
                   </VBox>
                </children>
             </HBox>
-            <VBox maxWidth="1.7976931348623157E308" spacing="18.0" styleClass="dashboard-panel">
+            <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="4.0">
                <children>
-                  <Label styleClass="panel-title" text="Dados locais" />
-                  <Label styleClass="card-label" text="Banco de dados" />
-                  <Label fx:id="databasePathLabel" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="" wrapText="true" />
-                  <Label styleClass="card-label" text="Pasta de backups" />
-                  <Label fx:id="backupPathLabel" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="" wrapText="true" />
+                  <Label styleClass="app-footer" text="© 2026 Hyperion. Todos os direitos reservados." />
                </children>
-            </VBox>
-            <VBox maxWidth="1.7976931348623157E308" spacing="18.0" styleClass="dashboard-panel">
-               <children>
-                  <Label styleClass="panel-title" text="Backup manual" />
-                  <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Crie uma cópia do banco de dados local antes de grandes alterações ou ao fim do expediente." wrapText="true" />
-                  <Button fx:id="createBackupButton" mnemonicParsing="false" onAction="#handleCreateBackup" prefWidth="220.0" styleClass="primary-button" text="Criar backup agora" />
-                  <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="" wrapText="true" />
-               </children>
-            </VBox>
+            </HBox>
                </children>
             </VBox>
          </content>
