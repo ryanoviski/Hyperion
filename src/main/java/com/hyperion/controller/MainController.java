@@ -135,6 +135,12 @@ public class MainController {
         }
     }
 
+    public static void openCreditView() {
+        if (activeController != null) {
+            activeController.showCredit();
+        }
+    }
+
     private void showDashboard() {
         loadContent(DASHBOARD_VIEW);
         setActiveButton(dashboardButton);

@@ -381,6 +381,47 @@
     -fx-text-fill: #F59E0B;
 }
 
+.system-alert-card {
+    -fx-background-color: rgba(30, 41, 59, 0.72);
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #334155;
+    -fx-padding: 12 14;
+    -fx-cursor: hand;
+}
+
+.system-alert-card:hover {
+    -fx-background-color: #1E293B;
+    -fx-border-color: #60A5FA;
+}
+
+.system-alert-critical {
+    -fx-border-color: rgba(239, 68, 68, 0.72);
+}
+
+.system-alert-warning {
+    -fx-border-color: rgba(245, 158, 11, 0.72);
+}
+
+.system-alert-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #F8FAFC;
+}
+
+.system-alert-critical .system-alert-title {
+    -fx-text-fill: #FCA5A5;
+}
+
+.system-alert-warning .system-alert-title {
+    -fx-text-fill: #FCD34D;
+}
+
+.system-alert-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #94A3B8;
+}
+
 .panel-title {
     -fx-font-size: 22px;
     -fx-font-weight: 700;

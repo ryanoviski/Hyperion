@@ -26,7 +26,6 @@ import java.util.Locale;
 public class DashboardController {
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final CreditInstallmentService creditInstallmentService = new CreditInstallmentService();
@@ -155,30 +154,56 @@ public class DashboardController {
             return;
         }
 
-        for (CreditInstallment installment : alerts) {
-            Label alertLabel = new Label(formatCreditAlert(installment));
-            alertLabel.setWrapText(true);
-            alertLabel.setMaxWidth(Double.MAX_VALUE);
-            alertLabel.getStyleClass().add("text-muted-left");
-            alertsList.getChildren().add(alertLabel);
+        LocalDate today = LocalDate.now();
+        long overdueCount = alerts.stream()
+                .filter(installment -> installment.getDueDate().isBefore(today))
+                .count();
+        long dueTodayCount = alerts.stream()
+                .filter(installment -> installment.getDueDate().isEqual(today))
+                .count();
+
+        if (overdueCount > 0) {
+            alertsList.getChildren().add(createAlertCard(
+                    overdueCount + " " + pluralize(overdueCount, "crediário vencido", "crediários vencidos"),
+                    "Clique para abrir a lista de parcelas vencidas.",
+                    "system-alert-critical"
+            ));
+        }
+
+        if (dueTodayCount > 0) {
+            alertsList.getChildren().add(createAlertCard(
+                    dueTodayCount + " " + pluralize(dueTodayCount, "crediário vence hoje", "crediários vencem hoje"),
+                    "Clique para abrir a lista a receber.",
+                    "system-alert-warning"
+            ));
+        }
+
+        if (alertsList.getChildren().isEmpty()) {
+            alertsList.getChildren().add(emptyAlertsLabel);
+            emptyAlertsLabel.setText("Nenhum alerta crítico por enquanto.");
         }
     }
 
-    private String formatCreditAlert(CreditInstallment installment) {
-        LocalDate today = LocalDate.now();
-        String dueDate = installment.getDueDate().format(DATE_FORMAT);
-        String installmentText = installment.getInstallmentNumber() + "/" + installment.getTotalInstallments();
-        String amount = MONEY_FORMAT.format(installment.getAmount());
+    private VBox createAlertCard(String title, String description, String statusClass) {
+        Label titleLabel = new Label(title);
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        titleLabel.setWrapText(true);
+        titleLabel.getStyleClass().add("system-alert-title");
 
-        if (installment.getDueDate().isBefore(today)) {
-            return "Vencida: " + installment.getCustomerName() + " - parcela " + installmentText + " - " + amount + " - venceu em " + dueDate;
-        }
+        Label descriptionLabel = new Label(description);
+        descriptionLabel.setMaxWidth(Double.MAX_VALUE);
+        descriptionLabel.setWrapText(true);
+        descriptionLabel.getStyleClass().add("system-alert-description");
 
-        if (installment.getDueDate().isEqual(today)) {
-            return "Vence hoje: " + installment.getCustomerName() + " - parcela " + installmentText + " - " + amount;
-        }
+        VBox alertCard = new VBox(4, titleLabel, descriptionLabel);
+        alertCard.setMaxWidth(Double.MAX_VALUE);
+        alertCard.getStyleClass().addAll("system-alert-card", statusClass);
+        alertCard.setOnMouseClicked(event -> MainController.openCreditView());
+        return alertCard;
+    }
 
-        return "A vencer: " + installment.getCustomerName() + " - parcela " + installmentText + " - " + amount + " - " + dueDate;
+    private String pluralize(long count, String singular, String plural) {
+        return count == 1 ? singular : plural;
     }
 
     private String textValue(String value) {
