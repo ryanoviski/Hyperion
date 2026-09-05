@@ -43,15 +43,15 @@
                   </HBox>
                   <TableView fx:id="productsTable" prefHeight="430.0" VBox.vgrow="ALWAYS">
                      <columns>
-                        <TableColumn fx:id="nameColumn" prefWidth="210.0" text="Nome" />
+                        <TableColumn fx:id="nameColumn" prefWidth="250.0" text="Nome" />
                         <TableColumn fx:id="categoryColumn" prefWidth="140.0" text="Categoria" />
-                        <TableColumn fx:id="priceColumn" prefWidth="115.0" text="Preço" />
-                        <TableColumn fx:id="costColumn" prefWidth="115.0" text="Custo" />
-                        <TableColumn fx:id="stockColumn" prefWidth="90.0" text="Estoque" />
-                        <TableColumn fx:id="barcodeColumn" prefWidth="140.0" text="Código" />
-                        <TableColumn fx:id="supplierColumn" prefWidth="170.0" text="Fornecedor" />
-                        <TableColumn fx:id="statusColumn" prefWidth="110.0" text="Status" />
-                        <TableColumn fx:id="actionsColumn" prefWidth="110.0" text="Ações" />
+                        <TableColumn fx:id="priceColumn" prefWidth="120.0" text="Preço" />
+                        <TableColumn fx:id="costColumn" prefWidth="120.0" text="Custo" />
+                        <TableColumn fx:id="stockColumn" prefWidth="100.0" text="Estoque" />
+                        <TableColumn fx:id="barcodeColumn" prefWidth="150.0" text="Código" />
+                        <TableColumn fx:id="supplierColumn" prefWidth="190.0" text="Fornecedor" />
+                        <TableColumn fx:id="statusColumn" prefWidth="100.0" text="Status" />
+                        <TableColumn fx:id="actionsColumn" prefWidth="120.0" text="Ações" />
                      </columns>
                   </TableView>
                   <HBox alignment="CENTER_LEFT" spacing="12.0">

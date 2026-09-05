@@ -43,12 +43,12 @@
                   </HBox>
                   <TableView fx:id="customersTable" prefHeight="430.0" VBox.vgrow="ALWAYS">
                      <columns>
-                        <TableColumn fx:id="nameColumn" prefWidth="240.0" text="Nome" />
-                        <TableColumn fx:id="documentColumn" prefWidth="160.0" text="Documento" />
-                        <TableColumn fx:id="phoneColumn" prefWidth="150.0" text="Telefone" />
-                        <TableColumn fx:id="emailColumn" prefWidth="260.0" text="Email" />
-                        <TableColumn fx:id="statusColumn" prefWidth="110.0" text="Status" />
-                        <TableColumn fx:id="actionsColumn" prefWidth="150.0" text="Ações" />
+                        <TableColumn fx:id="nameColumn" prefWidth="255.0" text="Nome" />
+                        <TableColumn fx:id="documentColumn" prefWidth="165.0" text="Documento" />
+                        <TableColumn fx:id="phoneColumn" prefWidth="155.0" text="Telefone" />
+                        <TableColumn fx:id="emailColumn" prefWidth="295.0" text="Email" />
+                        <TableColumn fx:id="statusColumn" prefWidth="105.0" text="Status" />
+                        <TableColumn fx:id="actionsColumn" prefWidth="190.0" text="Ações" />
                      </columns>
                   </TableView>
                   <HBox alignment="CENTER_LEFT" spacing="12.0">

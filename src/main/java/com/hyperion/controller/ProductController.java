@@ -190,12 +190,12 @@ public class ProductController {
         supplierColumn.getStyleClass().add("left-aligned-column");
 
         nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getName())));
-        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getCategory())));
+        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getCategory())));
         priceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getPrice())));
         costColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getCost())));
         stockColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getStockQuantity())));
-        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getBarcode())));
-        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getSupplier())));
+        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getBarcode())));
+        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getSupplier())));
         statusColumn.setCellValueFactory(cellData -> {
             String status = cellData.getValue().isActive() ? "Ativo" : "Inativo";
             return new ReadOnlyStringWrapper(status);
@@ -452,6 +452,11 @@ public class ProductController {
 
     private String textValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = textValue(value).trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 
     private void addDialogStyles(Dialog<?> dialog) {

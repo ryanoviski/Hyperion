@@ -85,7 +85,7 @@
                   </TableView>
                   <HBox alignment="CENTER_RIGHT">
                      <children>
-                        <Button mnemonicParsing="false" onAction="#handleSales" prefWidth="160.0" styleClass="secondary-button" text="Ver vendas" />
+                        <Button mnemonicParsing="false" onAction="#handleReports" prefWidth="160.0" styleClass="secondary-button" text="Ver vendas" />
                      </children>
                   </HBox>
                </children>

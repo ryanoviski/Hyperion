@@ -125,6 +125,7 @@ public class FinanceController {
         configureIconButtons();
         configurePeriodFilter();
         configureTableColumns();
+        configureMoneyField(amountField);
         updateAttachmentSelection(null);
         loadFinanceData();
     }
@@ -226,8 +227,8 @@ public class FinanceController {
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
         ));
-        descriptionColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getDescription())));
-        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getCategory())));
+        descriptionColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getDescription())));
+        categoryColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getCategory())));
         amountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getAmount())));
         attachmentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatAttachmentCount(cellData.getValue())));
         attachmentColumn.setCellFactory(column -> createAttachmentCell());
@@ -390,7 +391,7 @@ public class FinanceController {
 
         TableColumn<Attachment, String> nameColumn = new TableColumn<>("Arquivo");
         nameColumn.setPrefWidth(280);
-        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getOriginalName()));
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getOriginalName())));
 
         TableColumn<Attachment, String> sizeColumn = new TableColumn<>("Tamanho");
         sizeColumn.setPrefWidth(120);
@@ -398,7 +399,7 @@ public class FinanceController {
 
         TableColumn<Attachment, String> pathColumn = new TableColumn<>("Local");
         pathColumn.setPrefWidth(320);
-        pathColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getFilePath()));
+        pathColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getFilePath())));
 
         table.getColumns().addAll(nameColumn, sizeColumn, pathColumn);
         return table;
@@ -487,17 +488,38 @@ public class FinanceController {
     }
 
     private BigDecimal parseMoney(String value) {
-        String normalizedValue = value == null ? "" : value.replace(",", ".").trim();
+        String digits = textValue(value).replaceAll("\\D", "");
 
-        if (normalizedValue.isBlank()) {
+        if (digits.isBlank()) {
             return BigDecimal.ZERO;
         }
 
         try {
-            return new BigDecimal(normalizedValue);
+            return new BigDecimal(digits).movePointLeft(2);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Informe um valor válido.");
         }
+    }
+
+    private void configureMoneyField(TextField field) {
+        field.textProperty().addListener((observable, oldValue, newValue) -> {
+            String formattedValue = formatDigitsAsMoney(newValue);
+
+            if (!formattedValue.equals(newValue)) {
+                field.setText(formattedValue);
+                field.positionCaret(formattedValue.length());
+            }
+        });
+    }
+
+    private String formatDigitsAsMoney(String value) {
+        String digits = textValue(value).replaceAll("\\D", "");
+
+        if (digits.isBlank()) {
+            digits = "0";
+        }
+
+        return formatMoney(new BigDecimal(digits).movePointLeft(2));
     }
 
     private void clearForm() {
@@ -522,7 +544,7 @@ public class FinanceController {
 
     private String formatAttachmentCount(Expense expense) {
         int count = attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, expense.getId());
-        return count == 0 ? "-" : String.valueOf(count);
+        return count == 0 ? "—" : String.valueOf(count);
     }
 
     private String formatFileSize(long bytes) {
@@ -568,6 +590,11 @@ public class FinanceController {
 
     private String textValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = textValue(value).trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 
     private void showMessage(String message) {

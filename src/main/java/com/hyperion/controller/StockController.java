@@ -15,7 +15,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
@@ -43,7 +42,7 @@ public class StockController {
     private TextField quantityField;
 
     @FXML
-    private TextArea notesArea;
+    private TextField notesArea;
 
     @FXML
     private TableView<StockMovement> movementsTable;
@@ -127,7 +126,7 @@ public class StockController {
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
         ));
-        productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getProductName()));
+        productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getProductName())));
         typeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMovementType(cellData.getValue().getType())));
         typeColumn.setCellFactory(column -> new TableCell<>() {
             @Override
@@ -145,7 +144,7 @@ public class StockController {
             }
         });
         quantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantity())));
-        notesColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getNotes()));
+        notesColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getNotes())));
     }
 
     private String formatMovementType(String type) {
@@ -203,7 +202,7 @@ public class StockController {
 
         TableColumn<Product, String> barcodeColumn = new TableColumn<>("Código");
         barcodeColumn.setPrefWidth(140);
-        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getBarcode())));
+        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getBarcode())));
 
         TableColumn<Product, String> stockColumn = new TableColumn<>("Estoque");
         stockColumn.setPrefWidth(100);
@@ -215,7 +214,7 @@ public class StockController {
 
         TableColumn<Product, String> supplierColumn = new TableColumn<>("Fornecedor");
         supplierColumn.setPrefWidth(180);
-        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getSupplier())));
+        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getSupplier())));
 
         table.getColumns().addAll(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn);
         return table;
@@ -240,6 +239,11 @@ public class StockController {
 
     private String textValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = textValue(value).trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 
     private void loadMovements() {

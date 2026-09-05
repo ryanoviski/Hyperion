@@ -104,6 +104,7 @@ public class SaleController {
         configureChoiceBoxes();
         configureTableColumns();
         configureSelectedFields();
+        configureMoneyField(discountField);
         cartTable.setItems(CART_ITEMS);
         restoreDraft();
         configureDraftPersistence();
@@ -228,7 +229,7 @@ public class SaleController {
     private void configureTableColumns() {
         cartTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
-        productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getProductName()));
+        productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getProductName())));
         quantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantity())));
         unitPriceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getUnitPrice())));
         subtotalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getSubtotal())));
@@ -371,15 +372,15 @@ public class SaleController {
 
         TableColumn<Customer, String> documentColumn = new TableColumn<>("Documento");
         documentColumn.setPrefWidth(160);
-        documentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getDocument())));
+        documentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getDocument())));
 
         TableColumn<Customer, String> phoneColumn = new TableColumn<>("Telefone");
         phoneColumn.setPrefWidth(140);
-        phoneColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getPhone())));
+        phoneColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getPhone())));
 
         TableColumn<Customer, String> emailColumn = new TableColumn<>("Email");
         emailColumn.setPrefWidth(180);
-        emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getEmail())));
+        emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getEmail())));
 
         table.getColumns().addAll(nameColumn, documentColumn, phoneColumn, emailColumn);
         return table;
@@ -396,7 +397,7 @@ public class SaleController {
 
         TableColumn<Product, String> barcodeColumn = new TableColumn<>("Código");
         barcodeColumn.setPrefWidth(140);
-        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getBarcode())));
+        barcodeColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getBarcode())));
 
         TableColumn<Product, String> stockColumn = new TableColumn<>("Estoque");
         stockColumn.setPrefWidth(100);
@@ -408,7 +409,7 @@ public class SaleController {
 
         TableColumn<Product, String> supplierColumn = new TableColumn<>("Fornecedor");
         supplierColumn.setPrefWidth(180);
-        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getSupplier())));
+        supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getSupplier())));
 
         table.getColumns().addAll(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn);
         return table;
@@ -481,17 +482,38 @@ public class SaleController {
     }
 
     private BigDecimal parseMoney(String value) {
-        String normalizedValue = value == null ? "" : value.replace(",", ".").trim();
+        String digits = textValue(value).replaceAll("\\D", "");
 
-        if (normalizedValue.isBlank()) {
+        if (digits.isBlank()) {
             return BigDecimal.ZERO;
         }
 
         try {
-            return new BigDecimal(normalizedValue);
+            return new BigDecimal(digits).movePointLeft(2);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Informe um desconto válido.");
         }
+    }
+
+    private void configureMoneyField(TextField field) {
+        field.textProperty().addListener((observable, oldValue, newValue) -> {
+            String formattedValue = formatDigitsAsMoney(newValue);
+
+            if (!formattedValue.equals(newValue)) {
+                field.setText(formattedValue);
+                field.positionCaret(formattedValue.length());
+            }
+        });
+    }
+
+    private String formatDigitsAsMoney(String value) {
+        String digits = textValue(value).replaceAll("\\D", "");
+
+        if (digits.isBlank()) {
+            digits = "0";
+        }
+
+        return formatMoney(new BigDecimal(digits).movePointLeft(2));
     }
 
     private CreditSalePlan buildCreditSalePlan() {
@@ -555,5 +577,10 @@ public class SaleController {
 
     private String textValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = textValue(value).trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 }

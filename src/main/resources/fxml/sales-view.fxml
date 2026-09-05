@@ -40,7 +40,7 @@
                                     <Label styleClass="field-label" text="Cliente (opcional)" />
                                     <HBox spacing="8.0">
                                        <children>
-                                          <TextField fx:id="selectedCustomerField" prefHeight="42.0" promptText="Buscar por nome ou CPF/CNPJ..." HBox.hgrow="ALWAYS" />
+                                          <TextField fx:id="selectedCustomerField" prefHeight="42.0" promptText="Clique em Buscar para inserir o cliente" HBox.hgrow="ALWAYS" />
                                           <Button mnemonicParsing="false" onAction="#handleSearchCustomer" prefHeight="42.0" prefWidth="88.0" styleClass="secondary-button" text="Buscar" />
                                        </children>
                                     </HBox>
@@ -55,7 +55,7 @@
                                     <Label styleClass="field-label" text="Produto" />
                                     <HBox spacing="8.0">
                                        <children>
-                                          <TextField fx:id="selectedProductField" prefHeight="42.0" promptText="Buscar por nome ou código..." HBox.hgrow="ALWAYS" />
+                                          <TextField fx:id="selectedProductField" prefHeight="42.0" promptText="Clique em Buscar para inserir o produto" HBox.hgrow="ALWAYS" />
                                           <Button mnemonicParsing="false" onAction="#handleSearchProduct" prefHeight="42.0" prefWidth="88.0" styleClass="secondary-button" text="Buscar" />
                                        </children>
                                     </HBox>
@@ -63,8 +63,8 @@
                               </VBox>
                               <VBox spacing="6.0">
                                  <children>
-                                    <Label styleClass="field-label" text="Qtd." />
-                                    <TextField fx:id="quantityField" prefHeight="42.0" prefWidth="92.0" promptText="1" />
+                                    <Label styleClass="field-label" text="Quantidade" />
+                                    <TextField fx:id="quantityField" prefHeight="42.0" prefWidth="120.0" promptText="1" />
                                  </children>
                               </VBox>
                               <Button fx:id="addItemButton" mnemonicParsing="false" onAction="#handleAddItem" prefHeight="42.0" prefWidth="150.0" styleClass="primary-button" text="Adicionar" />
@@ -84,10 +84,10 @@
                         </HBox>
                         <TableView fx:id="cartTable" prefHeight="300.0" VBox.vgrow="ALWAYS">
                            <columns>
-                              <TableColumn fx:id="productColumn" prefWidth="500.0" styleClass="left-aligned-column" text="Produto" />
-                              <TableColumn fx:id="quantityColumn" prefWidth="90.0" text="Qtd." />
-                              <TableColumn fx:id="unitPriceColumn" prefWidth="180.0" text="Preço" />
-                              <TableColumn fx:id="subtotalColumn" prefWidth="180.0" text="Subtotal" />
+                              <TableColumn fx:id="productColumn" prefWidth="540.0" styleClass="left-aligned-column" text="Produto" />
+                              <TableColumn fx:id="quantityColumn" prefWidth="130.0" text="Quantidade" />
+                              <TableColumn fx:id="unitPriceColumn" prefWidth="160.0" text="Preço" />
+                              <TableColumn fx:id="subtotalColumn" prefWidth="170.0" text="Subtotal" />
                            </columns>
                         </TableView>
                      </children>

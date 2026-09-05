@@ -141,6 +141,12 @@ public class MainController {
         }
     }
 
+    public static void openReportsView() {
+        if (activeController != null) {
+            activeController.showReports();
+        }
+    }
+
     private void showDashboard() {
         loadContent(DASHBOARD_VIEW);
         setActiveButton(dashboardButton);

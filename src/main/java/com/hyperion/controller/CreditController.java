@@ -113,7 +113,7 @@ public class CreditController {
     private void configureInstallmentsTable() {
         installmentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
-        customerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getCustomerName()));
+        customerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getCustomerName())));
         installmentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatInstallment(cellData.getValue())));
         dueDateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatDate(cellData.getValue())));
         amountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getAmount())));
@@ -238,7 +238,7 @@ public class CreditController {
     private void showDetailsDialog(CreditInstallment installment) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Detalhes da parcela");
-        dialog.setHeaderText(installment.getCustomerName());
+        dialog.setHeaderText(displayValue(installment.getCustomerName()));
         dialog.initOwner(installmentsTable.getScene().getWindow());
         addDialogStyles(dialog);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
@@ -306,5 +306,10 @@ public class CreditController {
 
     private String normalize(String value) {
         return value == null ? "" : value.toLowerCase(Locale.ROOT).trim();
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = value == null ? "" : value.trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 }

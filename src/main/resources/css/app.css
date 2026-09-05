@@ -75,8 +75,7 @@
 .text-field,
 .password-field,
 .choice-box,
-.date-picker,
-.date-picker .text-field {
+.date-picker {
     -fx-background-color: #1E293B;
     -fx-text-fill: #F8FAFC;
     -fx-prompt-text-fill: #64748B;
@@ -86,6 +85,18 @@
     -fx-min-height: 42;
     -fx-pref-height: 42;
     -fx-padding: 0 14;
+}
+
+.date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F8FAFC;
+    -fx-prompt-text-fill: #64748B;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8 0 0 8;
+    -fx-border-radius: 8 0 0 8;
+    -fx-padding: 0 12;
+    -fx-min-height: 40;
+    -fx-pref-height: 40;
 }
 
 .text-area {
@@ -127,6 +138,7 @@
 .stock-notes-area {
     -fx-min-height: 42;
     -fx-pref-height: 42;
+    -fx-text-alignment: center;
 }
 
 .stock-notes-area .content {
@@ -164,7 +176,7 @@
 .date-picker .arrow-button {
     -fx-background-color: #1E293B;
     -fx-background-radius: 0 8 8 0;
-    -fx-border-color: #334155;
+    -fx-border-color: transparent transparent transparent #334155;
     -fx-border-radius: 0 8 8 0;
 }
 

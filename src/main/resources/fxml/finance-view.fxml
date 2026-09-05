@@ -106,12 +106,12 @@
                   </HBox>
                   <TableView fx:id="expensesTable" minHeight="200.0" prefHeight="340.0" VBox.vgrow="ALWAYS">
                      <columns>
-                        <TableColumn fx:id="dateColumn" prefWidth="155.0" text="Data" />
-                        <TableColumn fx:id="descriptionColumn" prefWidth="260.0" styleClass="left-aligned-column" text="Descrição" />
+                        <TableColumn fx:id="dateColumn" prefWidth="160.0" text="Data" />
+                        <TableColumn fx:id="descriptionColumn" prefWidth="330.0" styleClass="left-aligned-column" text="Descrição" />
                         <TableColumn fx:id="categoryColumn" prefWidth="170.0" text="Categoria" />
                         <TableColumn fx:id="amountColumn" prefWidth="140.0" text="Valor" />
-                        <TableColumn fx:id="attachmentColumn" prefWidth="130.0" text="Anexos" />
-                        <TableColumn fx:id="actionsColumn" prefWidth="140.0" text="Ações" />
+                        <TableColumn fx:id="attachmentColumn" prefWidth="120.0" text="Anexos" />
+                        <TableColumn fx:id="actionsColumn" prefWidth="120.0" text="Ações" />
                      </columns>
                   </TableView>
                </children>

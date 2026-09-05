@@ -182,10 +182,10 @@ public class CustomerController {
         nameColumn.getStyleClass().add("left-aligned-column");
         emailColumn.getStyleClass().add("left-aligned-column");
 
-        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getName())));
+        nameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getName())));
         documentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatDocument(cellData.getValue().getDocument())));
         phoneColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatPhone(cellData.getValue().getPhone())));
-        emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(textValue(cellData.getValue().getEmail())));
+        emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getEmail())));
         statusColumn.setCellValueFactory(cellData -> {
             String status = cellData.getValue().isActive() ? "Ativo" : "Inativo";
             return new ReadOnlyStringWrapper(status);
@@ -234,8 +234,9 @@ public class CustomerController {
                         ? createIconButton("Desativar", HIDE_ICON, () -> handleDeactivateCustomer(customer))
                         : createIconButton("Reativar", SHOW_ICON, () -> handleReactivateCustomer(customer));
 
-                HBox actions = new HBox(8, profileButton, editButton, activeToggleButton);
+                HBox actions = new HBox(10, profileButton, editButton, activeToggleButton);
                 actions.setAlignment(Pos.CENTER);
+                actions.setMinWidth(128);
                 setGraphic(actions);
                 setText(null);
                 setAlignment(Pos.CENTER);
@@ -339,8 +340,8 @@ public class CustomerController {
 
         Label documentLabel = new Label("Documento: " + formatDocument(customer.getDocument()));
         Label phoneLabel = new Label("Telefone: " + formatPhone(customer.getPhone()));
-        Label emailLabel = new Label("Email: " + textValue(customer.getEmail()));
-        Label addressLabel = new Label("Endereço: " + textValue(customer.getAddress()));
+        Label emailLabel = new Label("Email: " + displayValue(customer.getEmail()));
+        Label addressLabel = new Label("Endereço: " + displayValue(customer.getAddress()));
         Label purchasesTitle = new Label("Histórico de compras");
         purchasesTitle.getStyleClass().add("panel-title");
 
@@ -362,23 +363,24 @@ public class CustomerController {
         purchasesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<Sale, String> dateColumn = new TableColumn<>("Data");
-        dateColumn.setPrefWidth(150);
+        dateColumn.setPrefWidth(180);
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
         ));
 
         TableColumn<Sale, String> paymentColumn = new TableColumn<>("Pagamento");
-        paymentColumn.setPrefWidth(160);
-        paymentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getPaymentMethod()));
+        paymentColumn.setPrefWidth(220);
+        paymentColumn.getStyleClass().add("left-aligned-column");
+        paymentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getPaymentMethod())));
 
         TableColumn<Sale, String> totalColumn = new TableColumn<>("Total");
-        totalColumn.setPrefWidth(140);
+        totalColumn.setPrefWidth(160);
         totalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 MONEY_FORMAT.format(cellData.getValue().getTotal())
         ));
 
         TableColumn<Sale, String> discountColumn = new TableColumn<>("Desconto");
-        discountColumn.setPrefWidth(140);
+        discountColumn.setPrefWidth(160);
         discountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 MONEY_FORMAT.format(cellData.getValue().getDiscount())
         ));
@@ -466,7 +468,7 @@ public class CustomerController {
             return digits.replaceFirst("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
         }
 
-        return textValue(value);
+        return displayValue(value);
     }
 
     private String formatPhone(String value) {
@@ -480,7 +482,7 @@ public class CustomerController {
             return digits.replaceFirst("(\\d{2})(\\d{4})(\\d{4})", "($1) $2-$3");
         }
 
-        return textValue(value);
+        return displayValue(value);
     }
 
     private String digitsOnly(String value) {
@@ -489,6 +491,11 @@ public class CustomerController {
 
     private String textValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = textValue(value).trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 
     private void addDialogStyles(Dialog<?> dialog) {

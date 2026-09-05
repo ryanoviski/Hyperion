@@ -104,6 +104,11 @@ public class DashboardController {
         MainController.openSalesView();
     }
 
+    @FXML
+    private void handleReports() {
+        MainController.openReportsView();
+    }
+
     private void configureLatestSalesTable() {
         latestSalesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         saleCustomerColumn.getStyleClass().add("left-aligned-column");
@@ -115,7 +120,7 @@ public class DashboardController {
                 "Venda #" + String.format("%03d", cellData.getValue().getId())
         ));
         saleCustomerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
-                textValue(cellData.getValue().getCustomerName())
+                displayValue(cellData.getValue().getCustomerName())
         ));
         saleTotalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 MONEY_FORMAT.format(cellData.getValue().getTotal())
@@ -208,5 +213,10 @@ public class DashboardController {
 
     private String textValue(String value) {
         return value == null ? "" : value;
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = textValue(value).trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 }

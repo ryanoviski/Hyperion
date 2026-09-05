@@ -113,7 +113,7 @@ public class ReportController {
     private void configurePaymentMethodsTable() {
         paymentMethodsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         paymentMethodColumn.getStyleClass().add("left-aligned-column");
-        paymentMethodColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getPaymentMethod()));
+        paymentMethodColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getPaymentMethod())));
         paymentSalesCountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getSalesCount())));
         paymentTotalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getTotalAmount())));
         paymentPercentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatPercentage(cellData.getValue().getTotalAmount())));
@@ -124,7 +124,7 @@ public class ReportController {
     private void configureTopProductsTable() {
         topProductsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         productNameColumn.getStyleClass().add("left-aligned-column");
-        productNameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getProductName()));
+        productNameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getProductName())));
         productUnitPriceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getUnitPrice())));
         productQuantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantitySold())));
         productTotalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getTotalAmount())));
@@ -149,6 +149,11 @@ public class ReportController {
 
     private String formatMoney(BigDecimal value) {
         return MONEY_FORMAT.format(value == null ? BigDecimal.ZERO : value);
+    }
+
+    private String displayValue(String value) {
+        String normalizedValue = value == null ? "" : value.trim();
+        return normalizedValue.isBlank() ? "—" : normalizedValue;
     }
 
     private String formatPercentage(BigDecimal value) {
