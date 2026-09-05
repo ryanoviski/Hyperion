@@ -69,7 +69,7 @@
                         <Label styleClass="page-subtitle" text="Resumo detalhado por forma de pagamento." />
                      </children>
                   </VBox>
-                  <TableView fx:id="paymentMethodsTable" prefHeight="220.0">
+                  <TableView fx:id="paymentMethodsTable" maxHeight="200.0" prefHeight="200.0">
                      <columns>
                         <TableColumn fx:id="paymentMethodColumn" prefWidth="220.0" text="Pagamento" />
                         <TableColumn fx:id="paymentSalesCountColumn" prefWidth="180.0" text="Vendas (Quantidade)" />

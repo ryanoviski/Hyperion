@@ -33,7 +33,7 @@
                         <TextField fx:id="selectedProductField" editable="false" focusTraversable="false" prefHeight="42.0" promptText="Selecione o produto" HBox.hgrow="ALWAYS" />
                         <Button fx:id="searchProductButton" mnemonicParsing="false" onAction="#handleSearchProduct" prefHeight="42.0" prefWidth="90.0" styleClass="secondary-button" text="Buscar" />
                         <TextField fx:id="quantityField" prefHeight="42.0" prefWidth="150.0" promptText="Quantidade" />
-                        <TextField fx:id="notesArea" alignment="CENTER" prefHeight="42.0" prefWidth="320.0" promptText="Observação" styleClass="stock-notes-area" HBox.hgrow="ALWAYS" />
+                        <TextField fx:id="notesArea" alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="320.0" promptText="Observação" styleClass="stock-notes-area" HBox.hgrow="ALWAYS" />
                         <Button fx:id="entryButton" mnemonicParsing="false" onAction="#handleEntry" prefHeight="42.0" prefWidth="110.0" styleClass="primary-button" text="Entrada" />
                         <Button fx:id="exitButton" mnemonicParsing="false" onAction="#handleExit" prefHeight="42.0" prefWidth="110.0" styleClass="secondary-button" text="Saída" />
                      </children>

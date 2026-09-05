@@ -138,11 +138,8 @@
 .stock-notes-area {
     -fx-min-height: 42;
     -fx-pref-height: 42;
-    -fx-text-alignment: center;
-}
-
-.stock-notes-area .content {
-    -fx-padding: 8 12;
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 .choice-box > .label {
@@ -354,8 +351,10 @@
 .dashboard-card,
 .dashboard-panel {
     -fx-background-color: #111827;
+    -fx-background-insets: 0;
     -fx-background-radius: 8;
     -fx-border-color: #334155;
+    -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-padding: 22;
     -fx-spacing: 10;
@@ -496,37 +495,44 @@
 
 .table-view {
     -fx-background-color: #0F172A;
+    -fx-background-insets: 0;
     -fx-border-color: #334155;
+    -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
+    -fx-padding: 0;
 }
 
 .table-view .virtual-flow,
 .table-view .virtual-flow .clipped-container,
 .table-view .virtual-flow .sheet {
     -fx-background-color: #0F172A;
+    -fx-background-insets: 0;
 }
 
 .table-view .virtual-flow .scroll-bar:vertical,
 .table-view .virtual-flow .scroll-bar:horizontal {
-    -fx-background-color: #0F172A;
+    -fx-background-color: transparent;
 }
 
 .table-view .virtual-flow .scroll-bar:vertical {
-    -fx-pref-width: 10;
+    -fx-pref-width: 9;
+    -fx-padding: 3 2 3 0;
 }
 
 .table-view .virtual-flow .scroll-bar:horizontal {
-    -fx-pref-height: 10;
+    -fx-pref-height: 9;
+    -fx-padding: 0 3 2 3;
 }
 
 .table-view .virtual-flow .scroll-bar .track {
-    -fx-background-color: #0F172A;
+    -fx-background-color: transparent;
 }
 
 .table-view .virtual-flow .scroll-bar .thumb {
     -fx-background-color: #334155;
     -fx-background-radius: 999;
+    -fx-background-insets: 2;
 }
 
 .table-view .virtual-flow .scroll-bar .thumb:hover {
@@ -547,12 +553,15 @@
 
 .table-view .column-header-background {
     -fx-background-color: #1E293B;
+    -fx-background-insets: 0;
     -fx-background-radius: 8 8 0 0;
 }
 
 .table-view .column-header,
 .table-view .filler {
-    -fx-background-color: transparent;
+    -fx-background-color: #1E293B;
+    -fx-border-color: transparent transparent #334155 transparent;
+    -fx-border-width: 0 0 1 0;
     -fx-size: 42;
 }
 
@@ -565,6 +574,7 @@
 
 .table-row-cell {
     -fx-background-color: #111827;
+    -fx-background-insets: 0;
     -fx-border-color: transparent transparent #1E293B transparent;
     -fx-table-cell-border-color: transparent;
 }
@@ -586,6 +596,10 @@
     -fx-alignment: center;
     -fx-text-alignment: center;
     -fx-padding: 12;
+}
+
+.table-view .corner {
+    -fx-background-color: #0F172A;
 }
 
 .table-cell.left-aligned-column {
@@ -742,7 +756,9 @@
 
 .dialog-pane {
     -fx-background-color: #111827;
+    -fx-background-insets: 0;
     -fx-border-color: #334155;
+    -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
 }
