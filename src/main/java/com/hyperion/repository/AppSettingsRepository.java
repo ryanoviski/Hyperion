@@ -59,6 +59,25 @@ public class AppSettingsRepository {
         }
     }
 
+    public String findTheme() {
+        ensureSettingsRowExists();
+
+        String sql = "SELECT theme FROM app_settings ORDER BY id LIMIT 1;";
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            if (!resultSet.next()) {
+                return "dark";
+            }
+
+            return resultSet.getString("theme");
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not read app theme.", exception);
+        }
+    }
+
     public void completeFirstRunWithoutPin() {
         ensureSettingsRowExists();
 
@@ -131,10 +150,30 @@ public class AppSettingsRepository {
         executeUpdate(sql);
     }
 
+    public void updateTheme(String theme) {
+        ensureSettingsRowExists();
+
+        String sql = """
+                UPDATE app_settings
+                SET theme = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, theme);
+            statement.executeUpdate();
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not update app theme.", exception);
+        }
+    }
+
     private void ensureSettingsRowExists() {
         String sql = """
-                INSERT INTO app_settings (first_run_completed, pin_enabled)
-                SELECT 0, 0
+                INSERT INTO app_settings (first_run_completed, pin_enabled, theme)
+                SELECT 0, 0, 'dark'
                 WHERE NOT EXISTS (SELECT 1 FROM app_settings);
                 """;
 

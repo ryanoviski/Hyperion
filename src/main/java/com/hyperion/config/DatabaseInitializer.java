@@ -22,6 +22,7 @@ public final class DatabaseInitializer {
                 first_run_completed INTEGER NOT NULL DEFAULT 0,
                 pin_enabled INTEGER NOT NULL DEFAULT 0,
                 pin_hash TEXT,
+                theme TEXT NOT NULL DEFAULT 'dark',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
@@ -145,6 +146,11 @@ public final class DatabaseInitializer {
             ADD COLUMN paid_at TEXT;
             """;
 
+    private static final String ADD_APP_SETTINGS_THEME_COLUMN = """
+            ALTER TABLE app_settings
+            ADD COLUMN theme TEXT NOT NULL DEFAULT 'dark';
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -168,6 +174,12 @@ public final class DatabaseInitializer {
                     "credit_installments",
                     "paid_at",
                     ADD_CREDIT_INSTALLMENTS_PAID_AT_COLUMN
+            );
+            addColumnIfMissing(
+                    connection,
+                    "app_settings",
+                    "theme",
+                    ADD_APP_SETTINGS_THEME_COLUMN
             );
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not initialize database.", exception);

@@ -5,6 +5,7 @@ import com.hyperion.model.Expense;
 import com.hyperion.model.FinancialSummary;
 import com.hyperion.service.AttachmentService;
 import com.hyperion.service.FinanceService;
+import com.hyperion.util.ThemeManager;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -584,8 +585,7 @@ public class FinanceController {
     }
 
     private void addDialogStyles(Dialog<?> dialog) {
-        String stylesheet = FinanceController.class.getResource("/css/app.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(stylesheet);
+        ThemeManager.applyTo(dialog.getDialogPane());
     }
 
     private String textValue(String value) {

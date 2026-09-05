@@ -1,8 +1,10 @@
 package com.hyperion.app;
 
 import com.hyperion.config.DatabaseInitializer;
+import com.hyperion.service.AppSettingsService;
 import com.hyperion.service.StartupService;
 import com.hyperion.util.SceneManager;
+import com.hyperion.util.ThemeManager;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -18,6 +20,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) {
         DatabaseInitializer.initialize();
+        ThemeManager.setCurrentTheme(new AppSettingsService().getTheme());
 
         stage.setTitle("Hyperion");
         stage.getIcons().add(new Image(Objects.requireNonNull(

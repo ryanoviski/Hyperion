@@ -11,8 +11,6 @@ import java.util.Objects;
 
 public final class SceneManager {
 
-    private static final String APP_STYLESHEET = "/css/app.css";
-
     private static Stage mainStage;
 
     private SceneManager() {
@@ -33,9 +31,7 @@ public final class SceneManager {
             ));
 
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(Objects.requireNonNull(
-                    SceneManager.class.getResource(APP_STYLESHEET)
-            ).toExternalForm());
+            ThemeManager.applyTo(scene);
 
             mainStage.setScene(scene);
             if (wasFullScreen) {

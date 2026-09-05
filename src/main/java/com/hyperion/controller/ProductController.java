@@ -2,6 +2,7 @@ package com.hyperion.controller;
 
 import com.hyperion.model.Product;
 import com.hyperion.service.ProductService;
+import com.hyperion.util.ThemeManager;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -460,8 +461,7 @@ public class ProductController {
     }
 
     private void addDialogStyles(Dialog<?> dialog) {
-        String stylesheet = ProductController.class.getResource("/css/app.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(stylesheet);
+        ThemeManager.applyTo(dialog.getDialogPane());
     }
 
     private TextField productNameField;

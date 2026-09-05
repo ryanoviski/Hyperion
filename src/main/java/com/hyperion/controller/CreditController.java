@@ -2,6 +2,7 @@ package com.hyperion.controller;
 
 import com.hyperion.model.CreditInstallment;
 import com.hyperion.service.CreditInstallmentService;
+import com.hyperion.util.ThemeManager;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -257,8 +258,7 @@ public class CreditController {
     }
 
     private void addDialogStyles(Dialog<?> dialog) {
-        String stylesheet = CreditController.class.getResource("/css/app.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(stylesheet);
+        ThemeManager.applyTo(dialog.getDialogPane());
     }
 
     private boolean canMarkAsPaid(CreditInstallment installment) {

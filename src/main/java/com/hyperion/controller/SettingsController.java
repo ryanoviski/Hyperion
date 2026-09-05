@@ -1,8 +1,11 @@
 package com.hyperion.controller;
 
+import com.hyperion.model.AppTheme;
 import com.hyperion.service.BackupService;
 import com.hyperion.service.AppSettingsService;
+import com.hyperion.util.ThemeManager;
 import javafx.fxml.FXML;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 
@@ -32,8 +35,12 @@ public class SettingsController {
     private Label messageLabel;
 
     @FXML
+    private ChoiceBox<AppTheme> themeChoiceBox;
+
+    @FXML
     private void initialize() {
         updatePinStatus();
+        configureThemeChoice();
     }
 
     @FXML
@@ -81,6 +88,24 @@ public class SettingsController {
         pinStatusLabel.setText(pinEnabled ? "PIN ativo" : "PIN desativado");
         pinStatusLabel.getStyleClass().removeAll(PIN_STATUS_ACTIVE_CLASS, PIN_STATUS_DISABLED_CLASS);
         pinStatusLabel.getStyleClass().add(pinEnabled ? PIN_STATUS_ACTIVE_CLASS : PIN_STATUS_DISABLED_CLASS);
+    }
+
+    private void configureThemeChoice() {
+        AppTheme savedTheme = appSettingsService.getTheme();
+        ThemeManager.setCurrentTheme(savedTheme);
+
+        themeChoiceBox.getItems().setAll(AppTheme.DARK, AppTheme.LIGHT);
+        themeChoiceBox.setValue(savedTheme);
+        themeChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldTheme, newTheme) -> {
+            if (newTheme == null || newTheme == oldTheme) {
+                return;
+            }
+
+            appSettingsService.updateTheme(newTheme);
+            ThemeManager.setCurrentTheme(newTheme);
+            ThemeManager.applyTo(themeChoiceBox.getScene());
+            showMessage("Tema alterado para " + newTheme + ".");
+        });
     }
 
     private void clearPinFields() {

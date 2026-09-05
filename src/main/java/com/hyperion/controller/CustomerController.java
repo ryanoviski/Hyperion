@@ -3,6 +3,7 @@ package com.hyperion.controller;
 import com.hyperion.model.Customer;
 import com.hyperion.model.Sale;
 import com.hyperion.service.CustomerService;
+import com.hyperion.util.ThemeManager;
 import com.hyperion.service.SaleService;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -499,8 +500,7 @@ public class CustomerController {
     }
 
     private void addDialogStyles(Dialog<?> dialog) {
-        String stylesheet = CustomerController.class.getResource("/css/app.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(stylesheet);
+        ThemeManager.applyTo(dialog.getDialogPane());
     }
 
     private TextField customerNameField;

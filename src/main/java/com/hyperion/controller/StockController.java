@@ -4,6 +4,7 @@ import com.hyperion.model.Product;
 import com.hyperion.model.StockMovement;
 import com.hyperion.service.ProductService;
 import com.hyperion.service.StockService;
+import com.hyperion.util.ThemeManager;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -221,8 +222,7 @@ public class StockController {
     }
 
     private void addDialogStyles(Dialog<?> dialog) {
-        String stylesheet = StockController.class.getResource("/css/app.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(stylesheet);
+        ThemeManager.applyTo(dialog.getDialogPane());
     }
 
     private String formatSelectedProduct(Product product) {

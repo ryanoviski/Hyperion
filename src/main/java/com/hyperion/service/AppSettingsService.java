@@ -1,6 +1,7 @@
 package com.hyperion.service;
 
 import com.hyperion.repository.AppSettingsRepository;
+import com.hyperion.model.AppTheme;
 import com.hyperion.util.PinHashUtil;
 
 public class AppSettingsService {
@@ -15,6 +16,18 @@ public class AppSettingsService {
 
     public boolean isPinEnabled() {
         return appSettingsRepository.isPinEnabled();
+    }
+
+    public AppTheme getTheme() {
+        return AppTheme.fromStorageValue(appSettingsRepository.findTheme());
+    }
+
+    public void updateTheme(AppTheme theme) {
+        if (theme == null) {
+            throw new IllegalArgumentException("Selecione um tema válido.");
+        }
+
+        appSettingsRepository.updateTheme(theme.getStorageValue());
     }
 
     public void completeFirstRunWithoutPin() {

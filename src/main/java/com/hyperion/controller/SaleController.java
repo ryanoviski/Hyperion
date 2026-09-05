@@ -7,6 +7,7 @@ import com.hyperion.model.SaleItem;
 import com.hyperion.service.CustomerService;
 import com.hyperion.service.ProductService;
 import com.hyperion.service.SaleService;
+import com.hyperion.util.ThemeManager;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -416,8 +417,7 @@ public class SaleController {
     }
 
     private void addDialogStyles(Dialog<?> dialog) {
-        String stylesheet = SaleController.class.getResource("/css/app.css").toExternalForm();
-        dialog.getDialogPane().getStylesheets().add(stylesheet);
+        ThemeManager.applyTo(dialog.getDialogPane());
     }
 
     private String formatCustomer(Customer customer) {
