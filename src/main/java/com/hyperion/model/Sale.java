@@ -14,6 +14,9 @@ public class Sale {
     private BigDecimal total;
     private String paymentMethod;
     private LocalDateTime createdAt;
+    private String status;
+    private LocalDateTime cancelledAt;
+    private String cancellationReason;
     private List<SaleItem> items;
 
     public Sale(
@@ -31,6 +34,7 @@ public class Sale {
         this.discount = discount;
         this.total = total;
         this.paymentMethod = paymentMethod;
+        this.status = "COMPLETED";
         this.items = items;
     }
 
@@ -43,6 +47,9 @@ public class Sale {
             BigDecimal total,
             String paymentMethod,
             LocalDateTime createdAt,
+            String status,
+            LocalDateTime cancelledAt,
+            String cancellationReason,
             List<SaleItem> items
     ) {
         this.id = id;
@@ -53,6 +60,9 @@ public class Sale {
         this.total = total;
         this.paymentMethod = paymentMethod;
         this.createdAt = createdAt;
+        this.status = status;
+        this.cancelledAt = cancelledAt;
+        this.cancellationReason = cancellationReason;
         this.items = items;
     }
 
@@ -86,6 +96,22 @@ public class Sale {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public boolean isCancelled() {
+        return "CANCELLED".equals(status);
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public String getCancellationReason() {
+        return cancellationReason;
     }
 
     public List<SaleItem> getItems() {

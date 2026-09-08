@@ -388,7 +388,13 @@ public class CustomerController {
                 MONEY_FORMAT.format(cellData.getValue().getDiscount())
         ));
 
-        purchasesTable.getColumns().addAll(dateColumn, paymentColumn, totalColumn, discountColumn);
+        TableColumn<Sale, String> statusColumn = new TableColumn<>("Status");
+        statusColumn.setPrefWidth(130);
+        statusColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                cellData.getValue().isCancelled() ? "Cancelada" : "Concluída"
+        ));
+
+        purchasesTable.getColumns().addAll(dateColumn, paymentColumn, totalColumn, discountColumn, statusColumn);
         purchasesTable.setItems(FXCollections.observableArrayList(saleService.listCustomerPurchases(customer.getId())));
 
         if (purchasesTable.getItems().isEmpty()) {

@@ -29,6 +29,11 @@
                         <Label styleClass="page-subtitle" text="Monte o carrinho, escolha o pagamento e finalize a venda." />
                      </children>
                   </VBox>
+                  <HBox alignment="CENTER_RIGHT">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#handleManageSales" prefWidth="170.0" styleClass="secondary-button" text="Gerenciar vendas" />
+                     </children>
+                  </HBox>
 
                   <VBox maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="dashboard-panel">
                      <children>

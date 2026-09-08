@@ -11,6 +11,10 @@ import com.hyperion.model.SalesReportSummary;
 import com.hyperion.exception.InsufficientStockException;
 import com.hyperion.exception.InvalidDateRangeException;
 import com.hyperion.exception.InvalidLimitException;
+import com.hyperion.exception.EntityNotFoundException;
+import com.hyperion.exception.SaleAlreadyCancelledException;
+import com.hyperion.exception.SaleCancellationNotAllowedException;
+import com.hyperion.exception.PersistenceException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -131,6 +135,91 @@ public class SaleRepository {
         }
     }
 
+    public void cancel(Long saleId, String reason) {
+        String findSaleSql = "SELECT status FROM sales WHERE id = ?;";
+        String paidInstallmentsSql = "SELECT COUNT(*) FROM credit_installments WHERE sale_id = ? AND status = 'PAID';";
+        String saleItemsSql = "SELECT id, sale_id, product_id, product_name, quantity, unit_price, subtotal FROM sale_items WHERE sale_id = ?;";
+        String cancelSaleSql = """
+                UPDATE sales
+                SET status = 'CANCELLED',
+                    cancelled_at = CURRENT_TIMESTAMP,
+                    cancellation_reason = ?
+                WHERE id = ?
+                  AND status = 'COMPLETED';
+                """;
+        String cancelInstallmentsSql = """
+                UPDATE credit_installments
+                SET status = 'CANCELLED',
+                    cancelled_at = CURRENT_TIMESTAMP
+                WHERE sale_id = ?
+                  AND status = 'OPEN';
+                """;
+        String restoreStockSql = """
+                UPDATE products
+                SET stock_quantity = stock_quantity + ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;
+                """;
+        String movementSql = """
+                INSERT INTO stock_movements (product_id, type, quantity, notes)
+                VALUES (?, 'IN', ?, ?);
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                String status = findSaleStatus(connection, findSaleSql, saleId);
+                if ("CANCELLED".equals(status)) {
+                    throw new SaleAlreadyCancelledException();
+                }
+                if (hasPaidInstallments(connection, paidInstallmentsSql, saleId)) {
+                    throw new SaleCancellationNotAllowedException();
+                }
+
+                List<SaleItem> items = findSaleItems(connection, saleItemsSql, saleId);
+                if (items.isEmpty()) {
+                    throw new PersistenceException("A venda não possui itens para estornar.");
+                }
+
+                try (PreparedStatement cancelSaleStatement = connection.prepareStatement(cancelSaleSql);
+                     PreparedStatement cancelInstallmentsStatement = connection.prepareStatement(cancelInstallmentsSql);
+                     PreparedStatement restoreStockStatement = connection.prepareStatement(restoreStockSql);
+                     PreparedStatement movementStatement = connection.prepareStatement(movementSql)) {
+
+                    cancelSaleStatement.setString(1, reason);
+                    cancelSaleStatement.setLong(2, saleId);
+                    if (cancelSaleStatement.executeUpdate() != 1) {
+                        throw new SaleAlreadyCancelledException();
+                    }
+
+                    cancelInstallmentsStatement.setLong(1, saleId);
+                    cancelInstallmentsStatement.executeUpdate();
+
+                    for (SaleItem item : items) {
+                        restoreStockStatement.setInt(1, item.getQuantity());
+                        restoreStockStatement.setLong(2, item.getProductId());
+                        if (restoreStockStatement.executeUpdate() != 1) {
+                            throw new EntityNotFoundException("Produto da venda");
+                        }
+
+                        movementStatement.setLong(1, item.getProductId());
+                        movementStatement.setInt(2, item.getQuantity());
+                        movementStatement.setString(3, "Cancelamento da venda #" + saleId + ": " + reason);
+                        movementStatement.executeUpdate();
+                    }
+                }
+                connection.commit();
+            } catch (SQLException | RuntimeException exception) {
+                connection.rollback();
+                throw exception;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível cancelar a venda.", exception);
+        }
+    }
+
     private void addInstallmentBatch(
             PreparedStatement statement,
             Sale sale,
@@ -168,7 +257,8 @@ public class SaleRepository {
                 SELECT COUNT(*) AS sales_count,
                        COALESCE(SUM(total), 0) AS total
                 FROM sales
-                WHERE DATE(created_at) = DATE('now', 'localtime');
+                WHERE status = 'COMPLETED'
+                  AND DATE(created_at) = DATE('now', 'localtime');
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
@@ -191,7 +281,8 @@ public class SaleRepository {
     public BigDecimal getTotalSales() {
         String sql = """
                 SELECT COALESCE(SUM(total), 0) AS total
-                FROM sales;
+                FROM sales
+                WHERE status = 'COMPLETED';
                 """;
 
         return queryTotal(sql);
@@ -201,7 +292,8 @@ public class SaleRepository {
         String sql = """
                 SELECT COALESCE(SUM(total), 0) AS total
                 FROM sales
-                WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
+                WHERE status = 'COMPLETED'
+                  AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
                 """;
 
         return queryTotal(sql);
@@ -211,7 +303,8 @@ public class SaleRepository {
         String sql = """
                 SELECT COALESCE(SUM(total), 0) AS total
                 FROM sales
-                WHERE payment_method NOT IN ('Crediário', 'Crediario');
+                WHERE status = 'COMPLETED'
+                  AND payment_method NOT IN ('Crediário', 'Crediario');
                 """;
 
         return queryTotal(sql);
@@ -221,7 +314,8 @@ public class SaleRepository {
         String sql = """
                 SELECT COALESCE(SUM(total), 0) AS total
                 FROM sales
-                WHERE payment_method NOT IN ('Crediário', 'Crediario')
+                WHERE status = 'COMPLETED'
+                  AND payment_method NOT IN ('Crediário', 'Crediario')
                   AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
                 """;
 
@@ -237,6 +331,9 @@ public class SaleRepository {
                        discount,
                        total,
                        payment_method,
+                       status,
+                       cancelled_at,
+                       cancellation_reason,
                        created_at
                 FROM sales
                 WHERE customer_id = ?
@@ -274,8 +371,12 @@ public class SaleRepository {
                        discount,
                        total,
                        payment_method,
+                       status,
+                       cancelled_at,
+                       cancellation_reason,
                        created_at
                 FROM sales
+                WHERE status = 'COMPLETED'
                 ORDER BY created_at DESC, id DESC
                 LIMIT ?;
                 """;
@@ -299,6 +400,34 @@ public class SaleRepository {
         }
     }
 
+    public List<Sale> findLatestIncludingCancelled(int limit) {
+        if (limit <= 0) {
+            throw new InvalidLimitException();
+        }
+
+        String sql = """
+                SELECT id, customer_id, customer_name, subtotal, discount, total, payment_method,
+                       status, cancelled_at, cancellation_reason, created_at
+                FROM sales
+                ORDER BY created_at DESC, id DESC
+                LIMIT ?;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, limit);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<Sale> sales = new ArrayList<>();
+                while (resultSet.next()) {
+                    sales.add(mapSale(resultSet));
+                }
+                return sales;
+            }
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível listar as vendas.", exception);
+        }
+    }
+
     public SalesReportSummary getSalesReportSummary() {
         return getSalesReportSummary(null, null);
     }
@@ -315,7 +444,7 @@ public class SaleRepository {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = prepareDateFilteredStatement(
                      connection,
-                     sql.formatted(buildSalesDateWhereClause(startDate, endDateExclusive)),
+                     sql.formatted(buildCompletedSalesDateWhereClause(startDate, endDateExclusive)),
                      startDate,
                      endDateExclusive
              );
@@ -353,7 +482,7 @@ public class SaleRepository {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = prepareDateFilteredStatement(
                      connection,
-                     sql.formatted(buildSalesDateWhereClause(startDate, endDateExclusive)),
+                     sql.formatted(buildCompletedSalesDateWhereClause(startDate, endDateExclusive)),
                      startDate,
                      endDateExclusive
              );
@@ -396,7 +525,7 @@ public class SaleRepository {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = prepareDateFilteredStatement(
                      connection,
-                     sql.formatted(buildSalesDateWhereClause("s.created_at", startDate, endDateExclusive)),
+                     sql.formatted(buildCompletedSalesDateWhereClause("s.created_at", startDate, endDateExclusive)),
                      startDate,
                      endDateExclusive
              );
@@ -450,6 +579,27 @@ public class SaleRepository {
         return "WHERE DATE(" + columnName + ") >= DATE(?) AND DATE(" + columnName + ") < DATE(?)";
     }
 
+    private String buildCompletedSalesDateWhereClause(LocalDate startDate, LocalDate endDateExclusive) {
+        return buildCompletedSalesDateWhereClause("created_at", startDate, endDateExclusive);
+    }
+
+    private String buildCompletedSalesDateWhereClause(String columnName, LocalDate startDate, LocalDate endDateExclusive) {
+        if ((startDate == null) != (endDateExclusive == null)
+                || (startDate != null && !startDate.isBefore(endDateExclusive))) {
+            throw new InvalidDateRangeException();
+        }
+
+        String statusColumn = columnName.contains(".")
+                ? columnName.substring(0, columnName.indexOf('.')) + ".status"
+                : "status";
+        if (startDate == null) {
+            return "WHERE " + statusColumn + " = 'COMPLETED'";
+        }
+
+        return "WHERE " + statusColumn + " = 'COMPLETED'"
+                + " AND DATE(" + columnName + ") >= DATE(?) AND DATE(" + columnName + ") < DATE(?)";
+    }
+
     private PreparedStatement prepareDateFilteredStatement(
             Connection connection,
             String sql,
@@ -476,8 +626,57 @@ public class SaleRepository {
                 resultSet.getBigDecimal("total"),
                 resultSet.getString("payment_method"),
                 LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME),
+                resultSet.getString("status"),
+                parseDateTime(resultSet.getString("cancelled_at")),
+                resultSet.getString("cancellation_reason"),
                 List.of()
         );
+    }
+
+    private LocalDateTime parseDateTime(String value) {
+        return value == null ? null : LocalDateTime.parse(value, SQLITE_DATE_TIME);
+    }
+
+    private String findSaleStatus(Connection connection, String sql, Long saleId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, saleId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new EntityNotFoundException("Venda");
+                }
+                return resultSet.getString("status");
+            }
+        }
+    }
+
+    private boolean hasPaidInstallments(Connection connection, String sql, Long saleId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, saleId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() && resultSet.getInt(1) > 0;
+            }
+        }
+    }
+
+    private List<SaleItem> findSaleItems(Connection connection, String sql, Long saleId) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, saleId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<SaleItem> items = new ArrayList<>();
+                while (resultSet.next()) {
+                    items.add(new SaleItem(
+                            resultSet.getLong("id"),
+                            resultSet.getLong("sale_id"),
+                            resultSet.getLong("product_id"),
+                            resultSet.getString("product_name"),
+                            resultSet.getInt("quantity"),
+                            resultSet.getBigDecimal("unit_price"),
+                            resultSet.getBigDecimal("subtotal")
+                    ));
+                }
+                return items;
+            }
+        }
     }
 
     private Long readGeneratedId(PreparedStatement statement) throws SQLException {

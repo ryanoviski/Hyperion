@@ -5,6 +5,7 @@ import com.hyperion.exception.HyperionException;
 import com.hyperion.model.Customer;
 import com.hyperion.model.CreditSalePlan;
 import com.hyperion.model.Product;
+import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
 import com.hyperion.service.CustomerService;
 import com.hyperion.service.ProductService;
@@ -24,11 +25,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -36,6 +39,7 @@ import java.util.Optional;
 public class SaleController {
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
+    private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final ObservableList<SaleItem> CART_ITEMS = FXCollections.observableArrayList();
     private static Customer draftCustomer;
     private static Product draftProduct;
@@ -196,6 +200,90 @@ public class SaleController {
         } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
+    }
+
+    @FXML
+    private void handleManageSales() {
+        Dialog<Sale> dialog = new Dialog<>();
+        dialog.setTitle("Gerenciar vendas");
+        dialog.setHeaderText("Selecione uma venda para cancelar. O estoque será devolvido.");
+        dialog.initOwner(cartTable.getScene().getWindow());
+        addDialogStyles(dialog);
+
+        ButtonType cancelSaleButtonType = new ButtonType("Cancelar venda", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(cancelSaleButtonType, ButtonType.CLOSE);
+
+        TableView<Sale> table = createRecentSalesTable();
+        table.setItems(FXCollections.observableArrayList(saleService.listRecentSalesForManagement(100)));
+
+        Node cancelSaleButton = dialog.getDialogPane().lookupButton(cancelSaleButtonType);
+        cancelSaleButton.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+
+        VBox content = new VBox(12, table);
+        content.getStyleClass().add("dialog-content");
+        content.setPrefWidth(860);
+        content.setPrefHeight(460);
+        dialog.getDialogPane().setContent(content);
+        dialog.setResultConverter(buttonType -> buttonType == cancelSaleButtonType
+                ? table.getSelectionModel().getSelectedItem()
+                : null);
+
+        dialog.showAndWait().ifPresent(this::requestSaleCancellation);
+    }
+
+    private void requestSaleCancellation(Sale sale) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Confirmar cancelamento");
+        dialog.setHeaderText("A venda #" + sale.getId() + " será cancelada e o estoque será devolvido.");
+        dialog.setContentText("Informe o motivo do cancelamento:");
+        dialog.initOwner(cartTable.getScene().getWindow());
+        addDialogStyles(dialog);
+
+        ButtonType confirmButtonType = new ButtonType("Confirmar cancelamento", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
+        TextArea reasonArea = new TextArea();
+        reasonArea.setPromptText("Ex.: item lançado por engano");
+        reasonArea.setWrapText(true);
+        reasonArea.setPrefRowCount(4);
+        dialog.getDialogPane().setContent(reasonArea);
+        dialog.setResultConverter(buttonType -> buttonType == confirmButtonType ? reasonArea.getText() : null);
+
+        dialog.showAndWait().ifPresent(reason -> {
+            try {
+                saleService.cancelSale(sale, reason);
+                showMessage("Venda #" + sale.getId() + " cancelada e estoque devolvido.");
+            } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
+                showMessage(exception.getMessage());
+            }
+        });
+    }
+
+    private TableView<Sale> createRecentSalesTable() {
+        TableView<Sale> table = new TableView<>();
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+
+        TableColumn<Sale, String> idColumn = new TableColumn<>("Venda");
+        idColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper("#" + cellData.getValue().getId()));
+
+        TableColumn<Sale, String> dateColumn = new TableColumn<>("Data");
+        dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)));
+
+        TableColumn<Sale, String> customerColumn = new TableColumn<>("Cliente");
+        customerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getCustomerName())));
+
+        TableColumn<Sale, String> paymentColumn = new TableColumn<>("Pagamento");
+        paymentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getPaymentMethod())));
+
+        TableColumn<Sale, String> totalColumn = new TableColumn<>("Total");
+        totalColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getTotal())));
+
+        TableColumn<Sale, String> statusColumn = new TableColumn<>("Status");
+        statusColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
+                cellData.getValue().isCancelled() ? "Cancelada" : "Concluída"
+        ));
+
+        table.getColumns().addAll(idColumn, dateColumn, customerColumn, paymentColumn, totalColumn, statusColumn);
+        return table;
     }
 
     private void configureChoiceBoxes() {

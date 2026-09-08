@@ -74,6 +74,9 @@ public final class DatabaseInitializer {
                 discount NUMERIC NOT NULL DEFAULT 0,
                 total NUMERIC NOT NULL DEFAULT 0,
                 payment_method TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'COMPLETED',
+                cancelled_at TEXT,
+                cancellation_reason TEXT,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (customer_id) REFERENCES customers(id)
             );
@@ -104,6 +107,7 @@ public final class DatabaseInitializer {
                 amount NUMERIC NOT NULL DEFAULT 0,
                 due_date TEXT NOT NULL,
                 status TEXT NOT NULL DEFAULT 'OPEN',
+                cancelled_at TEXT,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (sale_id) REFERENCES sales(id),
                 FOREIGN KEY (customer_id) REFERENCES customers(id)
@@ -144,6 +148,26 @@ public final class DatabaseInitializer {
             ADD COLUMN theme TEXT NOT NULL DEFAULT 'dark';
             """;
 
+    private static final String ADD_SALES_STATUS_COLUMN = """
+            ALTER TABLE sales
+            ADD COLUMN status TEXT NOT NULL DEFAULT 'COMPLETED';
+            """;
+
+    private static final String ADD_SALES_CANCELLED_AT_COLUMN = """
+            ALTER TABLE sales
+            ADD COLUMN cancelled_at TEXT;
+            """;
+
+    private static final String ADD_SALES_CANCELLATION_REASON_COLUMN = """
+            ALTER TABLE sales
+            ADD COLUMN cancellation_reason TEXT;
+            """;
+
+    private static final String ADD_CREDIT_INSTALLMENTS_CANCELLED_AT_COLUMN = """
+            ALTER TABLE credit_installments
+            ADD COLUMN cancelled_at TEXT;
+            """;
+
     private DatabaseInitializer() {
     }
 
@@ -173,6 +197,10 @@ public final class DatabaseInitializer {
                     "theme",
                     ADD_APP_SETTINGS_THEME_COLUMN
             );
+            addColumnIfMissing(connection, "sales", "status", ADD_SALES_STATUS_COLUMN);
+            addColumnIfMissing(connection, "sales", "cancelled_at", ADD_SALES_CANCELLED_AT_COLUMN);
+            addColumnIfMissing(connection, "sales", "cancellation_reason", ADD_SALES_CANCELLATION_REASON_COLUMN);
+            addColumnIfMissing(connection, "credit_installments", "cancelled_at", ADD_CREDIT_INSTALLMENTS_CANCELLED_AT_COLUMN);
         } catch (SQLException exception) {
             throw new DatabaseInitializationException("Não foi possível inicializar o banco de dados.", exception);
         }

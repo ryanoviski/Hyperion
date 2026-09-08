@@ -95,6 +95,23 @@ public class SaleService {
         return saleRepository.findLatest(limit);
     }
 
+    public List<Sale> listRecentSalesForManagement(int limit) {
+        return saleRepository.findLatestIncludingCancelled(limit);
+    }
+
+    public void cancelSale(Sale sale, String reason) {
+        if (sale == null || sale.getId() == null) {
+            throw new ValidationException("Selecione uma venda para cancelar.");
+        }
+
+        String normalizedReason = normalize(reason);
+        if (normalizedReason.isBlank()) {
+            throw new ValidationException("Informe o motivo do cancelamento.");
+        }
+
+        saleRepository.cancel(sale.getId(), normalizedReason);
+    }
+
     public List<Sale> listCustomerPurchases(Long customerId) {
         if (customerId == null) {
             return List.of();
