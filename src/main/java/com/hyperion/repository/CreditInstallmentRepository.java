@@ -2,6 +2,8 @@ package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.CreditInstallment;
+import com.hyperion.exception.DataCorruptionException;
+import com.hyperion.exception.PersistenceException;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -110,21 +112,22 @@ public class CreditInstallmentRepository {
         return queryTotal(sql);
     }
 
-    public void markAsPaid(Long id) {
+    public boolean markAsPaid(Long id) {
         String sql = """
                 UPDATE credit_installments
                 SET status = 'PAID',
                     paid_at = CURRENT_TIMESTAMP
-                WHERE id = ?;
+                WHERE id = ?
+                  AND status = 'OPEN';
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setLong(1, id);
-            statement.executeUpdate();
+            return statement.executeUpdate() == 1;
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not update credit installment.", exception);
+            throw new PersistenceException("Não foi possível atualizar a parcela do crediário.", exception);
         }
     }
 
@@ -162,7 +165,8 @@ public class CreditInstallmentRepository {
     }
 
     private CreditInstallment mapInstallment(ResultSet resultSet) throws SQLException {
-        return new CreditInstallment(
+        try {
+            return new CreditInstallment(
                 resultSet.getLong("id"),
                 resultSet.getLong("sale_id"),
                 resultSet.getLong("customer_id"),
@@ -171,7 +175,10 @@ public class CreditInstallmentRepository {
                 resultSet.getInt("total_installments"),
                 resultSet.getBigDecimal("amount"),
                 LocalDate.parse(resultSet.getString("due_date")),
-                resultSet.getString("status")
-        );
+                    resultSet.getString("status")
+            );
+        } catch (RuntimeException exception) {
+            throw new DataCorruptionException("Há uma parcela do crediário com dados inválidos.", exception);
+        }
     }
 }

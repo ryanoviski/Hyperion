@@ -1,5 +1,7 @@
 package com.hyperion.config;
 
+import com.hyperion.exception.DatabaseInitializationException;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -182,7 +184,7 @@ public final class DatabaseInitializer {
                     ADD_APP_SETTINGS_THEME_COLUMN
             );
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not initialize database.", exception);
+            throw new DatabaseInitializationException("Não foi possível inicializar o banco de dados.", exception);
         }
     }
 

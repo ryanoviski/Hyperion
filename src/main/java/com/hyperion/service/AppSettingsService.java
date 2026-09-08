@@ -3,6 +3,9 @@ package com.hyperion.service;
 import com.hyperion.repository.AppSettingsRepository;
 import com.hyperion.model.AppTheme;
 import com.hyperion.util.PinHashUtil;
+import com.hyperion.exception.InvalidPinException;
+import com.hyperion.exception.PinNotEnabledException;
+import com.hyperion.exception.ValidationException;
 
 public class AppSettingsService {
 
@@ -24,7 +27,7 @@ public class AppSettingsService {
 
     public void updateTheme(AppTheme theme) {
         if (theme == null) {
-            throw new IllegalArgumentException("Selecione um tema válido.");
+            throw new ValidationException("Selecione um tema válido.");
         }
 
         appSettingsRepository.updateTheme(theme.getStorageValue());
@@ -35,6 +38,7 @@ public class AppSettingsService {
     }
 
     public void completeFirstRunWithPin(String pin) {
+        validateNewPin(pin, pin);
         appSettingsRepository.completeFirstRunWithPin(PinHashUtil.hash(pin));
     }
 
@@ -44,7 +48,7 @@ public class AppSettingsService {
 
     public void updatePin(String currentPin, String newPin, String confirmPin) {
         if (isPinEnabled() && !verifyPin(currentPin)) {
-            throw new IllegalArgumentException("PIN atual inválido.");
+            throw new InvalidPinException();
         }
 
         validateNewPin(newPin, confirmPin);
@@ -53,11 +57,11 @@ public class AppSettingsService {
 
     public void removePin(String currentPin) {
         if (!isPinEnabled()) {
-            throw new IllegalStateException("Nenhum PIN está ativo.");
+            throw new PinNotEnabledException();
         }
 
         if (!verifyPin(currentPin)) {
-            throw new IllegalArgumentException("PIN atual inválido.");
+            throw new InvalidPinException();
         }
 
         appSettingsRepository.removePin();
@@ -68,15 +72,15 @@ public class AppSettingsService {
         String normalizedConfirmation = normalize(confirmPin);
 
         if (normalizedPin.isBlank()) {
-            throw new IllegalArgumentException("Informe o novo PIN.");
+            throw new ValidationException("Informe o novo PIN.");
         }
 
         if (normalizedPin.length() < MIN_PIN_LENGTH) {
-            throw new IllegalArgumentException("O PIN deve ter pelo menos 4 caracteres.");
+            throw new ValidationException("O PIN deve ter pelo menos 4 caracteres.");
         }
 
         if (!normalizedPin.equals(normalizedConfirmation)) {
-            throw new IllegalArgumentException("Os PINs informados não são iguais.");
+            throw new ValidationException("Os PINs informados não são iguais.");
         }
     }
 

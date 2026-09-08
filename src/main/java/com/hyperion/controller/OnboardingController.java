@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.service.CompanyService;
 import com.hyperion.util.SceneManager;
 import javafx.fxml.FXML;
@@ -40,7 +42,7 @@ public class OnboardingController {
             companyService.createInitialCompany(companyName, ownerName);
             clearError();
             SceneManager.switchTo("/fxml/pin-setup-view.fxml");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showError(exception.getMessage());
         }
     }

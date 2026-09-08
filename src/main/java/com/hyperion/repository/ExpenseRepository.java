@@ -2,6 +2,8 @@ package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Expense;
+import com.hyperion.exception.EntityNotFoundException;
+import com.hyperion.exception.PersistenceException;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -37,10 +39,10 @@ public class ExpenseRepository {
                     return resultSet.getLong(1);
                 }
 
-                throw new IllegalStateException("Could not read generated expense id.");
+                throw new PersistenceException("Não foi possível obter o identificador da despesa criada.");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not save expense.", exception);
+            throw new PersistenceException("Não foi possível salvar a despesa.", exception);
         }
     }
 
@@ -54,9 +56,11 @@ public class ExpenseRepository {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setLong(1, id);
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new EntityNotFoundException("Despesa");
+            }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not delete expense.", exception);
+            throw new PersistenceException("Não foi possível remover a despesa.", exception);
         }
     }
 
@@ -84,7 +88,7 @@ public class ExpenseRepository {
 
             return expenses;
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not list expenses.", exception);
+            throw new PersistenceException("Não foi possível listar as despesas.", exception);
         }
     }
 
@@ -118,7 +122,7 @@ public class ExpenseRepository {
 
             return resultSet.getBigDecimal("total");
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not load expenses summary.", exception);
+            throw new PersistenceException("Não foi possível carregar o resumo de despesas.", exception);
         }
     }
 

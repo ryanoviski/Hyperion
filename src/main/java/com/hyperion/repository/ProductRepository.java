@@ -2,6 +2,7 @@ package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Product;
+import com.hyperion.exception.EntityNotFoundException;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -55,7 +56,9 @@ public class ProductRepository {
 
             fillProductStatement(statement, product);
             statement.setLong(9, product.getId());
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new EntityNotFoundException("Produto");
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not update product.", exception);
         }
@@ -73,7 +76,9 @@ public class ProductRepository {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setLong(1, id);
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new EntityNotFoundException("Produto");
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not deactivate product.", exception);
         }
@@ -91,7 +96,9 @@ public class ProductRepository {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setLong(1, id);
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new EntityNotFoundException("Produto");
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not reactivate product.", exception);
         }

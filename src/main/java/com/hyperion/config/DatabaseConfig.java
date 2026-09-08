@@ -1,6 +1,9 @@
 package com.hyperion.config;
 
+import com.hyperion.exception.DatabaseInitializationException;
+
 import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -28,8 +31,8 @@ public final class DatabaseConfig {
     private static void createDatabaseDirectory() {
         try {
             Files.createDirectories(DATABASE_DIRECTORY);
-        } catch (Exception exception) {
-            throw new IllegalStateException("Could not create database directory.", exception);
+        } catch (IOException exception) {
+            throw new DatabaseInitializationException("Não foi possível criar o diretório do banco de dados.", exception);
         }
     }
 
@@ -37,7 +40,7 @@ public final class DatabaseConfig {
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException exception) {
-            throw new IllegalStateException("SQLite JDBC driver was not found.", exception);
+            throw new DatabaseInitializationException("O driver SQLite JDBC não foi encontrado.", exception);
         }
     }
 }

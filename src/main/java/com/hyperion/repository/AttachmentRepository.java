@@ -2,6 +2,7 @@ package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Attachment;
+import com.hyperion.exception.PersistenceException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -42,7 +43,7 @@ public class AttachmentRepository {
             statement.setLong(7, attachment.getFileSize());
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not save attachment.", exception);
+            throw new PersistenceException("Não foi possível salvar o anexo.", exception);
         }
     }
 
@@ -79,7 +80,7 @@ public class AttachmentRepository {
                 return attachments;
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not list attachments.", exception);
+            throw new PersistenceException("Não foi possível listar os anexos.", exception);
         }
     }
 
@@ -97,7 +98,7 @@ public class AttachmentRepository {
             statement.setLong(2, entityId);
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not delete attachments.", exception);
+            throw new PersistenceException("Não foi possível remover os anexos.", exception);
         }
     }
 
@@ -123,7 +124,7 @@ public class AttachmentRepository {
                 return resultSet.getInt("total");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not count attachments.", exception);
+            throw new PersistenceException("Não foi possível contar os anexos.", exception);
         }
     }
 

@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.model.Customer;
 import com.hyperion.model.Sale;
 import com.hyperion.service.CustomerService;
@@ -118,7 +120,7 @@ public class CustomerController {
                 statusFilterChoiceBox.setValue(ACTIVE_FILTER);
                 loadCustomers();
                 showMessage("Cliente cadastrado: " + formData.name() + ".");
-            } catch (IllegalArgumentException | IllegalStateException exception) {
+            } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
                 showMessage(exception.getMessage());
             }
         });
@@ -145,7 +147,7 @@ public class CustomerController {
                 customerService.updateCustomer(updatedCustomer);
                 loadCustomers();
                 showMessage("Cliente atualizado: " + formData.name() + ".");
-            } catch (IllegalArgumentException | IllegalStateException exception) {
+            } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
                 showMessage(exception.getMessage());
             }
         });
@@ -156,7 +158,7 @@ public class CustomerController {
             customerService.deactivateCustomer(selectedCustomer.getId());
             loadCustomers();
             showMessage("Cliente desativado: " + selectedCustomer.getName() + ".");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -166,7 +168,7 @@ public class CustomerController {
             customerService.reactivateCustomer(selectedCustomer.getId());
             loadCustomers();
             showMessage("Cliente reativado: " + selectedCustomer.getName() + ".");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }

@@ -2,6 +2,8 @@ package com.hyperion.service;
 
 import com.hyperion.model.Company;
 import com.hyperion.repository.CompanyRepository;
+import com.hyperion.exception.CompanyAlreadyRegisteredException;
+import com.hyperion.exception.ValidationException;
 
 public class CompanyService {
 
@@ -12,15 +14,15 @@ public class CompanyService {
         String normalizedOwnerName = normalize(ownerName);
 
         if (normalizedCompanyName.isBlank()) {
-            throw new IllegalArgumentException("Informe o nome da empresa.");
+            throw new ValidationException("Informe o nome da empresa.");
         }
 
         if (normalizedOwnerName.isBlank()) {
-            throw new IllegalArgumentException("Informe o seu nome.");
+            throw new ValidationException("Informe o seu nome.");
         }
 
         if (companyRepository.exists()) {
-            throw new IllegalStateException("A empresa inicial já foi cadastrada.");
+            throw new CompanyAlreadyRegisteredException();
         }
 
         companyRepository.save(new Company(normalizedCompanyName, normalizedOwnerName));

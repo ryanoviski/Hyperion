@@ -4,6 +4,7 @@ import com.hyperion.model.PaymentMethodReport;
 import com.hyperion.model.ProductSalesReport;
 import com.hyperion.model.SalesReportSummary;
 import com.hyperion.repository.SaleRepository;
+import com.hyperion.exception.InvalidDateRangeException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,6 +18,7 @@ public class ReportService {
     }
 
     public SalesReportSummary getSalesSummary(LocalDate startDate, LocalDate endDateExclusive) {
+        validateDateRange(startDate, endDateExclusive);
         return saleRepository.getSalesReportSummary(startDate, endDateExclusive);
     }
 
@@ -25,6 +27,7 @@ public class ReportService {
     }
 
     public List<PaymentMethodReport> listSalesByPaymentMethod(LocalDate startDate, LocalDate endDateExclusive) {
+        validateDateRange(startDate, endDateExclusive);
         return saleRepository.findSalesByPaymentMethod(startDate, endDateExclusive);
     }
 
@@ -33,6 +36,14 @@ public class ReportService {
     }
 
     public List<ProductSalesReport> listTopSellingProducts(LocalDate startDate, LocalDate endDateExclusive) {
+        validateDateRange(startDate, endDateExclusive);
         return saleRepository.findTopSellingProducts(startDate, endDateExclusive);
+    }
+
+    private void validateDateRange(LocalDate startDate, LocalDate endDateExclusive) {
+        if ((startDate == null) != (endDateExclusive == null)
+                || (startDate != null && !startDate.isBefore(endDateExclusive))) {
+            throw new InvalidDateRangeException();
+        }
     }
 }

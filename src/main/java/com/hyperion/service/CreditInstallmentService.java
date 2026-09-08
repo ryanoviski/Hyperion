@@ -2,6 +2,8 @@ package com.hyperion.service;
 
 import com.hyperion.model.CreditInstallment;
 import com.hyperion.repository.CreditInstallmentRepository;
+import com.hyperion.exception.InstallmentAlreadyPaidException;
+import com.hyperion.exception.ValidationException;
 
 import java.util.List;
 
@@ -23,13 +25,15 @@ public class CreditInstallmentService {
 
     public void markAsPaid(CreditInstallment installment) {
         if (installment == null || installment.getId() == null) {
-            throw new IllegalArgumentException("Selecione uma parcela para marcar como paga.");
+            throw new ValidationException("Selecione uma parcela para marcar como paga.");
         }
 
         if (!"OPEN".equals(installment.getStatus())) {
-            throw new IllegalArgumentException("Apenas parcelas em aberto podem ser marcadas como pagas.");
+            throw new InstallmentAlreadyPaidException();
         }
 
-        creditInstallmentRepository.markAsPaid(installment.getId());
+        if (!creditInstallmentRepository.markAsPaid(installment.getId())) {
+            throw new InstallmentAlreadyPaidException();
+        }
     }
 }

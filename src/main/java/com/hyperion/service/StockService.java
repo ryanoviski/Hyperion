@@ -4,6 +4,10 @@ import com.hyperion.model.Product;
 import com.hyperion.model.StockMovement;
 import com.hyperion.repository.ProductRepository;
 import com.hyperion.repository.StockMovementRepository;
+import com.hyperion.exception.EntityInactiveException;
+import com.hyperion.exception.EntityNotFoundException;
+import com.hyperion.exception.InsufficientStockException;
+import com.hyperion.exception.ValidationException;
 
 import java.util.List;
 
@@ -28,16 +32,21 @@ public class StockService {
     }
 
     private void registerMovement(Long productId, String type, int quantity, String notes) {
+        if (productId == null) {
+            throw new ValidationException("Produto inválido para movimentação.");
+        }
         Product product = productRepository.findById(productId)
-                .filter(Product::isActive)
-                .orElseThrow(() -> new IllegalArgumentException("Produto inválido para movimentação."));
+                .orElseThrow(() -> new EntityNotFoundException("Produto"));
+        if (!product.isActive()) {
+            throw new EntityInactiveException("Produto");
+        }
 
         if (quantity <= 0) {
-            throw new IllegalArgumentException("Informe uma quantidade maior que zero.");
+            throw new ValidationException("Informe uma quantidade maior que zero.");
         }
 
         if (MOVEMENT_TYPE_OUT.equals(type) && product.getStockQuantity() < quantity) {
-            throw new IllegalArgumentException("Estoque insuficiente para saída.");
+            throw new InsufficientStockException(product.getName());
         }
 
         int stockDelta = MOVEMENT_TYPE_IN.equals(type) ? quantity : -quantity;

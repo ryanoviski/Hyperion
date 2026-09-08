@@ -1,5 +1,8 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+import com.hyperion.exception.AttachmentPreviewException;
+
 import com.hyperion.model.Attachment;
 import com.hyperion.model.Expense;
 import com.hyperion.model.FinancialSummary;
@@ -134,24 +137,17 @@ public class FinanceController {
     @FXML
     private void handleAddExpense() {
         try {
-            Long expenseId = financeService.registerExpense(
+            financeService.registerExpenseWithAttachment(
                     descriptionField.getText(),
                     categoryField.getText(),
-                    parseMoney(amountField.getText())
+                    parseMoney(amountField.getText()),
+                    selectedAttachmentPath
             );
-
-            if (selectedAttachmentPath != null) {
-                attachmentService.attachFile(
-                        AttachmentService.FINANCE_MODULE,
-                        expenseId,
-                        selectedAttachmentPath
-                );
-            }
 
             clearForm();
             loadFinanceData();
             showMessage("Despesa registrada com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -166,7 +162,7 @@ public class FinanceController {
             financeService.deleteExpense(expense);
             loadFinanceData();
             showMessage("Despesa removida com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -379,7 +375,7 @@ public class FinanceController {
         dialog.showAndWait().ifPresent(attachment -> {
             try {
                 showAttachmentPreviewDialog(attachment);
-            } catch (IllegalArgumentException | IllegalStateException exception) {
+            } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
                 showMessage(exception.getMessage());
             }
         });
@@ -452,7 +448,7 @@ public class FinanceController {
                 pagesContainer.getChildren().add(pageView);
             }
         } catch (IOException exception) {
-            throw new IllegalStateException("Não foi possível renderizar o PDF.", exception);
+            throw new AttachmentPreviewException("Não foi possível renderizar o PDF.", exception);
         }
 
         ScrollPane scrollPane = new ScrollPane(pagesContainer);

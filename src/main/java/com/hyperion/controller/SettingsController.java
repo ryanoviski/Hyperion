@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.model.AppTheme;
 import com.hyperion.service.BackupService;
 import com.hyperion.service.AppSettingsService;
@@ -55,7 +57,7 @@ public class SettingsController {
             clearPinFields();
             updatePinStatus();
             showMessage("PIN atualizado com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -68,7 +70,7 @@ public class SettingsController {
             clearPinFields();
             updatePinStatus();
             showMessage("PIN removido com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -78,7 +80,7 @@ public class SettingsController {
         try {
             Path backupFile = backupService.createDatabaseBackup();
             showMessage("Backup criado em: " + backupFile.toAbsolutePath());
-        } catch (IllegalStateException exception) {
+        } catch (HyperionException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -101,10 +103,15 @@ public class SettingsController {
                 return;
             }
 
-            appSettingsService.updateTheme(newTheme);
-            ThemeManager.setCurrentTheme(newTheme);
-            ThemeManager.applyTo(themeChoiceBox.getScene());
-            showMessage("Tema alterado para " + newTheme + ".");
+            try {
+                appSettingsService.updateTheme(newTheme);
+                ThemeManager.setCurrentTheme(newTheme);
+                ThemeManager.applyTo(themeChoiceBox.getScene());
+                showMessage("Tema alterado para " + newTheme + ".");
+            } catch (HyperionException exception) {
+                themeChoiceBox.setValue(oldTheme);
+                showMessage(exception.getMessage());
+            }
         });
     }
 

@@ -2,6 +2,8 @@ package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Customer;
+import com.hyperion.exception.EntityNotFoundException;
+import com.hyperion.exception.PersistenceException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -52,7 +54,9 @@ public class CustomerRepository {
 
             fillCustomerStatement(statement, customer);
             statement.setLong(7, customer.getId());
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new EntityNotFoundException("Cliente");
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not update customer.", exception);
         }
@@ -70,7 +74,9 @@ public class CustomerRepository {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setLong(1, id);
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new EntityNotFoundException("Cliente");
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not deactivate customer.", exception);
         }
@@ -88,7 +94,9 @@ public class CustomerRepository {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setLong(1, id);
-            statement.executeUpdate();
+            if (statement.executeUpdate() != 1) {
+                throw new EntityNotFoundException("Cliente");
+            }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not reactivate customer.", exception);
         }

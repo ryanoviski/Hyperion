@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Objects;
+import com.hyperion.exception.ApplicationResourceException;
 
 public final class SceneManager {
 
@@ -26,9 +27,11 @@ public final class SceneManager {
         try {
             boolean wasFullScreen = mainStage.isFullScreen();
 
-            Parent root = FXMLLoader.load(Objects.requireNonNull(
-                    SceneManager.class.getResource(fxmlPath)
-            ));
+            var resource = SceneManager.class.getResource(fxmlPath);
+            if (resource == null) {
+                throw new ApplicationResourceException("Não foi possível localizar a tela: " + fxmlPath);
+            }
+            Parent root = FXMLLoader.load(resource);
 
             Scene scene = new Scene(root);
             ThemeManager.applyTo(scene);
@@ -40,13 +43,13 @@ public final class SceneManager {
                 mainStage.centerOnScreen();
             }
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not load FXML: " + fxmlPath, exception);
+            throw new ApplicationResourceException("Não foi possível carregar a tela: " + fxmlPath, exception);
         }
     }
 
     private static void ensureStageIsConfigured() {
         if (mainStage == null) {
-            throw new IllegalStateException("Main stage was not configured.");
+            throw new ApplicationResourceException("A janela principal não foi configurada.");
         }
     }
 }

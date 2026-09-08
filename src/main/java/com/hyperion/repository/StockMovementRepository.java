@@ -2,6 +2,7 @@ package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.StockMovement;
+import com.hyperion.exception.PersistenceException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -47,14 +48,14 @@ public class StockMovementRepository {
                 updateStatement.executeUpdate();
 
                 connection.commit();
-            } catch (SQLException exception) {
+            } catch (SQLException | RuntimeException exception) {
                 connection.rollback();
                 throw exception;
             } finally {
                 connection.setAutoCommit(true);
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not register stock movement.", exception);
+            throw new PersistenceException("Não foi possível registrar a movimentação de estoque.", exception);
         }
     }
 
@@ -85,7 +86,7 @@ public class StockMovementRepository {
 
             return movements;
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not list stock movements.", exception);
+            throw new PersistenceException("Não foi possível listar as movimentações de estoque.", exception);
         }
     }
 

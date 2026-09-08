@@ -2,11 +2,14 @@ package com.hyperion.service;
 
 import com.hyperion.model.Attachment;
 import com.hyperion.repository.AttachmentRepository;
+import com.hyperion.exception.AttachmentStorageException;
+import com.hyperion.exception.InvalidAttachmentModuleException;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.InvalidPathException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -23,16 +26,16 @@ public class AttachmentService {
     public void attachFile(String module, Long entityId, Path sourceFile) {
         String normalizedModule = normalize(module);
 
-        if (normalizedModule.isBlank()) {
-            throw new IllegalArgumentException("Informe o módulo do anexo.");
+        if (!FINANCE_MODULE.equals(normalizedModule)) {
+            throw new InvalidAttachmentModuleException();
         }
 
         if (entityId == null) {
-            throw new IllegalArgumentException("Informe o registro vinculado ao anexo.");
+            throw new com.hyperion.exception.ValidationException("Informe o registro vinculado ao anexo.");
         }
 
         if (sourceFile == null || !Files.isRegularFile(sourceFile)) {
-            throw new IllegalArgumentException("Selecione um arquivo válido.");
+            throw new com.hyperion.exception.ValidationException("Selecione um arquivo válido.");
         }
 
         try {
@@ -57,7 +60,7 @@ public class AttachmentService {
                     Files.size(targetFile)
             ));
         } catch (IOException exception) {
-            throw new IllegalStateException("Não foi possível salvar o anexo.", exception);
+            throw new AttachmentStorageException("Não foi possível salvar o anexo.", exception);
         }
     }
 
@@ -79,13 +82,18 @@ public class AttachmentService {
 
     public Path resolveAttachmentPath(Attachment attachment) {
         if (attachment == null) {
-            throw new IllegalArgumentException("Selecione um anexo para visualizar.");
+            throw new com.hyperion.exception.ValidationException("Selecione um anexo para visualizar.");
         }
 
-        Path filePath = Path.of(attachment.getFilePath());
+        Path filePath;
+        try {
+            filePath = Path.of(attachment.getFilePath()).normalize();
+        } catch (InvalidPathException exception) {
+            throw new AttachmentStorageException("O caminho do anexo é inválido.", exception);
+        }
 
         if (!Files.exists(filePath)) {
-            throw new IllegalStateException("O arquivo do anexo não foi encontrado.");
+            throw new AttachmentStorageException("O arquivo do anexo não foi encontrado.");
         }
 
         return filePath;
@@ -103,7 +111,7 @@ public class AttachmentService {
             try {
                 Files.deleteIfExists(Path.of(attachment.getFilePath()));
             } catch (IOException exception) {
-                throw new IllegalStateException("Não foi possível remover o anexo.", exception);
+                throw new AttachmentStorageException("Não foi possível remover o anexo.", exception);
             }
         }
 

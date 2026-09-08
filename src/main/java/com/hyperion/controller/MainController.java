@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.ApplicationResourceException;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -9,7 +11,6 @@ import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 public class MainController {
 
@@ -194,9 +195,11 @@ public class MainController {
 
     private void loadContent(String fxmlPath) {
         try {
-            Parent content = FXMLLoader.load(Objects.requireNonNull(
-                    MainController.class.getResource(fxmlPath)
-            ));
+            var resource = MainController.class.getResource(fxmlPath);
+            if (resource == null) {
+                throw new ApplicationResourceException("Não foi possível localizar a tela: " + fxmlPath);
+            }
+            Parent content = FXMLLoader.load(resource);
 
             if (content instanceof Region region) {
                 region.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -204,7 +207,7 @@ public class MainController {
 
             contentContainer.getChildren().setAll(content);
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not load content: " + fxmlPath, exception);
+            throw new ApplicationResourceException("Não foi possível carregar a tela: " + fxmlPath, exception);
         }
     }
 

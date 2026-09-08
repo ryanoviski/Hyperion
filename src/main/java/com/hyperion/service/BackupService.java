@@ -1,6 +1,7 @@
 package com.hyperion.service;
 
 import com.hyperion.config.DatabaseConfig;
+import com.hyperion.exception.BackupException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +19,7 @@ public class BackupService {
         Path databaseFile = DatabaseConfig.getDatabaseFile();
 
         if (!Files.exists(databaseFile)) {
-            throw new IllegalStateException("Banco de dados local ainda não foi criado.");
+            throw new BackupException("Banco de dados local ainda não foi criado.");
         }
 
         try {
@@ -30,7 +31,7 @@ public class BackupService {
             Files.copy(databaseFile, backupFile, StandardCopyOption.REPLACE_EXISTING);
             return backupFile;
         } catch (IOException exception) {
-            throw new IllegalStateException("Não foi possível criar o backup.", exception);
+            throw new BackupException("Não foi possível criar o backup.", exception);
         }
     }
 

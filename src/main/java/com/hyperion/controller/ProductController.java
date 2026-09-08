@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.model.Product;
 import com.hyperion.service.ProductService;
 import com.hyperion.util.ThemeManager;
@@ -123,7 +125,7 @@ public class ProductController {
                 loadProducts();
                 showMessage("Produto cadastrado: " + formData.name() + ".");
             });
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -152,7 +154,7 @@ public class ProductController {
                 loadProducts();
                 showMessage("Produto atualizado: " + formData.name() + ".");
             });
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -162,7 +164,7 @@ public class ProductController {
             productService.deactivateProduct(selectedProduct.getId());
             loadProducts();
             showMessage("Produto desativado: " + selectedProduct.getName() + ".");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }
@@ -172,7 +174,7 @@ public class ProductController {
             productService.reactivateProduct(selectedProduct.getId());
             loadProducts();
             showMessage("Produto reativado: " + selectedProduct.getName() + ".");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }

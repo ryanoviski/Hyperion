@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.model.Product;
 import com.hyperion.model.StockMovement;
 import com.hyperion.service.ProductService;
@@ -116,7 +118,7 @@ public class StockController {
 
             clearForm();
             loadMovements();
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }

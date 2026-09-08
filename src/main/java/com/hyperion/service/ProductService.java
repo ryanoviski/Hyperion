@@ -2,6 +2,7 @@ package com.hyperion.service;
 
 import com.hyperion.model.Product;
 import com.hyperion.repository.ProductRepository;
+import com.hyperion.exception.ValidationException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,8 +39,8 @@ public class ProductService {
     }
 
     public void updateProduct(Product product) {
-        if (product.getId() == null) {
-            throw new IllegalArgumentException("Produto inválido para atualização.");
+        if (product == null || product.getId() == null) {
+            throw new ValidationException("Produto inválido para atualização.");
         }
 
         validateProduct(product.getName(), product.getPrice(), product.getCost(), product.getStockQuantity());
@@ -48,7 +49,7 @@ public class ProductService {
 
     public void deactivateProduct(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("Produto inválido para desativação.");
+            throw new ValidationException("Produto inválido para desativação.");
         }
 
         productRepository.deactivate(id);
@@ -56,7 +57,7 @@ public class ProductService {
 
     public void reactivateProduct(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("Produto inválido para reativação.");
+            throw new ValidationException("Produto inválido para reativação.");
         }
 
         productRepository.reactivate(id);
@@ -100,19 +101,19 @@ public class ProductService {
 
     private void validateProduct(String name, BigDecimal price, BigDecimal cost, int stockQuantity) {
         if (normalize(name).isBlank()) {
-            throw new IllegalArgumentException("Informe o nome do produto.");
+            throw new ValidationException("Informe o nome do produto.");
         }
 
         if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Informe um preço válido.");
+            throw new ValidationException("Informe um preço válido.");
         }
 
         if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Informe um custo válido.");
+            throw new ValidationException("Informe um custo válido.");
         }
 
         if (stockQuantity < 0) {
-            throw new IllegalArgumentException("O estoque não pode ser negativo.");
+            throw new ValidationException("O estoque não pode ser negativo.");
         }
     }
 

@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.model.CreditInstallment;
 import com.hyperion.service.CreditInstallmentService;
 import com.hyperion.util.ThemeManager;
@@ -174,7 +176,7 @@ public class CreditController {
             creditInstallmentService.markAsPaid(installment);
             loadInstallments();
             messageLabel.setText("Parcela marcada como paga.");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             messageLabel.setText(exception.getMessage());
         }
     }

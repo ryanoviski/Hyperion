@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.service.AppSettingsService;
 import com.hyperion.util.SceneManager;
 import javafx.fxml.FXML;
@@ -50,16 +52,24 @@ public class PinSetupController {
             return;
         }
 
-        clearError();
-        appSettingsService.completeFirstRunWithPin(pin);
-        SceneManager.switchTo("/fxml/main-view.fxml");
+        try {
+            clearError();
+            appSettingsService.completeFirstRunWithPin(pin);
+            SceneManager.switchTo("/fxml/main-view.fxml");
+        } catch (HyperionException exception) {
+            showError(exception.getMessage());
+        }
     }
 
     @FXML
     private void handleSkip() {
-        clearError();
-        appSettingsService.completeFirstRunWithoutPin();
-        SceneManager.switchTo("/fxml/main-view.fxml");
+        try {
+            clearError();
+            appSettingsService.completeFirstRunWithoutPin();
+            SceneManager.switchTo("/fxml/main-view.fxml");
+        } catch (HyperionException exception) {
+            showError(exception.getMessage());
+        }
     }
 
     private void showError(String message) {

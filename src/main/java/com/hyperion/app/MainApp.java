@@ -5,11 +5,11 @@ import com.hyperion.service.AppSettingsService;
 import com.hyperion.service.StartupService;
 import com.hyperion.util.SceneManager;
 import com.hyperion.util.ThemeManager;
+import com.hyperion.exception.ApplicationResourceException;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import java.util.Objects;
 
 public class MainApp extends Application {
 
@@ -23,9 +23,11 @@ public class MainApp extends Application {
         ThemeManager.setCurrentTheme(new AppSettingsService().getTheme());
 
         stage.setTitle("Hyperion");
-        stage.getIcons().add(new Image(Objects.requireNonNull(
-                MainApp.class.getResourceAsStream(APP_ICON)
-        )));
+        var iconStream = MainApp.class.getResourceAsStream(APP_ICON);
+        if (iconStream == null) {
+            throw new ApplicationResourceException("Não foi possível localizar o ícone da aplicação.");
+        }
+        stage.getIcons().add(new Image(iconStream));
         SceneManager.setStage(stage);
         SceneManager.switchTo(startupService.getInitialView());
         stage.show();

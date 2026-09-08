@@ -1,6 +1,7 @@
 package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
+import com.hyperion.exception.PersistenceException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +22,7 @@ public class AppSettingsRepository {
 
             return resultSet.next() && resultSet.getInt("first_run_completed") == 1;
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not read app settings.", exception);
+            throw new PersistenceException("Não foi possível ler as configurações do aplicativo.", exception);
         }
     }
 
@@ -36,7 +37,7 @@ public class AppSettingsRepository {
 
             return resultSet.next() && resultSet.getInt("pin_enabled") == 1;
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not read PIN setting.", exception);
+            throw new PersistenceException("Não foi possível ler a configuração do PIN.", exception);
         }
     }
 
@@ -55,7 +56,7 @@ public class AppSettingsRepository {
 
             return resultSet.getString("pin_hash");
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not read PIN hash.", exception);
+            throw new PersistenceException("Não foi possível ler o PIN armazenado.", exception);
         }
     }
 
@@ -74,7 +75,7 @@ public class AppSettingsRepository {
 
             return resultSet.getString("theme");
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not read app theme.", exception);
+            throw new PersistenceException("Não foi possível ler o tema do aplicativo.", exception);
         }
     }
 
@@ -111,7 +112,7 @@ public class AppSettingsRepository {
             statement.setString(1, pinHash);
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not update app settings.", exception);
+            throw new PersistenceException("Não foi possível atualizar as configurações do aplicativo.", exception);
         }
     }
 
@@ -132,7 +133,7 @@ public class AppSettingsRepository {
             statement.setString(1, pinHash);
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not update PIN.", exception);
+            throw new PersistenceException("Não foi possível atualizar o PIN.", exception);
         }
     }
 
@@ -166,7 +167,7 @@ public class AppSettingsRepository {
             statement.setString(1, theme);
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not update app theme.", exception);
+            throw new PersistenceException("Não foi possível atualizar o tema do aplicativo.", exception);
         }
     }
 
@@ -186,7 +187,7 @@ public class AppSettingsRepository {
 
             statement.executeUpdate(sql);
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not update app settings.", exception);
+            throw new PersistenceException("Não foi possível atualizar as configurações do aplicativo.", exception);
         }
     }
 }

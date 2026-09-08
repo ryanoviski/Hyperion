@@ -8,6 +8,9 @@ import com.hyperion.model.ProductSalesReport;
 import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
 import com.hyperion.model.SalesReportSummary;
+import com.hyperion.exception.InsufficientStockException;
+import com.hyperion.exception.InvalidDateRangeException;
+import com.hyperion.exception.InvalidLimitException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,7 +44,8 @@ public class SaleRepository {
                 UPDATE products
                 SET stock_quantity = stock_quantity - ?,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?;
+                WHERE id = ?
+                  AND stock_quantity >= ?;
                 """;
 
         String insertStockMovementSql = """
@@ -92,6 +96,7 @@ public class SaleRepository {
 
                     stockStatement.setInt(1, item.getQuantity());
                     stockStatement.setLong(2, item.getProductId());
+                    stockStatement.setInt(3, item.getQuantity());
                     stockStatement.addBatch();
 
                     movementStatement.setLong(1, item.getProductId());
@@ -101,7 +106,12 @@ public class SaleRepository {
                 }
 
                 itemStatement.executeBatch();
-                stockStatement.executeBatch();
+                int[] stockResults = stockStatement.executeBatch();
+                for (int index = 0; index < stockResults.length; index++) {
+                    if (stockResults[index] == 0 || stockResults[index] == Statement.EXECUTE_FAILED) {
+                        throw new InsufficientStockException(sale.getItems().get(index).getProductName());
+                    }
+                }
                 movementStatement.executeBatch();
 
                 if (creditSalePlan != null) {
@@ -110,7 +120,7 @@ public class SaleRepository {
                 }
 
                 connection.commit();
-            } catch (SQLException exception) {
+            } catch (SQLException | RuntimeException exception) {
                 connection.rollback();
                 throw exception;
             } finally {
@@ -253,6 +263,9 @@ public class SaleRepository {
     }
 
     public List<Sale> findLatest(int limit) {
+        if (limit <= 0) {
+            throw new InvalidLimitException();
+        }
         String sql = """
                 SELECT id,
                        customer_id,
@@ -426,6 +439,10 @@ public class SaleRepository {
     }
 
     private String buildSalesDateWhereClause(String columnName, LocalDate startDate, LocalDate endDateExclusive) {
+        if ((startDate == null) != (endDateExclusive == null)
+                || (startDate != null && !startDate.isBefore(endDateExclusive))) {
+            throw new InvalidDateRangeException();
+        }
         if (startDate == null || endDateExclusive == null) {
             return "";
         }

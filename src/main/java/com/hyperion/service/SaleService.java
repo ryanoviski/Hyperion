@@ -8,14 +8,23 @@ import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
 import com.hyperion.repository.ProductRepository;
 import com.hyperion.repository.SaleRepository;
+import com.hyperion.exception.EntityInactiveException;
+import com.hyperion.exception.EntityNotFoundException;
+import com.hyperion.exception.InsufficientStockException;
+import com.hyperion.exception.InvalidCreditPlanException;
+import com.hyperion.exception.InvalidPaymentMethodException;
+import com.hyperion.exception.ValidationException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SaleService {
+
+    private static final Set<String> PAYMENT_METHODS = Set.of("Dinheiro", "PIX", "Cartão crédito", "Cartão débito", "Crediário");
 
     private final ProductRepository productRepository = new ProductRepository();
     private final SaleRepository saleRepository = new SaleRepository();
@@ -28,30 +37,34 @@ public class SaleService {
             CreditSalePlan creditSalePlan
     ) {
         if (customer == null || customer.getId() == null) {
-            throw new IllegalArgumentException("Selecione um cliente.");
+            throw new ValidationException("Selecione um cliente.");
         }
 
         if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("Adicione pelo menos um produto.");
+            throw new ValidationException("Adicione pelo menos um produto.");
         }
 
         String normalizedPaymentMethod = normalize(paymentMethod);
 
         if (normalizedPaymentMethod.isBlank()) {
-            throw new IllegalArgumentException("Selecione a forma de pagamento.");
+            throw new InvalidPaymentMethodException();
+        }
+
+        if (!PAYMENT_METHODS.contains(normalizedPaymentMethod)) {
+            throw new InvalidPaymentMethodException();
         }
 
         BigDecimal normalizedDiscount = discount == null ? BigDecimal.ZERO : discount;
 
         if (normalizedDiscount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("O desconto não pode ser negativo.");
+            throw new ValidationException("O desconto não pode ser negativo.");
         }
 
         List<SaleItem> validatedItems = validateItems(items);
         BigDecimal subtotal = calculateSubtotal(validatedItems);
 
         if (normalizedDiscount.compareTo(subtotal) > 0) {
-            throw new IllegalArgumentException("O desconto não pode ser maior que o subtotal.");
+            throw new ValidationException("O desconto não pode ser maior que o subtotal.");
         }
 
         BigDecimal total = subtotal.subtract(normalizedDiscount);
@@ -95,19 +108,24 @@ public class SaleService {
         Map<Long, Integer> requestedQuantitiesByProduct = new HashMap<>();
 
         for (SaleItem item : items) {
+            if (item == null || item.getProductId() == null) {
+                throw new ValidationException("Produto inválido na venda.");
+            }
             Product product = productRepository.findById(item.getProductId())
-                    .filter(Product::isActive)
-                    .orElseThrow(() -> new IllegalArgumentException("Produto inválido na venda."));
+                    .orElseThrow(() -> new EntityNotFoundException("Produto"));
+            if (!product.isActive()) {
+                throw new EntityInactiveException("Produto");
+            }
 
             if (item.getQuantity() <= 0) {
-                throw new IllegalArgumentException("A quantidade deve ser maior que zero.");
+                throw new ValidationException("A quantidade deve ser maior que zero.");
             }
 
             int requestedQuantity = requestedQuantitiesByProduct.getOrDefault(product.getId(), 0) + item.getQuantity();
             requestedQuantitiesByProduct.put(product.getId(), requestedQuantity);
 
             if (product.getStockQuantity() < requestedQuantity) {
-                throw new IllegalArgumentException("Estoque insuficiente para: " + product.getName() + ".");
+                throw new InsufficientStockException(product.getName());
             }
 
             validatedItems.add(new SaleItem(
@@ -137,15 +155,15 @@ public class SaleService {
         }
 
         if (creditSalePlan == null) {
-            throw new IllegalArgumentException("Informe os dados do crediário.");
+            throw new InvalidCreditPlanException("Informe os dados do crediário.");
         }
 
         if (creditSalePlan.getInstallments() <= 0) {
-            throw new IllegalArgumentException("Informe uma quantidade válida de parcelas.");
+            throw new InvalidCreditPlanException("Informe uma quantidade válida de parcelas.");
         }
 
         if (creditSalePlan.getFirstDueDate() == null) {
-            throw new IllegalArgumentException("Informe a data de vencimento da primeira parcela.");
+            throw new InvalidCreditPlanException("Informe a data de vencimento da primeira parcela.");
         }
 
         return creditSalePlan;

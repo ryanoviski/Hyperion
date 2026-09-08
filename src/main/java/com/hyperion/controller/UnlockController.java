@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.service.AppSettingsService;
 import com.hyperion.util.SceneManager;
 import javafx.fxml.FXML;
@@ -26,15 +28,19 @@ public class UnlockController {
             return;
         }
 
-        if (!appSettingsService.verifyPin(pin)) {
-            showError("PIN inválido.");
-            pinField.clear();
-            pinField.requestFocus();
-            return;
-        }
+        try {
+            if (!appSettingsService.verifyPin(pin)) {
+                showError("PIN inválido.");
+                pinField.clear();
+                pinField.requestFocus();
+                return;
+            }
 
-        clearError();
-        SceneManager.switchTo("/fxml/main-view.fxml");
+            clearError();
+            SceneManager.switchTo("/fxml/main-view.fxml");
+        } catch (HyperionException exception) {
+            showError(exception.getMessage());
+        }
     }
 
     private void showError(String message) {

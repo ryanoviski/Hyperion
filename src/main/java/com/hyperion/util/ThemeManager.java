@@ -7,6 +7,7 @@ import javafx.scene.control.DialogPane;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import com.hyperion.exception.ApplicationResourceException;
 
 public final class ThemeManager {
 
@@ -56,7 +57,7 @@ public final class ThemeManager {
     private static String getStylesheet(String stylesheetPath) {
         URL stylesheet = ThemeManager.class.getResource(stylesheetPath);
         if (stylesheet == null) {
-            throw new IllegalStateException("Could not load stylesheet: " + stylesheetPath);
+            throw new ApplicationResourceException("Não foi possível localizar o estilo: " + stylesheetPath);
         }
 
         return stylesheet.toExternalForm();

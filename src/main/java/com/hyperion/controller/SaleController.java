@@ -1,5 +1,7 @@
 package com.hyperion.controller;
 
+import com.hyperion.exception.HyperionException;
+
 import com.hyperion.model.Customer;
 import com.hyperion.model.CreditSalePlan;
 import com.hyperion.model.Product;
@@ -191,7 +193,7 @@ public class SaleController {
 
             clearSale();
             showMessage("Venda finalizada com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
     }

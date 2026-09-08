@@ -2,6 +2,8 @@ package com.hyperion.service;
 
 import com.hyperion.model.Customer;
 import com.hyperion.repository.CustomerRepository;
+import com.hyperion.exception.EntityNotFoundException;
+import com.hyperion.exception.ValidationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +16,7 @@ public class CustomerService {
         String normalizedName = normalize(name);
 
         if (normalizedName.isBlank()) {
-            throw new IllegalArgumentException("Informe o nome do cliente.");
+            throw new ValidationException("Informe o nome do cliente.");
         }
 
         customerRepository.save(new Customer(
@@ -28,12 +30,12 @@ public class CustomerService {
     }
 
     public void updateCustomer(Customer customer) {
-        if (customer.getId() == null) {
-            throw new IllegalArgumentException("Cliente inválido para atualização.");
+        if (customer == null || customer.getId() == null) {
+            throw new ValidationException("Cliente inválido para atualização.");
         }
 
         if (normalize(customer.getName()).isBlank()) {
-            throw new IllegalArgumentException("Informe o nome do cliente.");
+            throw new ValidationException("Informe o nome do cliente.");
         }
 
         customerRepository.update(customer);
@@ -41,7 +43,7 @@ public class CustomerService {
 
     public void deactivateCustomer(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("Cliente inválido para desativação.");
+            throw new ValidationException("Cliente inválido para desativação.");
         }
 
         customerRepository.deactivate(id);
@@ -49,7 +51,7 @@ public class CustomerService {
 
     public void reactivateCustomer(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("Cliente inválido para reativação.");
+            throw new ValidationException("Cliente inválido para reativação.");
         }
 
         customerRepository.reactivate(id);

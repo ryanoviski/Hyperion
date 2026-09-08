@@ -1,5 +1,8 @@
 package com.hyperion.util;
 
+import com.hyperion.exception.DataCorruptionException;
+import com.hyperion.exception.PinHashException;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.MessageDigest;
@@ -42,15 +45,22 @@ public final class PinHashUtil {
             return false;
         }
 
-        String algorithm = parts[0];
-        int iterations = Integer.parseInt(parts[1]);
-        byte[] salt = Base64.getDecoder().decode(parts[2]);
-        byte[] expectedHash = Base64.getDecoder().decode(parts[3]);
-        byte[] actualHash = generateHash(pin.toCharArray(), salt, algorithm, iterations);
+        try {
+            String algorithm = parts[0];
+            int iterations = Integer.parseInt(parts[1]);
+            if (iterations <= 0) {
+                throw new IllegalArgumentException("iterations");
+            }
+            byte[] salt = Base64.getDecoder().decode(parts[2]);
+            byte[] expectedHash = Base64.getDecoder().decode(parts[3]);
+            byte[] actualHash = generateHash(pin.toCharArray(), salt, algorithm, iterations);
 
-        boolean matches = MessageDigest.isEqual(expectedHash, actualHash);
-        Arrays.fill(actualHash, (byte) 0);
-        return matches;
+            boolean matches = MessageDigest.isEqual(expectedHash, actualHash);
+            Arrays.fill(actualHash, (byte) 0);
+            return matches;
+        } catch (IllegalArgumentException exception) {
+            throw new DataCorruptionException("O PIN armazenado está em formato inválido.", exception);
+        }
     }
 
     private static byte[] generateSalt() {
@@ -69,7 +79,7 @@ public final class PinHashUtil {
             SecretKeyFactory factory = SecretKeyFactory.getInstance(algorithm);
             return factory.generateSecret(spec).getEncoded();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException exception) {
-            throw new IllegalStateException("Could not hash PIN.", exception);
+            throw new PinHashException("Não foi possível processar o PIN.", exception);
         }
     }
 }
