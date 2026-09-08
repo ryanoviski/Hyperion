@@ -8,6 +8,7 @@ import com.hyperion.model.ProductSalesReport;
 import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
 import com.hyperion.model.SalesReportSummary;
+import com.hyperion.model.SalesReportFilter;
 import com.hyperion.exception.InsufficientStockException;
 import com.hyperion.exception.InvalidDateRangeException;
 import com.hyperion.exception.InvalidLimitException;
@@ -132,7 +133,7 @@ public class SaleRepository {
                 connection.setAutoCommit(true);
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not save sale.", exception);
+            throw new PersistenceException("Não foi possível salvar a venda.", exception);
         }
     }
 
@@ -275,7 +276,7 @@ public class SaleRepository {
                     resultSet.getInt("sales_count")
             );
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not load daily sales summary.", exception);
+            throw new PersistenceException("Não foi possível carregar o resumo de vendas do dia.", exception);
         }
     }
 
@@ -356,7 +357,7 @@ public class SaleRepository {
                 return sales;
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not list customer purchases.", exception);
+            throw new PersistenceException("Não foi possível listar as compras do cliente.", exception);
         }
     }
 
@@ -397,7 +398,7 @@ public class SaleRepository {
                 return sales;
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not list latest sales.", exception);
+            throw new PersistenceException("Não foi possível listar as vendas recentes.", exception);
         }
     }
 
@@ -460,7 +461,7 @@ public class SaleRepository {
                     averageTicket(Money.getCents(resultSet, "total_sales"), resultSet.getInt("sales_count"))
             );
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not load sales report summary.", exception);
+            throw new PersistenceException("Não foi possível carregar o resumo do relatório de vendas.", exception);
         }
     }
 
@@ -500,7 +501,7 @@ public class SaleRepository {
 
             return reports;
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not load payment method report.", exception);
+            throw new PersistenceException("Não foi possível carregar o relatório por forma de pagamento.", exception);
         }
     }
 
@@ -543,7 +544,171 @@ public class SaleRepository {
 
             return reports;
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not load top selling products.", exception);
+            throw new PersistenceException("Não foi possível carregar o relatório dos produtos mais vendidos.", exception);
+        }
+    }
+
+    public SalesReportSummary getSalesReportSummary(SalesReportFilter filter) {
+        FilterSql filterSql = buildReportFilter(filter, false);
+        String sql = """
+                SELECT COUNT(*) AS sales_count,
+                       COALESCE(SUM(s.total), 0) AS total_sales
+                FROM sales s
+                %s;
+                """.formatted(filterSql.whereClause());
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = prepareFilteredStatement(connection, sql, filterSql.parameters());
+             ResultSet resultSet = statement.executeQuery()) {
+            if (!resultSet.next()) {
+                return new SalesReportSummary(0, BigDecimal.ZERO, BigDecimal.ZERO);
+            }
+            int salesCount = resultSet.getInt("sales_count");
+            BigDecimal total = Money.getCents(resultSet, "total_sales");
+            return new SalesReportSummary(salesCount, total, averageTicket(total, salesCount));
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível carregar o resumo do relatório de vendas.", exception);
+        }
+    }
+
+    public List<PaymentMethodReport> findSalesByPaymentMethod(SalesReportFilter filter) {
+        FilterSql filterSql = buildReportFilter(filter, false);
+        String sql = """
+                SELECT s.payment_method,
+                       COUNT(*) AS sales_count,
+                       COALESCE(SUM(s.total), 0) AS total_amount
+                FROM sales s
+                %s
+                GROUP BY s.payment_method
+                ORDER BY total_amount DESC;
+                """.formatted(filterSql.whereClause());
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = prepareFilteredStatement(connection, sql, filterSql.parameters());
+             ResultSet resultSet = statement.executeQuery()) {
+            List<PaymentMethodReport> reports = new ArrayList<>();
+            while (resultSet.next()) {
+                reports.add(new PaymentMethodReport(
+                        resultSet.getString("payment_method"),
+                        resultSet.getInt("sales_count"),
+                        Money.getCents(resultSet, "total_amount")
+                ));
+            }
+            return reports;
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível carregar o relatório por forma de pagamento.", exception);
+        }
+    }
+
+    public List<ProductSalesReport> findTopSellingProducts(SalesReportFilter filter) {
+        FilterSql filterSql = buildReportFilter(filter, true);
+        String sql = """
+                SELECT si.product_name,
+                       COALESCE(SUM(si.quantity), 0) AS quantity_sold,
+                       COALESCE(SUM(si.subtotal), 0) AS total_amount
+                FROM sale_items si
+                INNER JOIN sales s ON s.id = si.sale_id
+                INNER JOIN products p ON p.id = si.product_id
+                %s
+                GROUP BY si.product_id, si.product_name
+                ORDER BY quantity_sold DESC, total_amount DESC
+                LIMIT 10;
+                """.formatted(filterSql.whereClause());
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = prepareFilteredStatement(connection, sql, filterSql.parameters());
+             ResultSet resultSet = statement.executeQuery()) {
+            List<ProductSalesReport> reports = new ArrayList<>();
+            while (resultSet.next()) {
+                int quantity = resultSet.getInt("quantity_sold");
+                BigDecimal total = Money.getCents(resultSet, "total_amount");
+                reports.add(new ProductSalesReport(
+                        resultSet.getString("product_name"), averageTicket(total, quantity), quantity, total
+                ));
+            }
+            return reports;
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível carregar o relatório dos produtos mais vendidos.", exception);
+        }
+    }
+
+    public List<String> findReportCustomers() {
+        return findReportFilterValues("s.customer_name", "FROM sales s", "WHERE s.status = 'COMPLETED'");
+    }
+
+    public List<String> findReportCategories() {
+        return findReportFilterValues("p.category", "FROM sale_items si INNER JOIN sales s ON s.id = si.sale_id INNER JOIN products p ON p.id = si.product_id", "WHERE s.status = 'COMPLETED'");
+    }
+
+    public List<String> findReportSuppliers() {
+        return findReportFilterValues("p.supplier", "FROM sale_items si INNER JOIN sales s ON s.id = si.sale_id INNER JOIN products p ON p.id = si.product_id", "WHERE s.status = 'COMPLETED'");
+    }
+
+    private FilterSql buildReportFilter(SalesReportFilter filter, boolean directProductJoin) {
+        if (filter == null) {
+            filter = new SalesReportFilter(null, null, "", "", "", "");
+        }
+        if ((filter.startDate() == null) != (filter.endDateExclusive() == null)
+                || (filter.startDate() != null && !filter.startDate().isBefore(filter.endDateExclusive()))) {
+            throw new InvalidDateRangeException();
+        }
+
+        StringBuilder where = new StringBuilder("WHERE s.status = 'COMPLETED'");
+        List<String> parameters = new ArrayList<>();
+        if (filter.startDate() != null) {
+            where.append(" AND DATE(s.created_at) >= DATE(?) AND DATE(s.created_at) < DATE(?)");
+            parameters.add(filter.startDate().toString());
+            parameters.add(filter.endDateExclusive().toString());
+        }
+        appendEqualsFilter(where, parameters, "s.customer_name", filter.customerName());
+        appendEqualsFilter(where, parameters, "s.payment_method", filter.paymentMethod());
+
+        if (directProductJoin) {
+            appendEqualsFilter(where, parameters, "p.category", filter.category());
+            appendEqualsFilter(where, parameters, "p.supplier", filter.supplier());
+        } else if (!filter.category().isBlank() || !filter.supplier().isBlank()) {
+            where.append(" AND EXISTS (SELECT 1 FROM sale_items filter_item ")
+                    .append("INNER JOIN products filter_product ON filter_product.id = filter_item.product_id ")
+                    .append("WHERE filter_item.sale_id = s.id");
+            if (!filter.category().isBlank()) {
+                where.append(" AND filter_product.category = ?");
+                parameters.add(filter.category());
+            }
+            if (!filter.supplier().isBlank()) {
+                where.append(" AND filter_product.supplier = ?");
+                parameters.add(filter.supplier());
+            }
+            where.append(")");
+        }
+        return new FilterSql(where.toString(), parameters);
+    }
+
+    private void appendEqualsFilter(StringBuilder where, List<String> parameters, String column, String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        where.append(" AND ").append(column).append(" = ?");
+        parameters.add(value);
+    }
+
+    private PreparedStatement prepareFilteredStatement(Connection connection, String sql, List<String> parameters) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement(sql);
+        for (int index = 0; index < parameters.size(); index++) {
+            statement.setString(index + 1, parameters.get(index));
+        }
+        return statement;
+    }
+
+    private List<String> findReportFilterValues(String column, String fromClause, String whereClause) {
+        String sql = "SELECT DISTINCT " + column + " AS value " + fromClause + " " + whereClause
+                + " AND " + column + " IS NOT NULL AND trim(" + column + ") <> '' ORDER BY value;";
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            List<String> values = new ArrayList<>();
+            while (resultSet.next()) {
+                values.add(resultSet.getString("value"));
+            }
+            return values;
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível carregar os filtros do relatório.", exception);
         }
     }
 
@@ -558,7 +723,7 @@ public class SaleRepository {
 
             return Money.getCents(resultSet, "total");
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not load sales total.", exception);
+            throw new PersistenceException("Não foi possível carregar o total de vendas.", exception);
         }
     }
 
@@ -689,10 +854,13 @@ public class SaleRepository {
     private Long readGeneratedId(PreparedStatement statement) throws SQLException {
         try (ResultSet resultSet = statement.getGeneratedKeys()) {
             if (!resultSet.next()) {
-                throw new SQLException("Sale id was not generated.");
+                throw new SQLException("O identificador da venda não foi gerado.");
             }
 
             return resultSet.getLong(1);
         }
+    }
+
+    private record FilterSql(String whereClause, List<String> parameters) {
     }
 }

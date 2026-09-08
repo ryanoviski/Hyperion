@@ -5,6 +5,7 @@ import com.hyperion.exception.HyperionException;
 import com.hyperion.model.Product;
 import com.hyperion.service.ProductService;
 import com.hyperion.util.ThemeManager;
+import com.hyperion.util.ConfirmationDialog;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -117,7 +118,8 @@ public class ProductController {
                         formData.cost(),
                         formData.category(),
                         formData.barcode(),
-                        formData.supplier()
+                        formData.supplier(),
+                        formData.minimumStock()
                 );
 
                 statusFilterChoiceBox.setValue(ACTIVE_FILTER);
@@ -141,6 +143,7 @@ public class ProductController {
                         formData.price(),
                         formData.cost(),
                         selectedProduct.getStockQuantity(),
+                        formData.minimumStock(),
                         formData.category(),
                         formData.barcode(),
                         formData.supplier(),
@@ -159,6 +162,15 @@ public class ProductController {
     }
 
     private void handleDeactivateProduct(Product selectedProduct) {
+        if (!ConfirmationDialog.confirm(
+                productsTable.getScene().getWindow(),
+                "Desativar produto",
+                "O produto '" + selectedProduct.getName() + "' será desativado.",
+                "O histórico será preservado, mas ele não poderá ser incluído em novas vendas. Deseja continuar?"
+        )) {
+            return;
+        }
+
         try {
             productService.deactivateProduct(selectedProduct.getId());
             loadProducts();
@@ -315,7 +327,8 @@ public class ProductController {
                     parseMoney(productCostField.getText()),
                     productCategoryField.getText(),
                     productBarcodeField.getText(),
-                    productSupplierField.getText()
+                    productSupplierField.getText(),
+                    parseMinimumStock(productMinimumStockField.getText())
             );
         });
 
@@ -329,6 +342,7 @@ public class ProductController {
         productCategoryField = new TextField();
         productBarcodeField = new TextField();
         productSupplierField = new TextField();
+        productMinimumStockField = new TextField();
         productDescriptionArea = new TextArea();
 
         productNameField.setPromptText("Nome do produto");
@@ -337,6 +351,7 @@ public class ProductController {
         productCategoryField.setPromptText("Categoria");
         productBarcodeField.setPromptText("Código de barras");
         productSupplierField.setPromptText("Fornecedor");
+        productMinimumStockField.setPromptText("0");
         productDescriptionArea.setPromptText("Descrição");
         productDescriptionArea.setPrefRowCount(3);
 
@@ -351,6 +366,7 @@ public class ProductController {
             productCategoryField.setText(textValue(product.getCategory()));
             productBarcodeField.setText(textValue(product.getBarcode()));
             productSupplierField.setText(textValue(product.getSupplier()));
+            productMinimumStockField.setText(String.valueOf(product.getMinimumStock()));
         }
 
         GridPane form = new GridPane();
@@ -372,8 +388,10 @@ public class ProductController {
         form.add(productBarcodeField, 1, 4);
         form.add(new Label("Fornecedor"), 0, 5);
         form.add(productSupplierField, 1, 5);
-        form.add(new Label("Descrição"), 0, 6);
-        form.add(productDescriptionArea, 1, 6);
+        form.add(new Label("Estoque mínimo"), 0, 6);
+        form.add(productMinimumStockField, 1, 6);
+        form.add(new Label("Descrição"), 0, 7);
+        form.add(productDescriptionArea, 1, 7);
 
         return form;
     }
@@ -389,6 +407,22 @@ public class ProductController {
             return new BigDecimal(digits).movePointLeft(2);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Informe valores monetários válidos.");
+        }
+    }
+
+    private int parseMinimumStock(String value) {
+        String normalized = textValue(value).trim();
+        if (normalized.isBlank()) {
+            return 0;
+        }
+        try {
+            int minimumStock = Integer.parseInt(normalized);
+            if (minimumStock < 0) {
+                throw new IllegalArgumentException("O estoque mínimo não pode ser negativo.");
+            }
+            return minimumStock;
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Informe um estoque mínimo válido.");
         }
     }
 
@@ -451,6 +485,7 @@ public class ProductController {
     private TextField productCategoryField;
     private TextField productBarcodeField;
     private TextField productSupplierField;
+    private TextField productMinimumStockField;
     private TextArea productDescriptionArea;
 
     private record ProductFormData(
@@ -460,7 +495,8 @@ public class ProductController {
             BigDecimal cost,
             String category,
             String barcode,
-            String supplier
+            String supplier,
+            int minimumStock
     ) {
     }
 }

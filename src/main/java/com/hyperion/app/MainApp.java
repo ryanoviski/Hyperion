@@ -5,6 +5,9 @@ import com.hyperion.service.AppSettingsService;
 import com.hyperion.service.StartupService;
 import com.hyperion.util.SceneManager;
 import com.hyperion.util.ThemeManager;
+import com.hyperion.util.ApplicationLogger;
+import com.hyperion.util.GlobalExceptionHandler;
+import com.hyperion.util.SessionManager;
 import com.hyperion.exception.ApplicationResourceException;
 import javafx.application.Application;
 import javafx.scene.image.Image;
@@ -19,6 +22,8 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        ApplicationLogger.configure();
+        GlobalExceptionHandler.install();
         DatabaseInitializer.initialize();
         ThemeManager.setCurrentTheme(new AppSettingsService().getTheme());
 
@@ -31,6 +36,7 @@ public class MainApp extends Application {
         SceneManager.setStage(stage);
         SceneManager.switchTo(startupService.getInitialView());
         stage.show();
+        SessionManager.getInstance().install(stage);
     }
 
     public static void main(String[] args) {

@@ -6,6 +6,7 @@ import com.hyperion.model.AppTheme;
 import com.hyperion.service.BackupService;
 import com.hyperion.service.AppSettingsService;
 import com.hyperion.util.ThemeManager;
+import com.hyperion.util.ConfirmationDialog;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -68,6 +69,15 @@ public class SettingsController {
 
     @FXML
     private void handleRemovePin() {
+        if (!ConfirmationDialog.confirm(
+                messageLabel.getScene().getWindow(),
+                "Remover PIN",
+                "A proteção por PIN será desativada.",
+                "Em ambientes compartilhados, outras pessoas poderão abrir o sistema. Deseja continuar?"
+        )) {
+            return;
+        }
+
         try {
             appSettingsService.removePin(currentPinField.getText());
 

@@ -16,7 +16,7 @@ class AttachmentServiceIntegrationTest extends DatabaseIntegrationTest {
     @Test
     void storesListsResolvesAndDeletesAttachment() throws Exception {
         Path sourceFile = testDirectory.resolve("comprovante.pdf");
-        Files.writeString(sourceFile, "comprovante de teste");
+        Files.write(sourceFile, "%PDF-1.4\ncomprovante de teste".getBytes());
         Long expenseId = new FinanceService().registerExpense("Internet", "Serviços", new BigDecimal("89.90"));
         AttachmentService attachmentService = new AttachmentService();
 
@@ -27,8 +27,9 @@ class AttachmentServiceIntegrationTest extends DatabaseIntegrationTest {
         Path storedFile = attachmentService.resolveAttachmentPath(attachment);
         assertTrue(Files.isRegularFile(storedFile));
         assertTrue(storedFile.startsWith(testDirectory.resolve("data").toAbsolutePath()));
+        assertTrue(attachment.getStoredName().matches("[0-9a-f-]{36}\\.pdf"));
 
-        attachmentService.deleteByEntity(AttachmentService.FINANCE_MODULE, expenseId);
+        attachmentService.deleteAttachment(attachment);
 
         assertEquals(0, attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, expenseId));
         assertTrue(Files.notExists(storedFile));

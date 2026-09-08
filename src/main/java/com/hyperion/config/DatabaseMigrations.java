@@ -16,7 +16,8 @@ final class DatabaseMigrations {
             new Migration(1, "baseline-schema", false, DatabaseMigrations::createBaselineSchema),
             new Migration(2, "strict-integrity-and-money-in-cents", true, DatabaseMigrations::rebuildWithStrictSchema),
             new Migration(3, "query-indexes", false, DatabaseMigrations::createQueryIndexes),
-            new Migration(4, "optional-unique-identifiers", false, DatabaseMigrations::createUniqueIdentifierIndexes)
+            new Migration(4, "optional-unique-identifiers", false, DatabaseMigrations::createUniqueIdentifierIndexes),
+            new Migration(5, "operational-security-and-credit-history", false, DatabaseMigrations::createOperationalSecurityAndCreditHistory)
     );
 
     private DatabaseMigrations() {
@@ -516,6 +517,40 @@ final class DatabaseMigrations {
         executeAll(connection,
                 "CREATE UNIQUE INDEX IF NOT EXISTS ux_customers_document ON customers(document COLLATE NOCASE) WHERE document IS NOT NULL AND trim(document) <> '';",
                 "CREATE UNIQUE INDEX IF NOT EXISTS ux_products_barcode ON products(barcode COLLATE NOCASE) WHERE barcode IS NOT NULL AND trim(barcode) <> ''; ");
+    }
+
+    private static void createOperationalSecurityAndCreditHistory(Connection connection) throws SQLException {
+        addColumnIfMissing(connection, "app_settings", "failed_pin_attempts",
+                "ALTER TABLE app_settings ADD COLUMN failed_pin_attempts INTEGER NOT NULL DEFAULT 0 CHECK (failed_pin_attempts >= 0);");
+        addColumnIfMissing(connection, "app_settings", "pin_locked_until",
+                "ALTER TABLE app_settings ADD COLUMN pin_locked_until TEXT;");
+        addColumnIfMissing(connection, "products", "minimum_stock",
+                "ALTER TABLE products ADD COLUMN minimum_stock INTEGER NOT NULL DEFAULT 0 CHECK (minimum_stock >= 0);");
+
+        executeAll(connection,
+                """
+                        CREATE TABLE IF NOT EXISTS pin_attempts (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            attempted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            failure_count INTEGER NOT NULL CHECK (failure_count > 0),
+                            locked_until TEXT NOT NULL
+                        ) STRICT;
+                        """,
+                """
+                        CREATE TABLE IF NOT EXISTS credit_payments (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            installment_id INTEGER NOT NULL UNIQUE,
+                            amount INTEGER NOT NULL CHECK (amount > 0),
+                            received_by TEXT NOT NULL CHECK (length(trim(received_by)) > 0),
+                            payment_method TEXT NOT NULL CHECK (payment_method IN ('Dinheiro', 'PIX', 'Cartão crédito', 'Cartão débito')),
+                            notes TEXT,
+                            received_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            FOREIGN KEY (installment_id) REFERENCES credit_installments(id) ON UPDATE RESTRICT ON DELETE RESTRICT
+                        ) STRICT;
+                        """,
+                "CREATE INDEX IF NOT EXISTS idx_pin_attempts_attempted_at ON pin_attempts(attempted_at DESC);",
+                "CREATE INDEX IF NOT EXISTS idx_credit_payments_received_at ON credit_payments(received_at DESC);",
+                "CREATE INDEX IF NOT EXISTS idx_products_stock_minimum ON products(active, stock_quantity, minimum_stock);");
     }
 
     private static void failWhenDuplicateIdentifier(Connection connection, String table, String column, String label) throws SQLException {

@@ -22,9 +22,22 @@ public class ProductService {
             String barcode,
             String supplier
     ) {
+        createProduct(name, description, price, cost, category, barcode, supplier, 0);
+    }
+
+    public void createProduct(
+            String name,
+            String description,
+            BigDecimal price,
+            BigDecimal cost,
+            String category,
+            String barcode,
+            String supplier,
+            int minimumStock
+    ) {
         String normalizedName = normalize(name);
 
-        validateProduct(normalizedName, price, cost);
+        validateProduct(normalizedName, price, cost, minimumStock);
 
         productRepository.save(new Product(
                 normalizedName,
@@ -32,6 +45,7 @@ public class ProductService {
                 price,
                 cost,
                 0,
+                minimumStock,
                 normalize(category),
                 normalize(barcode),
                 normalize(supplier)
@@ -43,7 +57,7 @@ public class ProductService {
             throw new ValidationException("Produto inválido para atualização.");
         }
 
-        validateProduct(product.getName(), product.getPrice(), product.getCost());
+        validateProduct(product.getName(), product.getPrice(), product.getCost(), product.getMinimumStock());
         productRepository.update(product);
     }
 
@@ -99,7 +113,11 @@ public class ProductService {
         return productRepository.searchInactive(normalizedTerm);
     }
 
-    private void validateProduct(String name, BigDecimal price, BigDecimal cost) {
+    public List<Product> listLowStockProducts() {
+        return productRepository.findLowStockProducts();
+    }
+
+    private void validateProduct(String name, BigDecimal price, BigDecimal cost, int minimumStock) {
         if (normalize(name).isBlank()) {
             throw new ValidationException("Informe o nome do produto.");
         }
@@ -110,6 +128,10 @@ public class ProductService {
 
         if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0 || !Money.hasAtMostTwoFractionDigits(cost)) {
             throw new ValidationException("Informe um custo válido com no máximo duas casas decimais.");
+        }
+
+        if (minimumStock < 0) {
+            throw new ValidationException("O estoque mínimo não pode ser negativo.");
         }
     }
 

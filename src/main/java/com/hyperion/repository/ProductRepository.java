@@ -23,8 +23,8 @@ public class ProductRepository {
 
     public void save(Product product) {
         String sql = """
-                INSERT INTO products (name, description, price, cost, stock_quantity, category, barcode, supplier)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                INSERT INTO products (name, description, price, cost, stock_quantity, minimum_stock, category, barcode, supplier)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
@@ -33,7 +33,7 @@ public class ProductRepository {
             fillProductStatement(statement, product);
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not save product.", exception);
+            throw new com.hyperion.exception.PersistenceException("Não foi possível salvar o produto.", exception);
         }
     }
 
@@ -44,6 +44,7 @@ public class ProductRepository {
                     description = ?,
                     price = ?,
                     cost = ?,
+                    minimum_stock = ?,
                     category = ?,
                     barcode = ?,
                     supplier = ?,
@@ -55,12 +56,12 @@ public class ProductRepository {
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             fillProductUpdateStatement(statement, product);
-            statement.setLong(8, product.getId());
+            statement.setLong(9, product.getId());
             if (statement.executeUpdate() != 1) {
                 throw new EntityNotFoundException("Produto");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not update product.", exception);
+            throw new com.hyperion.exception.PersistenceException("Não foi possível atualizar o produto.", exception);
         }
     }
 
@@ -80,7 +81,7 @@ public class ProductRepository {
                 throw new EntityNotFoundException("Produto");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not deactivate product.", exception);
+            throw new com.hyperion.exception.PersistenceException("Não foi possível desativar o produto.", exception);
         }
     }
 
@@ -100,13 +101,13 @@ public class ProductRepository {
                 throw new EntityNotFoundException("Produto");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not reactivate product.", exception);
+            throw new com.hyperion.exception.PersistenceException("Não foi possível reativar o produto.", exception);
         }
     }
 
     public Optional<Product> findById(Long id) {
         String sql = """
-                SELECT id, name, description, price, cost, stock_quantity, category, barcode, supplier, active, created_at, updated_at
+                SELECT id, name, description, price, cost, stock_quantity, minimum_stock, category, barcode, supplier, active, created_at, updated_at
                 FROM products
                 WHERE id = ?;
                 """;
@@ -124,7 +125,7 @@ public class ProductRepository {
                 return Optional.of(mapProduct(resultSet));
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not find product.", exception);
+            throw new com.hyperion.exception.PersistenceException("Não foi possível localizar o produto.", exception);
         }
     }
 
@@ -144,9 +145,26 @@ public class ProductRepository {
         return searchByActiveStatus(term, false);
     }
 
+    public List<Product> findLowStockProducts() {
+        String sql = """
+                SELECT id, name, description, price, cost, stock_quantity, minimum_stock, category, barcode, supplier, active, created_at, updated_at
+                FROM products
+                WHERE active = 1
+                  AND stock_quantity <= minimum_stock
+                ORDER BY stock_quantity ASC, name ASC;
+                """;
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            return mapProducts(resultSet);
+        } catch (SQLException exception) {
+            throw new com.hyperion.exception.PersistenceException("Não foi possível listar os produtos com estoque baixo.", exception);
+        }
+    }
+
     private List<Product> findByActiveStatus(boolean active) {
         String sql = """
-                SELECT id, name, description, price, cost, stock_quantity, category, barcode, supplier, active, created_at, updated_at
+                SELECT id, name, description, price, cost, stock_quantity, minimum_stock, category, barcode, supplier, active, created_at, updated_at
                 FROM products
                 WHERE active = ?
                 ORDER BY name;
@@ -161,13 +179,13 @@ public class ProductRepository {
                 return mapProducts(resultSet);
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not list products.", exception);
+            throw new com.hyperion.exception.PersistenceException("Não foi possível listar os produtos.", exception);
         }
     }
 
     private List<Product> searchByActiveStatus(String term, boolean active) {
         String sql = """
-                SELECT id, name, description, price, cost, stock_quantity, category, barcode, supplier, active, created_at, updated_at
+                SELECT id, name, description, price, cost, stock_quantity, minimum_stock, category, barcode, supplier, active, created_at, updated_at
                 FROM products
                 WHERE active = ?
                   AND (
@@ -194,7 +212,7 @@ public class ProductRepository {
                 return mapProducts(resultSet);
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not search products.", exception);
+            throw new com.hyperion.exception.PersistenceException("Não foi possível pesquisar os produtos.", exception);
         }
     }
 
@@ -204,9 +222,10 @@ public class ProductRepository {
         Money.setCents(statement, 3, product.getPrice());
         Money.setCents(statement, 4, product.getCost());
         statement.setInt(5, product.getStockQuantity());
-        statement.setString(6, product.getCategory());
-        statement.setString(7, product.getBarcode());
-        statement.setString(8, product.getSupplier());
+        statement.setInt(6, product.getMinimumStock());
+        statement.setString(7, product.getCategory());
+        statement.setString(8, product.getBarcode());
+        statement.setString(9, product.getSupplier());
     }
 
     private void fillProductUpdateStatement(PreparedStatement statement, Product product) throws SQLException {
@@ -214,9 +233,10 @@ public class ProductRepository {
         statement.setString(2, product.getDescription());
         Money.setCents(statement, 3, product.getPrice());
         Money.setCents(statement, 4, product.getCost());
-        statement.setString(5, product.getCategory());
-        statement.setString(6, product.getBarcode());
-        statement.setString(7, product.getSupplier());
+        statement.setInt(5, product.getMinimumStock());
+        statement.setString(6, product.getCategory());
+        statement.setString(7, product.getBarcode());
+        statement.setString(8, product.getSupplier());
     }
 
     private List<Product> mapProducts(ResultSet resultSet) throws SQLException {
@@ -237,6 +257,7 @@ public class ProductRepository {
                 Money.getCents(resultSet, "price"),
                 Money.getCents(resultSet, "cost"),
                 resultSet.getInt("stock_quantity"),
+                resultSet.getInt("minimum_stock"),
                 resultSet.getString("category"),
                 resultSet.getString("barcode"),
                 resultSet.getString("supplier"),

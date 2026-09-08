@@ -2,10 +2,15 @@ package com.hyperion.service;
 
 import com.hyperion.repository.AppSettingsRepository;
 import com.hyperion.model.AppTheme;
+import com.hyperion.model.PinAuthenticationResult;
+import com.hyperion.model.PinLockState;
 import com.hyperion.util.PinHashUtil;
 import com.hyperion.exception.InvalidPinException;
 import com.hyperion.exception.PinNotEnabledException;
 import com.hyperion.exception.ValidationException;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class AppSettingsService {
 
@@ -44,6 +49,31 @@ public class AppSettingsService {
 
     public boolean verifyPin(String pin) {
         return PinHashUtil.verify(pin, appSettingsRepository.findPinHash());
+    }
+
+    /**
+     * Authenticates the unlock screen PIN and applies a persisted progressive
+     * cooldown after each failed attempt. Administrative PIN changes keep
+     * using {@link #verifyPin(String)} so a mistyped current PIN does not lock
+     * the operator out of the settings screen.
+     */
+    public PinAuthenticationResult authenticatePin(String pin) {
+        LocalDateTime now = LocalDateTime.now();
+        PinLockState lockState = appSettingsRepository.findPinLockState();
+
+        if (lockState.isLockedAt(now)) {
+            return PinAuthenticationResult.denied(secondsUntil(lockState.lockedUntil(), now));
+        }
+
+        if (verifyPin(pin)) {
+            appSettingsRepository.resetPinProtection();
+            return PinAuthenticationResult.success();
+        }
+
+        int failures = lockState.failedAttempts() + 1;
+        long delaySeconds = cooldownInSeconds(failures);
+        appSettingsRepository.recordFailedPinAttempt(failures, now.plusSeconds(delaySeconds));
+        return PinAuthenticationResult.denied(delaySeconds);
     }
 
     public void updatePin(String currentPin, String newPin, String confirmPin) {
@@ -86,5 +116,14 @@ public class AppSettingsService {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private long cooldownInSeconds(int failures) {
+        int exponent = Math.min(Math.max(failures, 1), 8);
+        return Math.min(300, 1L << exponent);
+    }
+
+    private long secondsUntil(LocalDateTime lockedUntil, LocalDateTime now) {
+        return Math.max(1, Duration.between(now, lockedUntil).toSeconds() + 1);
     }
 }

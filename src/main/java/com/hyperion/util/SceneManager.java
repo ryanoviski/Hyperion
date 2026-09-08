@@ -13,6 +13,7 @@ import com.hyperion.exception.ApplicationResourceException;
 public final class SceneManager {
 
     private static Stage mainStage;
+    private static String currentView;
 
     private SceneManager() {
     }
@@ -37,6 +38,8 @@ public final class SceneManager {
             ThemeManager.applyTo(scene);
 
             mainStage.setScene(scene);
+            currentView = fxmlPath;
+            SessionManager.getInstance().onSceneChanged(fxmlPath);
             if (wasFullScreen) {
                 Platform.runLater(() -> mainStage.setFullScreen(true));
             } else {
@@ -45,6 +48,10 @@ public final class SceneManager {
         } catch (IOException exception) {
             throw new ApplicationResourceException("Não foi possível carregar a tela: " + fxmlPath, exception);
         }
+    }
+
+    public static String getCurrentView() {
+        return currentView;
     }
 
     private static void ensureStageIsConfigured() {

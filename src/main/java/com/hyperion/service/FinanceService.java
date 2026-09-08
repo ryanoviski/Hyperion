@@ -13,6 +13,7 @@ import java.nio.file.Path;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.time.LocalDate;
 
 public class FinanceService {
 
@@ -67,6 +68,13 @@ public class FinanceService {
 
     public List<Expense> listLatestExpenses() {
         return expenseRepository.findLatest();
+    }
+
+    public List<Expense> listExpenses(LocalDate startDate, LocalDate endDateInclusive) {
+        if (startDate == null || endDateInclusive == null || endDateInclusive.isBefore(startDate)) {
+            throw new ValidationException("Informe um período de despesas válido.");
+        }
+        return expenseRepository.findByDateRange(startDate, endDateInclusive.plusDays(1));
     }
 
     public FinancialSummary getSummary() {

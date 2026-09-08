@@ -2,14 +2,19 @@ package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.exception.PersistenceException;
+import com.hyperion.model.PinLockState;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class AppSettingsRepository {
+
+    private static final DateTimeFormatter SQLITE_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public boolean isFirstRunCompleted() {
         ensureSettingsRowExists();
@@ -79,6 +84,85 @@ public class AppSettingsRepository {
         }
     }
 
+    public PinLockState findPinLockState() {
+        ensureSettingsRowExists();
+
+        String sql = """
+                SELECT failed_pin_attempts, pin_locked_until
+                FROM app_settings
+                ORDER BY id
+                LIMIT 1;
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            if (!resultSet.next()) {
+                return new PinLockState(0, null);
+            }
+
+            String lockedUntil = resultSet.getString("pin_locked_until");
+            return new PinLockState(
+                    resultSet.getInt("failed_pin_attempts"),
+                    lockedUntil == null ? null : LocalDateTime.parse(lockedUntil, SQLITE_DATE_TIME)
+            );
+        } catch (SQLException | RuntimeException exception) {
+            throw new PersistenceException("Não foi possível ler a proteção do PIN.", exception);
+        }
+    }
+
+    public void recordFailedPinAttempt(int failureCount, LocalDateTime lockedUntil) {
+        ensureSettingsRowExists();
+        if (failureCount <= 0 || lockedUntil == null) {
+            throw new IllegalArgumentException("Dados inválidos para registrar tentativa de PIN.");
+        }
+
+        String updateSql = """
+                UPDATE app_settings
+                SET failed_pin_attempts = ?,
+                    pin_locked_until = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
+                """;
+        String auditSql = """
+                INSERT INTO pin_attempts (failure_count, locked_until)
+                VALUES (?, ?);
+                """;
+
+        try (Connection connection = DatabaseConfig.getConnection()) {
+            connection.setAutoCommit(false);
+            try (PreparedStatement update = connection.prepareStatement(updateSql);
+                 PreparedStatement audit = connection.prepareStatement(auditSql)) {
+                String formattedLockedUntil = lockedUntil.format(SQLITE_DATE_TIME);
+                update.setInt(1, failureCount);
+                update.setString(2, formattedLockedUntil);
+                update.executeUpdate();
+                audit.setInt(1, failureCount);
+                audit.setString(2, formattedLockedUntil);
+                audit.executeUpdate();
+                connection.commit();
+            } catch (SQLException exception) {
+                connection.rollback();
+                throw exception;
+            }
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível registrar a tentativa de PIN.", exception);
+        }
+    }
+
+    public void resetPinProtection() {
+        ensureSettingsRowExists();
+        String sql = """
+                UPDATE app_settings
+                SET failed_pin_attempts = 0,
+                    pin_locked_until = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
+                """;
+        executeUpdate(sql);
+    }
+
     public void completeFirstRunWithoutPin() {
         ensureSettingsRowExists();
 
@@ -87,6 +171,8 @@ public class AppSettingsRepository {
                 SET first_run_completed = 1,
                     pin_enabled = 0,
                     pin_hash = NULL,
+                    failed_pin_attempts = 0,
+                    pin_locked_until = NULL,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
                 """;
@@ -102,6 +188,8 @@ public class AppSettingsRepository {
                 SET first_run_completed = 1,
                     pin_enabled = 1,
                     pin_hash = ?,
+                    failed_pin_attempts = 0,
+                    pin_locked_until = NULL,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
                 """;
@@ -123,6 +211,8 @@ public class AppSettingsRepository {
                 UPDATE app_settings
                 SET pin_enabled = 1,
                     pin_hash = ?,
+                    failed_pin_attempts = 0,
+                    pin_locked_until = NULL,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
                 """;
@@ -144,6 +234,8 @@ public class AppSettingsRepository {
                 UPDATE app_settings
                 SET pin_enabled = 0,
                     pin_hash = NULL,
+                    failed_pin_attempts = 0,
+                    pin_locked_until = NULL,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = (SELECT id FROM app_settings ORDER BY id LIMIT 1);
                 """;

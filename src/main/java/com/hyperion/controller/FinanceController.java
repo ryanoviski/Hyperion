@@ -9,6 +9,7 @@ import com.hyperion.model.FinancialSummary;
 import com.hyperion.service.AttachmentService;
 import com.hyperion.service.FinanceService;
 import com.hyperion.util.ThemeManager;
+import com.hyperion.util.ConfirmationDialog;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -17,10 +18,10 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
@@ -46,6 +47,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Locale;
@@ -55,6 +57,7 @@ public class FinanceController {
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final String ALL_PERIODS_FILTER = "Todos os períodos";
+    private static final String CUSTOM_PERIOD_FILTER = "Período personalizado";
     private static final String CLIP_ICON = "M16.5 6.5 7.4 15.6c-1.7 1.7-4.4 1.7-6.1 0s-1.7-4.4 0-6.1l9.9-9.9c1.1-1.1 2.9-1.1 4 0s1.1 2.9 0 4l-9.6 9.6c-.5.5-1.3.5-1.8 0s-.5-1.3 0-1.8l8.6-8.6";
     private static final String EYE_ICON = "M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6";
     private static final String TRASH_ICON = "M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7M14 10v7";
@@ -99,6 +102,12 @@ public class FinanceController {
 
     @FXML
     private ChoiceBox<String> periodChoiceBox;
+
+    @FXML
+    private DatePicker startDatePicker;
+
+    @FXML
+    private DatePicker endDatePicker;
 
     @FXML
     private TableView<Expense> expensesTable;
@@ -158,6 +167,20 @@ public class FinanceController {
     }
 
     private void handleRemoveExpense(Expense expense) {
+        if (expense == null) {
+            showMessage("Selecione uma despesa para remover.");
+            return;
+        }
+
+        if (!ConfirmationDialog.confirm(
+                expensesTable.getScene().getWindow(),
+                "Remover despesa",
+                "A despesa '" + expense.getDescription() + "' e seus anexos serão removidos.",
+                "Esta ação não pode ser desfeita. Deseja continuar?"
+        )) {
+            return;
+        }
+
         try {
             financeService.deleteExpense(expense);
             loadFinanceData();
@@ -195,9 +218,8 @@ public class FinanceController {
     private void handleSelectAttachment() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecionar comprovante");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Imagens e PDFs", "*.png", "*.jpg", "*.jpeg", "*.pdf"),
-                new FileChooser.ExtensionFilter("Todos os arquivos", "*.*")
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Imagens e PDFs", "*.png", "*.jpg", "*.jpeg", "*.pdf")
         );
 
         File selectedFile = fileChooser.showOpenDialog(descriptionField.getScene().getWindow());
@@ -235,9 +257,11 @@ public class FinanceController {
 
     private void configurePeriodFilter() {
         currentMonthFilter = "Este mês (" + YearMonth.now().format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.of("pt", "BR"))) + ")";
-        periodChoiceBox.setItems(FXCollections.observableArrayList(currentMonthFilter, ALL_PERIODS_FILTER));
+        periodChoiceBox.setItems(FXCollections.observableArrayList(currentMonthFilter, ALL_PERIODS_FILTER, CUSTOM_PERIOD_FILTER));
         periodChoiceBox.setValue(currentMonthFilter);
-        periodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> applyPeriodFilter());
+        periodChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> loadFinanceData());
+        startDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> loadFinanceData());
+        endDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> loadFinanceData());
     }
 
     private void configureIconButtons() {
@@ -313,7 +337,7 @@ public class FinanceController {
 
     private void loadFinanceData() {
         FinancialSummary summary = financeService.getSummary();
-        List<Expense> expenses = financeService.listLatestExpenses();
+        List<Expense> expenses = resolveCustomPeriodExpenses();
 
         totalIncomeLabel.setText(formatMoney(summary.getTotalIncome()));
         totalExpensesLabel.setText(formatMoney(summary.getTotalExpenses()));
@@ -321,6 +345,18 @@ public class FinanceController {
         monthlyProfitLabel.setText(formatMoney(summary.getMonthlyProfit()));
         allExpenses.setAll(expenses);
         applyPeriodFilter();
+    }
+
+    private List<Expense> resolveCustomPeriodExpenses() {
+        if (!CUSTOM_PERIOD_FILTER.equals(periodChoiceBox.getValue())) {
+            return financeService.listLatestExpenses();
+        }
+        LocalDate startDate = startDatePicker.getValue();
+        LocalDate endDate = endDatePicker.getValue();
+        if (startDate == null || endDate == null) {
+            return List.of();
+        }
+        return financeService.listExpenses(startDate, endDate);
     }
 
     private void applyPeriodFilter() {
@@ -334,6 +370,11 @@ public class FinanceController {
             return;
         }
 
+        if (CUSTOM_PERIOD_FILTER.equals(periodChoiceBox.getValue())) {
+            expensesTable.setItems(FXCollections.observableArrayList(allExpenses));
+            return;
+        }
+
         YearMonth currentMonth = YearMonth.now();
         List<Expense> filteredExpenses = allExpenses.stream()
                 .filter(expense -> YearMonth.from(expense.getCreatedAt()).equals(currentMonth))
@@ -342,43 +383,68 @@ public class FinanceController {
     }
 
     private void showAttachmentsDialog(Expense expense, List<Attachment> attachments) {
-        Dialog<Attachment> dialog = new Dialog<>();
+        Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Anexos da despesa");
         dialog.setHeaderText(expense.getDescription());
         dialog.initOwner(expensesTable.getScene().getWindow());
         addDialogStyles(dialog);
 
-        ButtonType previewButtonType = new ButtonType("Visualizar", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(previewButtonType, ButtonType.CLOSE);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
 
         TableView<Attachment> attachmentsTable = createAttachmentsTable();
         attachmentsTable.setItems(FXCollections.observableArrayList(attachments));
 
-        Node previewButton = dialog.getDialogPane().lookupButton(previewButtonType);
+        Button previewButton = new Button("Visualizar");
+        Button deleteButton = new Button("Excluir anexo");
+        previewButton.getStyleClass().add("secondary-button");
+        deleteButton.getStyleClass().add("secondary-button");
         previewButton.disableProperty().bind(attachmentsTable.getSelectionModel().selectedItemProperty().isNull());
+        deleteButton.disableProperty().bind(attachmentsTable.getSelectionModel().selectedItemProperty().isNull());
+        previewButton.setOnAction(event -> previewSelectedAttachment(attachmentsTable));
+        deleteButton.setOnAction(event -> deleteSelectedAttachment(expense, attachmentsTable, dialog));
 
-        VBox content = new VBox(12, attachmentsTable);
+        HBox actions = new HBox(8, previewButton, deleteButton);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+        VBox content = new VBox(12, attachmentsTable, actions);
         content.getStyleClass().add("dialog-content");
         content.setPrefWidth(720);
         content.setPrefHeight(360);
         content.setMaxWidth(Double.MAX_VALUE);
         dialog.getDialogPane().setContent(content);
 
-        dialog.setResultConverter(buttonType -> {
-            if (buttonType != previewButtonType) {
-                return null;
-            }
+        dialog.showAndWait();
+    }
 
-            return attachmentsTable.getSelectionModel().getSelectedItem();
-        });
+    private void previewSelectedAttachment(TableView<Attachment> attachmentsTable) {
+        try {
+            showAttachmentPreviewDialog(attachmentsTable.getSelectionModel().getSelectedItem());
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
+            showMessage(exception.getMessage());
+        }
+    }
 
-        dialog.showAndWait().ifPresent(attachment -> {
-            try {
-                showAttachmentPreviewDialog(attachment);
-            } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
-                showMessage(exception.getMessage());
+    private void deleteSelectedAttachment(Expense expense, TableView<Attachment> attachmentsTable, Dialog<?> dialog) {
+        Attachment attachment = attachmentsTable.getSelectionModel().getSelectedItem();
+        if (attachment == null || !ConfirmationDialog.confirm(
+                dialog.getDialogPane().getScene().getWindow(),
+                "Excluir anexo",
+                "O arquivo '" + attachment.getOriginalName() + "' será removido.",
+                "Esta ação não pode ser desfeita. Deseja continuar?"
+        )) {
+            return;
+        }
+
+        try {
+            attachmentService.deleteAttachment(attachment);
+            attachmentsTable.getItems().remove(attachment);
+            loadFinanceData();
+            showMessage("Anexo removido com sucesso.");
+            if (attachmentsTable.getItems().isEmpty()) {
+                dialog.close();
             }
-        });
+        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
+            showMessage(exception.getMessage());
+        }
     }
 
     private TableView<Attachment> createAttachmentsTable() {

@@ -151,6 +151,7 @@ public class DashboardController {
 
     private void loadCreditAlerts() {
         List<CreditInstallment> alerts = creditInstallmentService.listPendingAlerts();
+        List<Product> lowStockProducts = productService.listLowStockProducts();
         alertsList.getChildren().clear();
 
         if (alerts.isEmpty()) {
@@ -183,6 +184,10 @@ public class DashboardController {
             ));
         }
 
+        if (!lowStockProducts.isEmpty()) {
+            alertsList.getChildren().add(createStockAlertCard(lowStockProducts));
+        }
+
         if (alertsList.getChildren().isEmpty()) {
             alertsList.getChildren().add(emptyAlertsLabel);
             emptyAlertsLabel.setText("Nenhum alerta crítico por enquanto.");
@@ -205,6 +210,17 @@ public class DashboardController {
         alertCard.getStyleClass().addAll("system-alert-card", statusClass);
         alertCard.setOnMouseClicked(event -> MainController.openCreditView());
         return alertCard;
+    }
+
+    private VBox createStockAlertCard(List<Product> products) {
+        long count = products.size();
+        VBox card = createAlertCard(
+                count + " " + pluralize(count, "produto com estoque mínimo", "produtos com estoque mínimo"),
+                "Clique para abrir os produtos e ajustar o estoque ou o limite mínimo.",
+                "system-alert-warning"
+        );
+        card.setOnMouseClicked(event -> MainController.openProductsView());
+        return card;
     }
 
     private String pluralize(long count, String singular, String plural) {

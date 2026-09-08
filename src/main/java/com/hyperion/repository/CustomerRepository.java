@@ -32,7 +32,7 @@ public class CustomerRepository {
             fillCustomerStatement(statement, customer);
             statement.executeUpdate();
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not save customer.", exception);
+            throw new PersistenceException("Não foi possível salvar o cliente.", exception);
         }
     }
 
@@ -58,7 +58,7 @@ public class CustomerRepository {
                 throw new EntityNotFoundException("Cliente");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not update customer.", exception);
+            throw new PersistenceException("Não foi possível atualizar o cliente.", exception);
         }
     }
 
@@ -78,7 +78,7 @@ public class CustomerRepository {
                 throw new EntityNotFoundException("Cliente");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not deactivate customer.", exception);
+            throw new PersistenceException("Não foi possível desativar o cliente.", exception);
         }
     }
 
@@ -98,7 +98,7 @@ public class CustomerRepository {
                 throw new EntityNotFoundException("Cliente");
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not reactivate customer.", exception);
+            throw new PersistenceException("Não foi possível reativar o cliente.", exception);
         }
     }
 
@@ -122,7 +122,7 @@ public class CustomerRepository {
                 return Optional.of(mapCustomer(resultSet));
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not find customer.", exception);
+            throw new PersistenceException("Não foi possível localizar o cliente.", exception);
         }
     }
 
@@ -159,7 +159,7 @@ public class CustomerRepository {
                 return mapCustomers(resultSet);
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not list customers.", exception);
+            throw new PersistenceException("Não foi possível listar os clientes.", exception);
         }
     }
 
@@ -192,7 +192,7 @@ public class CustomerRepository {
                 return mapCustomers(resultSet);
             }
         } catch (SQLException exception) {
-            throw new IllegalStateException("Could not search customers.", exception);
+            throw new PersistenceException("Não foi possível pesquisar os clientes.", exception);
         }
     }
 

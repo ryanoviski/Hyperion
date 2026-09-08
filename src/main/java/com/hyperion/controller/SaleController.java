@@ -40,13 +40,14 @@ public class SaleController {
 
     private static final NumberFormat MONEY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("pt", "BR"));
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    private static final ObservableList<SaleItem> CART_ITEMS = FXCollections.observableArrayList();
-    private static Customer draftCustomer;
-    private static Product draftProduct;
-    private static String draftDiscount = "";
-    private static String draftPaymentMethod = "Dinheiro";
-    private static Integer draftInstallments = 1;
-    private static LocalDate draftFirstDueDate;
+    // This state belongs to one screen instance and must not survive navigation.
+    private final ObservableList<SaleItem> cartItems = FXCollections.observableArrayList();
+    private Customer draftCustomer;
+    private Product draftProduct;
+    private String draftDiscount = "";
+    private String draftPaymentMethod = "Dinheiro";
+    private Integer draftInstallments = 1;
+    private LocalDate draftFirstDueDate;
 
     private final CustomerService customerService = new CustomerService();
     private final ProductService productService = new ProductService();
@@ -112,7 +113,7 @@ public class SaleController {
         configureTableColumns();
         configureSelectedFields();
         configureMoneyField(discountField);
-        cartTable.setItems(CART_ITEMS);
+        cartTable.setItems(cartItems);
         restoreDraft();
         configureDraftPersistence();
         updateTotals();
@@ -158,7 +159,7 @@ public class SaleController {
                     selectedProduct.getPrice()
             );
 
-            CART_ITEMS.add(item);
+            cartItems.add(item);
             selectedProduct = null;
             draftProduct = null;
             selectedProductField.clear();
@@ -179,7 +180,7 @@ public class SaleController {
             return;
         }
 
-        CART_ITEMS.remove(selectedItem);
+        cartItems.remove(selectedItem);
         updateTotals();
         showMessage("Item removido do carrinho.");
     }
@@ -189,7 +190,7 @@ public class SaleController {
         try {
             saleService.finishSale(
                     selectedCustomer,
-                    List.copyOf(CART_ITEMS),
+                    List.copyOf(cartItems),
                     parseMoney(discountField.getText()),
                     paymentMethodChoiceBox.getValue(),
                     buildCreditSalePlan()
@@ -544,7 +545,7 @@ public class SaleController {
     private BigDecimal calculateSubtotal() {
         BigDecimal subtotal = BigDecimal.ZERO;
 
-        for (SaleItem item : CART_ITEMS) {
+        for (SaleItem item : cartItems) {
             subtotal = subtotal.add(item.getSubtotal());
         }
 
@@ -642,7 +643,7 @@ public class SaleController {
     }
 
     private void clearSale() {
-        CART_ITEMS.clear();
+        cartItems.clear();
         selectedCustomer = null;
         selectedProduct = null;
         draftCustomer = null;

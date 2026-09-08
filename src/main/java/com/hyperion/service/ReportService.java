@@ -3,6 +3,7 @@ package com.hyperion.service;
 import com.hyperion.model.PaymentMethodReport;
 import com.hyperion.model.ProductSalesReport;
 import com.hyperion.model.SalesReportSummary;
+import com.hyperion.model.SalesReportFilter;
 import com.hyperion.repository.SaleRepository;
 import com.hyperion.exception.InvalidDateRangeException;
 
@@ -22,6 +23,11 @@ public class ReportService {
         return saleRepository.getSalesReportSummary(startDate, endDateExclusive);
     }
 
+    public SalesReportSummary getSalesSummary(SalesReportFilter filter) {
+        validateDateRange(filter.startDate(), filter.endDateExclusive());
+        return saleRepository.getSalesReportSummary(filter);
+    }
+
     public List<PaymentMethodReport> listSalesByPaymentMethod() {
         return saleRepository.findSalesByPaymentMethod();
     }
@@ -31,6 +37,11 @@ public class ReportService {
         return saleRepository.findSalesByPaymentMethod(startDate, endDateExclusive);
     }
 
+    public List<PaymentMethodReport> listSalesByPaymentMethod(SalesReportFilter filter) {
+        validateDateRange(filter.startDate(), filter.endDateExclusive());
+        return saleRepository.findSalesByPaymentMethod(filter);
+    }
+
     public List<ProductSalesReport> listTopSellingProducts() {
         return saleRepository.findTopSellingProducts();
     }
@@ -38,6 +49,23 @@ public class ReportService {
     public List<ProductSalesReport> listTopSellingProducts(LocalDate startDate, LocalDate endDateExclusive) {
         validateDateRange(startDate, endDateExclusive);
         return saleRepository.findTopSellingProducts(startDate, endDateExclusive);
+    }
+
+    public List<ProductSalesReport> listTopSellingProducts(SalesReportFilter filter) {
+        validateDateRange(filter.startDate(), filter.endDateExclusive());
+        return saleRepository.findTopSellingProducts(filter);
+    }
+
+    public List<String> listCustomersForFilter() {
+        return saleRepository.findReportCustomers();
+    }
+
+    public List<String> listCategoriesForFilter() {
+        return saleRepository.findReportCategories();
+    }
+
+    public List<String> listSuppliersForFilter() {
+        return saleRepository.findReportSuppliers();
     }
 
     private void validateDateRange(LocalDate startDate, LocalDate endDateExclusive) {

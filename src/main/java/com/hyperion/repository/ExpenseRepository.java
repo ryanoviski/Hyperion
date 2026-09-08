@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +91,30 @@ public class ExpenseRepository {
             return expenses;
         } catch (SQLException exception) {
             throw new PersistenceException("Não foi possível listar as despesas.", exception);
+        }
+    }
+
+    public List<Expense> findByDateRange(LocalDate startDate, LocalDate endDateExclusive) {
+        String sql = """
+                SELECT id, description, category, amount, created_at
+                FROM expenses
+                WHERE DATE(created_at) >= DATE(?)
+                  AND DATE(created_at) < DATE(?)
+                ORDER BY created_at DESC, id DESC;
+                """;
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, startDate.toString());
+            statement.setString(2, endDateExclusive.toString());
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<Expense> expenses = new ArrayList<>();
+                while (resultSet.next()) {
+                    expenses.add(mapExpense(resultSet));
+                }
+                return expenses;
+            }
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível listar as despesas do período.", exception);
         }
     }
 

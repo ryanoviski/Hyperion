@@ -9,17 +9,18 @@ import com.hyperion.exception.InvalidAttachmentModuleException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.InvalidPathException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 
 public class AttachmentService {
 
     public static final String FINANCE_MODULE = "FINANCE";
 
-    private static final DateTimeFormatter FILE_TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+    private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024;
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "png", "jpg", "jpeg");
 
     private final AttachmentRepository attachmentRepository = new AttachmentRepository();
 
@@ -39,16 +40,17 @@ public class AttachmentService {
         }
 
         try {
+            ValidatedAttachment validatedAttachment = validateSourceFile(sourceFile);
             Path moduleDirectory = getAttachmentsDirectory()
                     .resolve(normalizedModule.toLowerCase())
                     .resolve(String.valueOf(entityId));
             Files.createDirectories(moduleDirectory);
 
             String originalName = sourceFile.getFileName().toString();
-            String storedName = createStoredFileName(originalName);
+            String storedName = createStoredFileName(validatedAttachment.extension());
             Path targetFile = moduleDirectory.resolve(storedName);
 
-            Files.copy(sourceFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(sourceFile, targetFile);
 
             attachmentRepository.save(new Attachment(
                     normalizedModule,
@@ -56,7 +58,7 @@ public class AttachmentService {
                     originalName,
                     storedName,
                     targetFile.toString(),
-                    Files.probeContentType(sourceFile),
+                    validatedAttachment.contentType(),
                     Files.size(targetFile)
             ));
         } catch (IOException exception) {
@@ -118,38 +120,97 @@ public class AttachmentService {
         attachmentRepository.deleteByEntity(normalizedModule, entityId);
     }
 
-    private String createStoredFileName(String originalName) {
-        String extension = "";
-        int extensionStart = originalName.lastIndexOf('.');
-
-        if (extensionStart >= 0 && extensionStart < originalName.length() - 1) {
-            extension = originalName.substring(extensionStart);
+    public void deleteAttachment(Attachment attachment) {
+        if (attachment == null || attachment.getId() == null) {
+            throw new com.hyperion.exception.ValidationException("Selecione um anexo para remover.");
         }
 
-        return FILE_TIMESTAMP.format(LocalDateTime.now()) + "_" + sanitizeFileName(originalName) + extension;
+        try {
+            Files.deleteIfExists(Path.of(attachment.getFilePath()));
+        } catch (IOException | InvalidPathException exception) {
+            throw new AttachmentStorageException("Não foi possível remover o arquivo do anexo.", exception);
+        }
+
+        attachmentRepository.delete(attachment.getId());
+    }
+
+    private String createStoredFileName(String extension) {
+        return UUID.randomUUID() + "." + extension;
     }
 
     private Path getAttachmentsDirectory() {
         return DatabaseConfig.getDataDirectory().resolve("attachments");
     }
 
-    private String sanitizeFileName(String fileName) {
-        String nameWithoutExtension = fileName;
-        int extensionStart = fileName.lastIndexOf('.');
-
-        if (extensionStart > 0) {
-            nameWithoutExtension = fileName.substring(0, extensionStart);
+    private ValidatedAttachment validateSourceFile(Path sourceFile) throws IOException {
+        long fileSize = Files.size(sourceFile);
+        if (fileSize <= 0 || fileSize > MAX_FILE_SIZE_BYTES) {
+            throw new com.hyperion.exception.ValidationException("O anexo deve ter entre 1 byte e 10 MB.");
         }
 
-        String sanitized = nameWithoutExtension
-                .toLowerCase()
-                .replaceAll("[^a-z0-9._-]", "_")
-                .replaceAll("_+", "_");
+        String extension = fileExtension(sourceFile);
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new com.hyperion.exception.ValidationException("Envie apenas arquivos PDF, PNG ou JPG.");
+        }
 
-        return sanitized.isBlank() ? "arquivo" : sanitized;
+        byte[] header;
+        try (var input = Files.newInputStream(sourceFile)) {
+            header = input.readNBytes(8);
+        }
+        String contentType = switch (extension) {
+            case "pdf" -> isPdf(header) ? "application/pdf" : null;
+            case "png" -> isPng(header) ? "image/png" : null;
+            case "jpg", "jpeg" -> isJpeg(header) ? "image/jpeg" : null;
+            default -> null;
+        };
+
+        if (contentType == null) {
+            throw new com.hyperion.exception.ValidationException("O conteúdo do anexo não corresponde ao formato informado.");
+        }
+        return new ValidatedAttachment(extension, contentType);
+    }
+
+    private String fileExtension(Path file) {
+        String fileName = file.getFileName().toString();
+        int dot = fileName.lastIndexOf('.');
+        return dot < 0 || dot == fileName.length() - 1
+                ? ""
+                : fileName.substring(dot + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isPdf(byte[] header) {
+        return header.length >= 5
+                && header[0] == '%'
+                && header[1] == 'P'
+                && header[2] == 'D'
+                && header[3] == 'F'
+                && header[4] == '-';
+    }
+
+    private boolean isPng(byte[] header) {
+        byte[] pngSignature = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+        if (header.length < pngSignature.length) {
+            return false;
+        }
+        for (int index = 0; index < pngSignature.length; index++) {
+            if (header[index] != pngSignature[index]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isJpeg(byte[] header) {
+        return header.length >= 3
+                && (header[0] & 0xFF) == 0xFF
+                && (header[1] & 0xFF) == 0xD8
+                && (header[2] & 0xFF) == 0xFF;
     }
 
     private String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private record ValidatedAttachment(String extension, String contentType) {
     }
 }

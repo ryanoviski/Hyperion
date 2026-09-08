@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -70,6 +71,18 @@
                            <children>
                               <Label styleClass="field-label" text="Período" />
                               <ChoiceBox fx:id="periodChoiceBox" prefHeight="42.0" prefWidth="240.0" />
+                           </children>
+                        </VBox>
+                        <VBox spacing="6.0">
+                           <children>
+                              <Label styleClass="field-label" text="Data inicial" />
+                              <DatePicker fx:id="startDatePicker" prefHeight="42.0" prefWidth="150.0" />
+                           </children>
+                        </VBox>
+                        <VBox spacing="6.0">
+                           <children>
+                              <Label styleClass="field-label" text="Data final" />
+                              <DatePicker fx:id="endDatePicker" prefHeight="42.0" prefWidth="150.0" />
                            </children>
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />

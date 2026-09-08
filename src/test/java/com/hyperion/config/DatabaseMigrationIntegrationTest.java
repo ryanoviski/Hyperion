@@ -62,7 +62,8 @@ class DatabaseMigrationIntegrationTest {
             assertEquals("INTEGER", scalar(statement, "SELECT type FROM pragma_table_info('products') WHERE name = 'price';"));
             assertEquals("1234", scalar(statement, "SELECT price FROM products WHERE name = 'Produto legado';"));
             assertEquals("567", scalar(statement, "SELECT cost FROM products WHERE name = 'Produto legado';"));
-            assertEquals("4", scalar(statement, "SELECT MAX(version) FROM schema_migrations;"));
+            assertEquals("5", scalar(statement, "SELECT MAX(version) FROM schema_migrations;"));
+            assertEquals("0", scalar(statement, "SELECT minimum_stock FROM products WHERE name = 'Produto legado';"));
             assertEquals("1", scalar(statement, "PRAGMA foreign_keys;"));
             assertThrows(Exception.class, () -> statement.executeUpdate("""
                     INSERT INTO products (name, price, cost, stock_quantity)

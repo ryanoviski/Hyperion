@@ -6,6 +6,7 @@ import com.hyperion.model.Customer;
 import com.hyperion.model.Sale;
 import com.hyperion.service.CustomerService;
 import com.hyperion.util.ThemeManager;
+import com.hyperion.util.ConfirmationDialog;
 import com.hyperion.service.SaleService;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -154,6 +155,15 @@ public class CustomerController {
     }
 
     private void handleDeactivateCustomer(Customer selectedCustomer) {
+        if (!ConfirmationDialog.confirm(
+                customersTable.getScene().getWindow(),
+                "Desativar cliente",
+                "O cliente '" + selectedCustomer.getName() + "' será desativado.",
+                "O histórico será preservado, mas novas vendas não poderão selecioná-lo. Deseja continuar?"
+        )) {
+            return;
+        }
+
         try {
             customerService.deactivateCustomer(selectedCustomer.getId());
             loadCustomers();

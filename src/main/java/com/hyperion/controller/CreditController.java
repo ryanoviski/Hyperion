@@ -3,6 +3,7 @@ package com.hyperion.controller;
 import com.hyperion.exception.HyperionException;
 
 import com.hyperion.model.CreditInstallment;
+import com.hyperion.model.CreditPayment;
 import com.hyperion.service.CreditInstallmentService;
 import com.hyperion.util.ThemeManager;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -19,6 +20,8 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -28,6 +31,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 public class CreditController {
 
@@ -172,8 +176,19 @@ public class CreditController {
     }
 
     private void markSingleInstallmentAsPaid(CreditInstallment installment) {
+        Optional<PaymentFormData> result = showPaymentDialog(installment);
+        if (result.isEmpty()) {
+            return;
+        }
+
         try {
-            creditInstallmentService.markAsPaid(installment);
+            PaymentFormData payment = result.get();
+            creditInstallmentService.markAsPaid(
+                    installment,
+                    payment.receivedBy(),
+                    payment.paymentMethod(),
+                    payment.notes()
+            );
             loadInstallments();
             messageLabel.setText("Parcela marcada como paga.");
         } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
@@ -251,12 +266,77 @@ public class CreditController {
                 new Label("Vencimento: " + formatDate(installment)),
                 new Label("Valor: " + formatMoney(installment.getAmount())),
                 new Label("Status: " + formatStatus(installment)),
-                new Label("Venda ID: #" + installment.getSaleId())
+                new Label("Venda ID: #" + installment.getSaleId()),
+                new Label("Saldo em aberto do cliente: " + formatMoney(
+                        creditInstallmentService.getOpenBalanceByCustomer(installment.getCustomerId())
+                ))
         );
+        CreditPayment payment = "PAID".equals(installment.getStatus())
+                ? creditInstallmentService.getPayment(installment)
+                : null;
+        if (payment != null) {
+            content.getChildren().addAll(
+                    new Label("Recebido por: " + displayValue(payment.receivedBy())),
+                    new Label("Forma de recebimento: " + displayValue(payment.paymentMethod())),
+                    new Label("Recebido em: " + payment.receivedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))),
+                    new Label("Observação: " + displayValue(payment.notes()))
+            );
+        }
+        List<CreditPayment> paymentHistory = creditInstallmentService.listPaymentsByCustomer(installment.getCustomerId());
+        if (!paymentHistory.isEmpty()) {
+            Label historyTitle = new Label("Histórico de recebimentos do cliente");
+            historyTitle.getStyleClass().add("panel-title");
+            content.getChildren().add(historyTitle);
+            for (CreditPayment historyPayment : paymentHistory) {
+                content.getChildren().add(new Label(
+                        historyPayment.receivedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                                + " · " + formatMoney(historyPayment.amount())
+                                + " · " + historyPayment.paymentMethod()
+                                + " · " + historyPayment.receivedBy()
+                ));
+            }
+        }
         content.getStyleClass().add("dialog-content");
         content.setPrefWidth(360);
         dialog.getDialogPane().setContent(content);
         dialog.showAndWait();
+    }
+
+    private Optional<PaymentFormData> showPaymentDialog(CreditInstallment installment) {
+        Dialog<PaymentFormData> dialog = new Dialog<>();
+        dialog.setTitle("Registrar recebimento");
+        dialog.setHeaderText("Parcela " + formatInstallment(installment) + " — " + formatMoney(installment.getAmount()));
+        dialog.initOwner(installmentsTable.getScene().getWindow());
+        addDialogStyles(dialog);
+
+        ButtonType confirm = new ButtonType("Confirmar pagamento", ButtonType.OK.getButtonData());
+        dialog.getDialogPane().getButtonTypes().addAll(confirm, ButtonType.CANCEL);
+
+        TextField receivedByField = new TextField("Operador");
+        ChoiceBox<String> paymentMethodChoice = new ChoiceBox<>(FXCollections.observableArrayList(
+                "Dinheiro", "PIX", "Cartão crédito", "Cartão débito"
+        ));
+        paymentMethodChoice.setValue("Dinheiro");
+        TextArea notesArea = new TextArea();
+        notesArea.setPromptText("Observação (opcional)");
+        notesArea.setPrefRowCount(3);
+
+        GridPane content = new GridPane();
+        content.setHgap(10);
+        content.setVgap(10);
+        content.getStyleClass().add("dialog-content");
+        content.add(new Label("Recebido por"), 0, 0);
+        content.add(receivedByField, 1, 0);
+        content.add(new Label("Forma"), 0, 1);
+        content.add(paymentMethodChoice, 1, 1);
+        content.add(new Label("Observação"), 0, 2);
+        content.add(notesArea, 1, 2);
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(button -> button == confirm
+                ? new PaymentFormData(receivedByField.getText(), paymentMethodChoice.getValue(), notesArea.getText())
+                : null);
+        return dialog.showAndWait();
     }
 
     private void addDialogStyles(Dialog<?> dialog) {
@@ -313,5 +393,8 @@ public class CreditController {
     private String displayValue(String value) {
         String normalizedValue = value == null ? "" : value.trim();
         return normalizedValue.isBlank() ? "—" : normalizedValue;
+    }
+
+    private record PaymentFormData(String receivedBy, String paymentMethod, String notes) {
     }
 }

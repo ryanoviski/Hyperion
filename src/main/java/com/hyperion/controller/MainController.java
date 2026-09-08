@@ -1,16 +1,20 @@
 package com.hyperion.controller;
 
 import com.hyperion.exception.ApplicationResourceException;
+import com.hyperion.util.ApplicationLogger;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
 
 public class MainController {
 
@@ -206,9 +210,21 @@ public class MainController {
             }
 
             contentContainer.getChildren().setAll(content);
-        } catch (IOException exception) {
-            throw new ApplicationResourceException("Não foi possível carregar a tela: " + fxmlPath, exception);
+        } catch (IOException | RuntimeException exception) {
+            ApplicationLogger.getLogger().log(Level.SEVERE, "Falha ao carregar a tela " + fxmlPath, exception);
+            showContentLoadFailure();
         }
+    }
+
+    private void showContentLoadFailure() {
+        Label title = new Label("Não foi possível carregar esta tela.");
+        title.getStyleClass().add("page-title");
+        Label message = new Label("Tente abrir novamente. Se o problema persistir, envie o arquivo de log ao suporte.");
+        message.setWrapText(true);
+        message.getStyleClass().add("page-subtitle");
+        VBox fallback = new VBox(10, title, message);
+        fallback.getStyleClass().add("content-area");
+        contentContainer.getChildren().setAll(fallback);
     }
 
     private void setActiveButton(Button activeButton) {

@@ -11,6 +11,7 @@ public class Product {
     private BigDecimal price;
     private BigDecimal cost;
     private int stockQuantity;
+    private int minimumStock;
     private String category;
     private String barcode;
     private String supplier;
@@ -28,11 +29,26 @@ public class Product {
             String barcode,
             String supplier
     ) {
+        this(name, description, price, cost, stockQuantity, 0, category, barcode, supplier);
+    }
+
+    public Product(
+            String name,
+            String description,
+            BigDecimal price,
+            BigDecimal cost,
+            int stockQuantity,
+            int minimumStock,
+            String category,
+            String barcode,
+            String supplier
+    ) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.cost = cost;
         this.stockQuantity = stockQuantity;
+        this.minimumStock = minimumStock;
         this.category = category;
         this.barcode = barcode;
         this.supplier = supplier;
@@ -53,12 +69,31 @@ public class Product {
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
+        this(id, name, description, price, cost, stockQuantity, 0, category, barcode, supplier, active, createdAt, updatedAt);
+    }
+
+    public Product(
+            Long id,
+            String name,
+            String description,
+            BigDecimal price,
+            BigDecimal cost,
+            int stockQuantity,
+            int minimumStock,
+            String category,
+            String barcode,
+            String supplier,
+            boolean active,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.cost = cost;
         this.stockQuantity = stockQuantity;
+        this.minimumStock = minimumStock;
         this.category = category;
         this.barcode = barcode;
         this.supplier = supplier;
@@ -89,6 +124,14 @@ public class Product {
 
     public int getStockQuantity() {
         return stockQuantity;
+    }
+
+    public int getMinimumStock() {
+        return minimumStock;
+    }
+
+    public boolean isLowStock() {
+        return stockQuantity <= minimumStock;
     }
 
     public String getCategory() {

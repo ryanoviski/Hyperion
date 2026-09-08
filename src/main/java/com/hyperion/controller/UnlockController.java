@@ -1,6 +1,7 @@
 package com.hyperion.controller;
 
 import com.hyperion.exception.HyperionException;
+import com.hyperion.model.PinAuthenticationResult;
 
 import com.hyperion.service.AppSettingsService;
 import com.hyperion.util.SceneManager;
@@ -29,8 +30,11 @@ public class UnlockController {
         }
 
         try {
-            if (!appSettingsService.verifyPin(pin)) {
-                showError("PIN inválido.");
+            PinAuthenticationResult result = appSettingsService.authenticatePin(pin);
+            if (!result.authenticated()) {
+                showError(result.retryAfterSeconds() > 0
+                        ? "PIN inválido ou temporariamente bloqueado. Aguarde " + result.retryAfterSeconds() + " segundo(s)."
+                        : "PIN inválido.");
                 pinField.clear();
                 pinField.requestFocus();
                 return;
@@ -38,6 +42,7 @@ public class UnlockController {
 
             clearError();
             SceneManager.switchTo("/fxml/main-view.fxml");
+            com.hyperion.util.SessionManager.getInstance().unlock();
         } catch (HyperionException exception) {
             showError(exception.getMessage());
         }

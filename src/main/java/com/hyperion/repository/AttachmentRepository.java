@@ -102,6 +102,20 @@ public class AttachmentRepository {
         }
     }
 
+    public void delete(Long id) {
+        String sql = "DELETE FROM attachments WHERE id = ?;";
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, id);
+            if (statement.executeUpdate() != 1) {
+                throw new PersistenceException("Não foi possível localizar o anexo para remoção.");
+            }
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível remover o anexo.", exception);
+        }
+    }
+
     public int countByEntity(String module, Long entityId) {
         String sql = """
                 SELECT COUNT(*) AS total
