@@ -7,10 +7,14 @@ import com.hyperion.service.BackupService;
 import com.hyperion.service.AppSettingsService;
 import com.hyperion.util.ThemeManager;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.stage.FileChooser;
 
+import java.io.File;
 import java.nio.file.Path;
 
 public class SettingsController {
@@ -80,6 +84,44 @@ public class SettingsController {
         try {
             Path backupFile = backupService.createDatabaseBackup();
             showMessage("Backup criado em: " + backupFile.toAbsolutePath());
+        } catch (HyperionException | IllegalStateException exception) {
+            showMessage(exception.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleRestoreBackup() {
+        try {
+            backupService.listBackups();
+        } catch (HyperionException exception) {
+            showMessage(exception.getMessage());
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecionar backup do Hyperion");
+        fileChooser.setInitialDirectory(backupService.getBackupDirectory().toFile());
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Backups do Hyperion", "*.db"));
+
+        File selectedFile = fileChooser.showOpenDialog(messageLabel.getScene().getWindow());
+        if (selectedFile == null) {
+            return;
+        }
+
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Restaurar backup");
+        confirmation.setHeaderText("Todos os dados atuais serão substituídos.");
+        confirmation.setContentText("Um backup de segurança será criado antes da restauração. Deseja continuar?");
+        confirmation.initOwner(messageLabel.getScene().getWindow());
+        ThemeManager.applyTo(confirmation.getDialogPane());
+
+        if (confirmation.showAndWait().filter(ButtonType.OK::equals).isEmpty()) {
+            return;
+        }
+
+        try {
+            backupService.restoreDatabaseBackup(selectedFile.toPath());
+            showMessage("Backup restaurado. Reinicie o Hyperion para carregar todos os dados restaurados.");
         } catch (HyperionException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
