@@ -1,6 +1,7 @@
 package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
+import com.hyperion.util.SqliteTimestamp;
 import com.hyperion.model.Product;
 import com.hyperion.exception.EntityNotFoundException;
 import com.hyperion.util.Money;
@@ -262,8 +263,8 @@ public class ProductRepository {
                 resultSet.getString("barcode"),
                 resultSet.getString("supplier"),
                 resultSet.getInt("active") == 1,
-                LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME),
-                LocalDateTime.parse(resultSet.getString("updated_at"), SQLITE_DATE_TIME)
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("created_at"), "criação do produto"),
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("updated_at"), "atualização do produto")
         );
     }
 }

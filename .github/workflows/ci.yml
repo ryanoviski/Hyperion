@@ -14,11 +14,21 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - name: Build and test
-        run: mvn -B -ntp verify
+      - name: Build portable Windows package and test
+        shell: powershell
+        run: .\scripts\package-windows.ps1 -Type app-image
+      - name: Smoke-test packaged application
+        shell: powershell
+        run: .\scripts\verify-windows-package.ps1 -ApplicationDirectory .\target\installer\Hyperion -SmokeTest
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: surefire-reports
           path: target/surefire-reports
+      - name: Upload portable Windows package
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyperion-windows-app-image
+          path: target/installer/Hyperion

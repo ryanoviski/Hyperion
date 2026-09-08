@@ -3,6 +3,7 @@ package com.hyperion.repository;
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Attachment;
 import com.hyperion.exception.PersistenceException;
+import com.hyperion.util.SqliteTimestamp;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -152,7 +153,7 @@ public class AttachmentRepository {
                 resultSet.getString("file_path"),
                 resultSet.getString("content_type"),
                 resultSet.getLong("file_size"),
-                LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME)
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("created_at"), "criação do anexo")
         );
     }
 }

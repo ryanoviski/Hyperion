@@ -1,6 +1,7 @@
 package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
+import com.hyperion.util.SqliteTimestamp;
 import com.hyperion.model.Customer;
 import com.hyperion.exception.EntityNotFoundException;
 import com.hyperion.exception.PersistenceException;
@@ -225,8 +226,8 @@ public class CustomerRepository {
                 resultSet.getString("address"),
                 resultSet.getString("notes"),
                 resultSet.getInt("active") == 1,
-                LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME),
-                LocalDateTime.parse(resultSet.getString("updated_at"), SQLITE_DATE_TIME)
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("created_at"), "criação do cliente"),
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("updated_at"), "atualização do cliente")
         );
     }
 }

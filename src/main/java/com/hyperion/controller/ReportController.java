@@ -234,6 +234,15 @@ public class ReportController {
             paymentMethodsTable.setItems(FXCollections.observableArrayList(currentPayments));
             topProductsTable.setItems(FXCollections.observableArrayList(currentProducts));
         } catch (HyperionException | IllegalArgumentException exception) {
+            currentSummary = new SalesReportSummary(0, BigDecimal.ZERO, BigDecimal.ZERO);
+            currentTotalSales = BigDecimal.ZERO;
+            currentPayments = List.of();
+            currentProducts = List.of();
+            totalSalesLabel.setText(formatMoney(BigDecimal.ZERO));
+            salesCountLabel.setText("0");
+            averageTicketLabel.setText(formatMoney(BigDecimal.ZERO));
+            paymentMethodsTable.setItems(FXCollections.observableArrayList());
+            topProductsTable.setItems(FXCollections.observableArrayList());
             messageLabel.setText(exception.getMessage());
         }
     }
@@ -307,7 +316,7 @@ public class ReportController {
             LocalDate startDate = startDatePicker.getValue();
             LocalDate endDate = endDatePicker.getValue();
             if (startDate == null || endDate == null) {
-                return new DateRange(null, null);
+                throw new IllegalArgumentException("Informe a data inicial e a data final do período personalizado.");
             }
             return new DateRange(startDate, endDate.plusDays(1));
         }
@@ -329,14 +338,18 @@ public class ReportController {
             return;
         }
 
-        Path file = selectedFile.toPath();
-        switch (extension) {
-            case "csv" -> reportExportService.exportCsv(file, currentSummary, currentPayments, currentProducts);
-            case "xlsx" -> reportExportService.exportExcel(file, currentSummary, currentPayments, currentProducts);
-            case "pdf" -> reportExportService.exportPdf(file, currentSummary, currentPayments, currentProducts);
-            default -> throw new IllegalArgumentException("Formato de exportação não suportado.");
+        try {
+            Path file = selectedFile.toPath();
+            switch (extension) {
+                case "csv" -> reportExportService.exportCsv(file, currentSummary, currentPayments, currentProducts);
+                case "xlsx" -> reportExportService.exportExcel(file, currentSummary, currentPayments, currentProducts);
+                case "pdf" -> reportExportService.exportPdf(file, currentSummary, currentPayments, currentProducts);
+                default -> throw new IllegalArgumentException("Formato de exportação não suportado.");
+            }
+            messageLabel.setText("Relatório exportado em " + file.toAbsolutePath() + ".");
+        } catch (HyperionException | IllegalArgumentException exception) {
+            messageLabel.setText(exception.getMessage());
         }
-        messageLabel.setText("Relatório exportado em " + file.toAbsolutePath() + ".");
     }
 
     private String selectedFilterValue(ChoiceBox<String> choiceBox, String allValue) {

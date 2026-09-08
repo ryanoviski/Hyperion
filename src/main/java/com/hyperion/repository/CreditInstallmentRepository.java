@@ -6,6 +6,7 @@ import com.hyperion.model.CreditPayment;
 import com.hyperion.exception.DataCorruptionException;
 import com.hyperion.exception.PersistenceException;
 import com.hyperion.util.Money;
+import com.hyperion.util.SqliteTimestamp;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -142,7 +143,7 @@ public class CreditInstallmentRepository {
                 FROM credit_installments
                 WHERE status = 'PAID'
                   AND paid_at IS NOT NULL
-                  AND strftime('%Y-%m', paid_at) = strftime('%Y-%m', 'now', 'localtime');
+                  AND strftime('%Y-%m', paid_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime');
                 """;
 
         return queryTotal(sql);
@@ -310,7 +311,7 @@ public class CreditInstallmentRepository {
                 resultSet.getString("received_by"),
                 resultSet.getString("payment_method"),
                 resultSet.getString("notes"),
-                LocalDateTime.parse(resultSet.getString("received_at"), SQLITE_DATE_TIME)
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("received_at"), "recebimento da parcela")
         );
     }
 }

@@ -5,6 +5,7 @@ import com.hyperion.model.Expense;
 import com.hyperion.exception.EntityNotFoundException;
 import com.hyperion.exception.PersistenceException;
 import com.hyperion.util.Money;
+import com.hyperion.util.SqliteTimestamp;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -94,12 +95,31 @@ public class ExpenseRepository {
         }
     }
 
+    public List<Expense> findAll() {
+        String sql = """
+                SELECT id, description, category, amount, created_at
+                FROM expenses
+                ORDER BY created_at DESC, id DESC;
+                """;
+        try (Connection connection = DatabaseConfig.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            List<Expense> expenses = new ArrayList<>();
+            while (resultSet.next()) {
+                expenses.add(mapExpense(resultSet));
+            }
+            return expenses;
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível listar todas as despesas.", exception);
+        }
+    }
+
     public List<Expense> findByDateRange(LocalDate startDate, LocalDate endDateExclusive) {
         String sql = """
                 SELECT id, description, category, amount, created_at
                 FROM expenses
-                WHERE DATE(created_at) >= DATE(?)
-                  AND DATE(created_at) < DATE(?)
+                WHERE DATE(created_at, 'localtime') >= DATE(?)
+                  AND DATE(created_at, 'localtime') < DATE(?)
                 ORDER BY created_at DESC, id DESC;
                 """;
         try (Connection connection = DatabaseConfig.getConnection();
@@ -131,7 +151,7 @@ public class ExpenseRepository {
         String sql = """
                 SELECT COALESCE(SUM(amount), 0) AS total
                 FROM expenses
-                WHERE strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
+                WHERE strftime('%Y-%m', created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime');
                 """;
 
         return queryTotal(sql);
@@ -158,7 +178,7 @@ public class ExpenseRepository {
                 resultSet.getString("description"),
                 resultSet.getString("category"),
                 Money.getCents(resultSet, "amount"),
-                LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME)
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("created_at"), "criação da despesa")
         );
     }
 }

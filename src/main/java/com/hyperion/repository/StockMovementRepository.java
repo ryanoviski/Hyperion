@@ -4,6 +4,7 @@ import com.hyperion.config.DatabaseConfig;
 import com.hyperion.exception.InsufficientStockException;
 import com.hyperion.model.StockMovement;
 import com.hyperion.exception.PersistenceException;
+import com.hyperion.util.SqliteTimestamp;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -103,7 +104,7 @@ public class StockMovementRepository {
                 resultSet.getString("type"),
                 resultSet.getInt("quantity"),
                 resultSet.getString("notes"),
-                LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME)
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("created_at"), "criação da movimentação")
         );
     }
 }

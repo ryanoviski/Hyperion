@@ -341,25 +341,38 @@ public class FinanceController {
     }
 
     private void loadFinanceData() {
-        FinancialSummary summary = financeService.getSummary();
-        List<Expense> expenses = resolveCustomPeriodExpenses();
+        try {
+            FinancialSummary summary = financeService.getSummary();
+            List<Expense> expenses = resolvePeriodExpenses();
 
-        totalIncomeLabel.setText(formatMoney(summary.getTotalIncome()));
-        totalExpensesLabel.setText(formatMoney(summary.getTotalExpenses()));
-        currentBalanceLabel.setText(formatMoney(summary.getCurrentBalance()));
-        monthlyProfitLabel.setText(formatMoney(summary.getMonthlyProfit()));
-        allExpenses.setAll(expenses);
-        applyPeriodFilter();
+            totalIncomeLabel.setText(formatMoney(summary.getTotalIncome()));
+            totalExpensesLabel.setText(formatMoney(summary.getTotalExpenses()));
+            currentBalanceLabel.setText(formatMoney(summary.getCurrentBalance()));
+            monthlyProfitLabel.setText(formatMoney(summary.getMonthlyProfit()));
+            allExpenses.setAll(expenses);
+            applyPeriodFilter();
+        } catch (HyperionException | IllegalArgumentException exception) {
+            allExpenses.clear();
+            expensesTable.setItems(FXCollections.observableArrayList());
+            showMessage(exception.getMessage());
+        }
     }
 
-    private List<Expense> resolveCustomPeriodExpenses() {
+    private List<Expense> resolvePeriodExpenses() {
+        if (ALL_PERIODS_FILTER.equals(periodChoiceBox.getValue())) {
+            return financeService.listAllExpenses();
+        }
         if (!CUSTOM_PERIOD_FILTER.equals(periodChoiceBox.getValue())) {
-            return financeService.listLatestExpenses();
+            YearMonth currentMonth = YearMonth.now();
+            return financeService.listExpenses(currentMonth.atDay(1), currentMonth.atEndOfMonth());
         }
         LocalDate startDate = startDatePicker.getValue();
         LocalDate endDate = endDatePicker.getValue();
-        if (startDate == null || endDate == null) {
+        if (startDate == null && endDate == null) {
             return List.of();
+        }
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Informe a data inicial e a data final do período personalizado.");
         }
         return financeService.listExpenses(startDate, endDate);
     }

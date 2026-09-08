@@ -17,6 +17,7 @@ import com.hyperion.exception.SaleAlreadyCancelledException;
 import com.hyperion.exception.SaleCancellationNotAllowedException;
 import com.hyperion.exception.PersistenceException;
 import com.hyperion.util.Money;
+import com.hyperion.util.SqliteTimestamp;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -260,7 +261,7 @@ public class SaleRepository {
                        COALESCE(SUM(total), 0) AS total
                 FROM sales
                 WHERE status = 'COMPLETED'
-                  AND DATE(created_at) = DATE('now', 'localtime');
+                  AND DATE(created_at, 'localtime') = DATE('now', 'localtime');
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection();
@@ -295,7 +296,7 @@ public class SaleRepository {
                 SELECT COALESCE(SUM(total), 0) AS total
                 FROM sales
                 WHERE status = 'COMPLETED'
-                  AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
+                  AND strftime('%Y-%m', created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime');
                 """;
 
         return queryTotal(sql);
@@ -318,7 +319,7 @@ public class SaleRepository {
                 FROM sales
                 WHERE status = 'COMPLETED'
                   AND payment_method NOT IN ('Crediário', 'Crediario')
-                  AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now', 'localtime');
+                  AND strftime('%Y-%m', created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime');
                 """;
 
         return queryTotal(sql);
@@ -653,7 +654,7 @@ public class SaleRepository {
         StringBuilder where = new StringBuilder("WHERE s.status = 'COMPLETED'");
         List<String> parameters = new ArrayList<>();
         if (filter.startDate() != null) {
-            where.append(" AND DATE(s.created_at) >= DATE(?) AND DATE(s.created_at) < DATE(?)");
+            where.append(" AND DATE(s.created_at, 'localtime') >= DATE(?) AND DATE(s.created_at, 'localtime') < DATE(?)");
             parameters.add(filter.startDate().toString());
             parameters.add(filter.endDateExclusive().toString());
         }
@@ -748,7 +749,7 @@ public class SaleRepository {
             return "";
         }
 
-        return "WHERE DATE(" + columnName + ") >= DATE(?) AND DATE(" + columnName + ") < DATE(?)";
+        return "WHERE DATE(" + columnName + ", 'localtime') >= DATE(?) AND DATE(" + columnName + ", 'localtime') < DATE(?)";
     }
 
     private String buildCompletedSalesDateWhereClause(LocalDate startDate, LocalDate endDateExclusive) {
@@ -769,7 +770,7 @@ public class SaleRepository {
         }
 
         return "WHERE " + statusColumn + " = 'COMPLETED'"
-                + " AND DATE(" + columnName + ") >= DATE(?) AND DATE(" + columnName + ") < DATE(?)";
+                + " AND DATE(" + columnName + ", 'localtime') >= DATE(?) AND DATE(" + columnName + ", 'localtime') < DATE(?)";
     }
 
     private PreparedStatement prepareDateFilteredStatement(
@@ -797,7 +798,7 @@ public class SaleRepository {
                 Money.getCents(resultSet, "discount"),
                 Money.getCents(resultSet, "total"),
                 resultSet.getString("payment_method"),
-                LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME),
+                SqliteTimestamp.toLocalDateTime(resultSet.getString("created_at"), "criação da venda"),
                 resultSet.getString("status"),
                 parseDateTime(resultSet.getString("cancelled_at")),
                 resultSet.getString("cancellation_reason"),
@@ -806,7 +807,7 @@ public class SaleRepository {
     }
 
     private LocalDateTime parseDateTime(String value) {
-        return value == null ? null : LocalDateTime.parse(value, SQLITE_DATE_TIME);
+        return value == null ? null : SqliteTimestamp.toLocalDateTime(value, "cancelamento da venda");
     }
 
     private String findSaleStatus(Connection connection, String sql, Long saleId) throws SQLException {

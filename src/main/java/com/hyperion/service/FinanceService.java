@@ -70,6 +70,10 @@ public class FinanceService {
         return expenseRepository.findLatest();
     }
 
+    public List<Expense> listAllExpenses() {
+        return expenseRepository.findAll();
+    }
+
     public List<Expense> listExpenses(LocalDate startDate, LocalDate endDateInclusive) {
         if (startDate == null || endDateInclusive == null || endDateInclusive.isBefore(startDate)) {
             throw new ValidationException("Informe um período de despesas válido.");

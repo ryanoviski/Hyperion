@@ -111,7 +111,9 @@ public class SettingsController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecionar backup do Hyperion");
         fileChooser.setInitialDirectory(backupService.getBackupDirectory().toFile());
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Backups do Hyperion", "*.db"));
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Backups do Hyperion", "*.zip", "*.db")
+        );
 
         File selectedFile = fileChooser.showOpenDialog(messageLabel.getScene().getWindow());
         if (selectedFile == null) {
@@ -130,8 +132,10 @@ public class SettingsController {
         }
 
         try {
-            backupService.restoreDatabaseBackup(selectedFile.toPath());
-            showMessage("Backup restaurado. Reinicie o Hyperion para carregar todos os dados restaurados.");
+            BackupService.RestoreResult result = backupService.restoreDatabaseBackup(selectedFile.toPath());
+            showMessage(result.attachmentsRestored()
+                    ? "Backup e anexos restaurados. Reinicie o Hyperion para carregar todos os dados restaurados."
+                    : "Backup legado restaurado. Os anexos atuais foram preservados; reinicie o Hyperion para carregar os dados.");
         } catch (HyperionException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }

@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string]$ApplicationDirectory
+    [string]$ApplicationDirectory,
+    [switch]$SmokeTest,
+    [switch]$RequireSignature
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,6 +17,35 @@ $expectedFiles = @(
 $missingFiles = $expectedFiles | Where-Object { -not (Test-Path -LiteralPath $_) }
 if ($missingFiles) {
     throw "Pacote inválido. Arquivos ausentes: $($missingFiles -join ', ')"
+}
+
+if ($RequireSignature) {
+    $signature = Get-AuthenticodeSignature -LiteralPath (Join-Path $applicationPath 'Hyperion.exe')
+    if ($signature.Status -ne 'Valid') {
+        throw "A assinatura do executável é inválida: $($signature.Status)"
+    }
+}
+
+if ($SmokeTest) {
+    $healthDataDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("hyperion-healthcheck-" + [Guid]::NewGuid())
+    try {
+        $launcher = Start-Process -FilePath (Join-Path $applicationPath 'Hyperion.exe') `
+            -ArgumentList '--healthcheck', ("--data-dir=" + $healthDataDirectory) -PassThru
+        $deadline = [DateTime]::UtcNow.AddSeconds(30)
+        while (-not (Test-Path -LiteralPath (Join-Path $healthDataDirectory 'hyperion.db')) -and [DateTime]::UtcNow -lt $deadline) {
+            Start-Sleep -Milliseconds 250
+        }
+        if (-not (Test-Path -LiteralPath (Join-Path $healthDataDirectory 'hyperion.db'))) {
+            throw "O teste de inicialização não criou o banco de dados isolado esperado."
+        }
+    } finally {
+        if (-not $launcher.HasExited) {
+            $launcher.WaitForExit(5000) | Out-Null
+        }
+        if (Test-Path -LiteralPath $healthDataDirectory) {
+            Remove-Item -LiteralPath $healthDataDirectory -Recurse -Force
+        }
+    }
 }
 
 Write-Output "Pacote Windows válido em: $applicationPath"
