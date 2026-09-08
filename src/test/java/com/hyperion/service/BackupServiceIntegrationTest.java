@@ -1,15 +1,20 @@
 package com.hyperion.service;
 
 import com.hyperion.model.Attachment;
+import com.hyperion.exception.BackupException;
 import com.hyperion.support.DatabaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.math.BigDecimal;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BackupServiceIntegrationTest extends DatabaseIntegrationTest {
@@ -50,5 +55,34 @@ class BackupServiceIntegrationTest extends DatabaseIntegrationTest {
                 .getFirst();
         assertTrue(Files.isRegularFile(new AttachmentService().resolveAttachmentPath(restoredAttachment)));
         assertTrue(backupService.listBackups().size() >= 2);
+    }
+
+    @Test
+    void rejectsAttachmentEntriesThatEscapeTheAttachmentsDirectory() throws Exception {
+        CustomerService customerService = new CustomerService();
+        customerService.createCustomer("Cliente do backup", "", "", "", "", "");
+        BackupService backupService = new BackupService();
+        Path validBackup = backupService.createDatabaseBackup();
+        Path tamperedBackup = testDirectory.resolve("backup-adulterado.zip");
+
+        try (ZipFile source = new ZipFile(validBackup.toFile());
+             ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(tamperedBackup))) {
+            Enumeration<? extends ZipEntry> entries = source.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                output.putNextEntry(new ZipEntry(entry.getName()));
+                if (!entry.isDirectory()) {
+                    try (var input = source.getInputStream(entry)) {
+                        input.transferTo(output);
+                    }
+                }
+                output.closeEntry();
+            }
+            output.putNextEntry(new ZipEntry("attachments/../database/altered.db"));
+            output.write("conteúdo adulterado".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            output.closeEntry();
+        }
+
+        assertThrows(BackupException.class, () -> backupService.restoreDatabaseBackup(tamperedBackup));
     }
 }

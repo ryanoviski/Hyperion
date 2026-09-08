@@ -328,7 +328,7 @@ public class CreditController {
         amountColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatMoney(cell.getValue().getAmount())));
         TableColumn<CreditInstallment, String> statusColumn = new TableColumn<>("Status");
         statusColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatStatus(cell.getValue())));
-        table.getColumns().addAll(saleColumn, installmentColumn, dueDateColumn, amountColumn, statusColumn);
+        table.getColumns().setAll(List.of(saleColumn, installmentColumn, dueDateColumn, amountColumn, statusColumn));
         table.setItems(FXCollections.observableArrayList(installments));
         return table;
     }

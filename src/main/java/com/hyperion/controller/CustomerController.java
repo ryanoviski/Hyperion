@@ -407,7 +407,7 @@ public class CustomerController {
                 cellData.getValue().isCancelled() ? "Cancelada" : "Concluída"
         ));
 
-        purchasesTable.getColumns().addAll(dateColumn, paymentColumn, totalColumn, discountColumn, statusColumn);
+        purchasesTable.getColumns().setAll(List.of(dateColumn, paymentColumn, totalColumn, discountColumn, statusColumn));
         purchasesTable.setItems(FXCollections.observableArrayList(saleService.listCustomerPurchases(customer.getId())));
 
         if (purchasesTable.getItems().isEmpty()) {

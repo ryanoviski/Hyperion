@@ -221,7 +221,7 @@ public class StockController {
         supplierColumn.setPrefWidth(180);
         supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getSupplier())));
 
-        table.getColumns().addAll(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn);
+        table.getColumns().setAll(List.of(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn));
         return table;
     }
 

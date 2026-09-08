@@ -15,6 +15,7 @@ import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -89,6 +90,10 @@ public class AttachmentService {
         }
 
         return attachmentRepository.countByEntity(normalize(module), entityId);
+    }
+
+    public Map<Long, Integer> countAttachments(String module, List<Long> entityIds) {
+        return attachmentRepository.countByEntities(normalize(module), entityIds);
     }
 
     public Path resolveAttachmentPath(Attachment attachment) {

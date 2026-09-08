@@ -5,10 +5,12 @@ import com.hyperion.exception.HyperionException;
 import com.hyperion.model.AppTheme;
 import com.hyperion.service.BackupService;
 import com.hyperion.service.AppSettingsService;
+import com.hyperion.util.AsyncUiTask;
 import com.hyperion.util.ThemeManager;
 import com.hyperion.util.ConfirmationDialog;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
@@ -43,6 +45,14 @@ public class SettingsController {
 
     @FXML
     private ChoiceBox<AppTheme> themeChoiceBox;
+
+    @FXML
+    private Button createBackupButton;
+
+    @FXML
+    private Button restoreBackupButton;
+
+    private boolean backupOperationRunning;
 
     @FXML
     private void initialize() {
@@ -91,12 +101,23 @@ public class SettingsController {
 
     @FXML
     private void handleCreateBackup() {
-        try {
-            Path backupFile = backupService.createDatabaseBackup();
-            showMessage("Backup criado em: " + backupFile.toAbsolutePath());
-        } catch (HyperionException | IllegalStateException exception) {
-            showMessage(exception.getMessage());
+        if (backupOperationRunning) {
+            return;
         }
+
+        setBackupOperationRunning(true, "Criando backup seguro. Aguarde...");
+        AsyncUiTask.run(
+                "criar backup",
+                backupService::createDatabaseBackup,
+                backupFile -> {
+                    setBackupOperationRunning(false, null);
+                    showMessage("Backup criado em: " + backupFile.toAbsolutePath());
+                },
+                exception -> {
+                    setBackupOperationRunning(false, null);
+                    showMessage(messageFor(exception));
+                }
+        );
     }
 
     @FXML
@@ -131,14 +152,21 @@ public class SettingsController {
             return;
         }
 
-        try {
-            BackupService.RestoreResult result = backupService.restoreDatabaseBackup(selectedFile.toPath());
-            showMessage(result.attachmentsRestored()
-                    ? "Backup e anexos restaurados. Reinicie o Hyperion para carregar todos os dados restaurados."
-                    : "Backup legado restaurado. Os anexos atuais foram preservados; reinicie o Hyperion para carregar os dados.");
-        } catch (HyperionException | IllegalStateException exception) {
-            showMessage(exception.getMessage());
-        }
+        setBackupOperationRunning(true, "Restaurando backup. Não feche o Hyperion...");
+        AsyncUiTask.run(
+                "restaurar backup",
+                () -> backupService.restoreDatabaseBackup(selectedFile.toPath()),
+                result -> {
+                    setBackupOperationRunning(false, null);
+                    showMessage(result.attachmentsRestored()
+                            ? "Backup e anexos restaurados. Reinicie o Hyperion para carregar todos os dados restaurados."
+                            : "Backup legado restaurado. Os anexos atuais foram preservados; reinicie o Hyperion para carregar os dados.");
+                },
+                exception -> {
+                    setBackupOperationRunning(false, null);
+                    showMessage(messageFor(exception));
+                }
+        );
     }
 
     private void updatePinStatus() {
@@ -175,6 +203,22 @@ public class SettingsController {
         currentPinField.clear();
         newPinField.clear();
         confirmPinField.clear();
+    }
+
+    private void setBackupOperationRunning(boolean running, String statusMessage) {
+        backupOperationRunning = running;
+        createBackupButton.setDisable(running);
+        restoreBackupButton.setDisable(running);
+        if (statusMessage != null) {
+            showMessage(statusMessage);
+        }
+    }
+
+    private String messageFor(Throwable exception) {
+        String message = exception == null ? null : exception.getMessage();
+        return message == null || message.isBlank()
+                ? "Não foi possível concluir a operação de backup. Consulte o arquivo de log para mais detalhes."
+                : message;
     }
 
     private void showMessage(String message) {

@@ -8,6 +8,7 @@ import com.hyperion.model.Expense;
 import com.hyperion.model.FinancialSummary;
 import com.hyperion.service.AttachmentService;
 import com.hyperion.service.FinanceService;
+import com.hyperion.util.AsyncUiTask;
 import com.hyperion.util.ThemeManager;
 import com.hyperion.util.ConfirmationDialog;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -49,8 +50,11 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class FinanceController {
 
@@ -66,9 +70,13 @@ public class FinanceController {
     private final FinanceService financeService = new FinanceService();
     private final AttachmentService attachmentService = new AttachmentService();
     private final ObservableList<Expense> allExpenses = FXCollections.observableArrayList();
+    private final AtomicLong financeLoadVersion = new AtomicLong();
 
     private Path selectedAttachmentPath;
     private String currentMonthFilter;
+    private Map<Long, Integer> attachmentCounts = Map.of();
+    private boolean financialOperationRunning;
+    private boolean attachmentPreviewRunning;
 
     @FXML
     private Label totalIncomeLabel;
@@ -96,6 +104,12 @@ public class FinanceController {
 
     @FXML
     private Button refreshButton;
+
+    @FXML
+    private Button addExpenseButton;
+
+    @FXML
+    private Button selectAttachmentButton;
 
     @FXML
     private Label attachmentLabel;
@@ -146,16 +160,28 @@ public class FinanceController {
     @FXML
     private void handleAddExpense() {
         try {
-            financeService.registerExpenseWithAttachment(
-                    descriptionField.getText(),
-                    categoryField.getText(),
-                    parseMoney(amountField.getText()),
-                    selectedAttachmentPath
-            );
+            if (financialOperationRunning) {
+                return;
+            }
 
-            clearForm();
-            loadFinanceData();
-            showMessage("Despesa registrada com sucesso.");
+            String description = descriptionField.getText();
+            String category = categoryField.getText();
+            BigDecimal amount = parseMoney(amountField.getText());
+            Path attachmentPath = selectedAttachmentPath;
+            setFinancialOperationRunning(true, "Registrando despesa...");
+            AsyncUiTask.run(
+                    "registrar despesa",
+                    () -> financeService.registerExpenseWithAttachment(description, category, amount, attachmentPath),
+                    ignored -> {
+                        setFinancialOperationRunning(false, null);
+                        clearForm();
+                        loadFinanceData("Despesa registrada com sucesso.");
+                    },
+                    exception -> {
+                        setFinancialOperationRunning(false, null);
+                        showMessage(messageFor(exception));
+                    }
+            );
         } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
             showMessage(exception.getMessage());
         }
@@ -181,13 +207,26 @@ public class FinanceController {
             return;
         }
 
-        try {
-            financeService.deleteExpense(expense);
-            loadFinanceData();
-            showMessage("Despesa removida com sucesso.");
-        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
-            showMessage(exception.getMessage());
+        if (financialOperationRunning) {
+            return;
         }
+
+        setFinancialOperationRunning(true, "Removendo despesa...");
+        AsyncUiTask.run(
+                "remover despesa",
+                () -> {
+                    financeService.deleteExpense(expense);
+                    return null;
+                },
+                ignored -> {
+                    setFinancialOperationRunning(false, null);
+                    loadFinanceData("Despesa removida com sucesso.");
+                },
+                exception -> {
+                    setFinancialOperationRunning(false, null);
+                    showMessage(messageFor(exception));
+                }
+        );
     }
 
     @FXML
@@ -201,17 +240,20 @@ public class FinanceController {
             return;
         }
 
-        List<Attachment> attachments = attachmentService.listAttachments(
-                AttachmentService.FINANCE_MODULE,
-                expense.getId()
+        showMessage("Carregando anexos...");
+        AsyncUiTask.run(
+                "carregar anexos",
+                () -> List.copyOf(attachmentService.listAttachments(AttachmentService.FINANCE_MODULE, expense.getId())),
+                attachments -> {
+                    if (attachments.isEmpty()) {
+                        showMessage("Esta despesa não possui anexos.");
+                        return;
+                    }
+                    messageLabel.setText("");
+                    showAttachmentsDialog(expense, attachments);
+                },
+                exception -> showMessage(messageFor(exception))
         );
-
-        if (attachments.isEmpty()) {
-            showMessage("Esta despesa não possui anexos.");
-            return;
-        }
-
-        showAttachmentsDialog(expense, attachments);
     }
 
     @FXML
@@ -236,8 +278,7 @@ public class FinanceController {
 
     @FXML
     private void handleRefresh() {
-        loadFinanceData();
-        showMessage("Financeiro atualizado.");
+        loadFinanceData("Financeiro atualizado.");
     }
 
     private void configureTableColumns() {
@@ -308,7 +349,7 @@ public class FinanceController {
                 }
 
                 Button attachmentButton = createIconButton("Ver anexos", EYE_ICON);
-                attachmentButton.setDisable(attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, expense.getId()) == 0);
+                attachmentButton.setDisable(attachmentCounts.getOrDefault(expense.getId(), 0) == 0);
                 attachmentButton.setOnAction(event -> handleViewAttachments(expense));
 
                 Button removeButton = createIconButton("Remover despesa", TRASH_ICON);
@@ -341,33 +382,65 @@ public class FinanceController {
     }
 
     private void loadFinanceData() {
-        try {
-            FinancialSummary summary = financeService.getSummary();
-            List<Expense> expenses = resolvePeriodExpenses();
-
-            totalIncomeLabel.setText(formatMoney(summary.getTotalIncome()));
-            totalExpensesLabel.setText(formatMoney(summary.getTotalExpenses()));
-            currentBalanceLabel.setText(formatMoney(summary.getCurrentBalance()));
-            monthlyProfitLabel.setText(formatMoney(summary.getMonthlyProfit()));
-            allExpenses.setAll(expenses);
-            applyPeriodFilter();
-        } catch (HyperionException | IllegalArgumentException exception) {
-            allExpenses.clear();
-            expensesTable.setItems(FXCollections.observableArrayList());
-            showMessage(exception.getMessage());
-        }
+        loadFinanceData(null);
     }
 
-    private List<Expense> resolvePeriodExpenses() {
-        if (ALL_PERIODS_FILTER.equals(periodChoiceBox.getValue())) {
+    private void loadFinanceData(String successMessage) {
+        String period = periodChoiceBox == null ? currentMonthFilter : periodChoiceBox.getValue();
+        LocalDate startDate = startDatePicker == null ? null : startDatePicker.getValue();
+        LocalDate endDate = endDatePicker == null ? null : endDatePicker.getValue();
+        long loadVersion = financeLoadVersion.incrementAndGet();
+        messageLabel.setText("Atualizando financeiro...");
+
+        AsyncUiTask.run(
+                "carregar financeiro",
+                () -> {
+                    FinancialSummary summary = financeService.getSummary();
+                    List<Expense> expenses = List.copyOf(resolvePeriodExpenses(period, startDate, endDate));
+                    List<Long> expenseIds = expenses.stream().map(Expense::getId).toList();
+                    Map<Long, Integer> counts = attachmentService.countAttachments(
+                            AttachmentService.FINANCE_MODULE,
+                            expenseIds
+                    );
+                    return new FinanceData(summary, expenses, Map.copyOf(counts));
+                },
+                financeData -> {
+                    if (loadVersion != financeLoadVersion.get()) {
+                        return;
+                    }
+                    applyFinanceData(financeData);
+                    messageLabel.setText(successMessage == null ? "" : successMessage);
+                },
+                exception -> {
+                    if (loadVersion == financeLoadVersion.get()) {
+                        allExpenses.clear();
+                        attachmentCounts = Map.of();
+                        expensesTable.setItems(FXCollections.observableArrayList());
+                        showMessage(messageFor(exception));
+                    }
+                }
+        );
+    }
+
+    private void applyFinanceData(FinanceData financeData) {
+        FinancialSummary summary = financeData.summary();
+        totalIncomeLabel.setText(formatMoney(summary.getTotalIncome()));
+        totalExpensesLabel.setText(formatMoney(summary.getTotalExpenses()));
+        currentBalanceLabel.setText(formatMoney(summary.getCurrentBalance()));
+        monthlyProfitLabel.setText(formatMoney(summary.getMonthlyProfit()));
+        attachmentCounts = financeData.attachmentCounts();
+        allExpenses.setAll(financeData.expenses());
+        expensesTable.setItems(FXCollections.observableArrayList(allExpenses));
+    }
+
+    private List<Expense> resolvePeriodExpenses(String period, LocalDate startDate, LocalDate endDate) {
+        if (ALL_PERIODS_FILTER.equals(period)) {
             return financeService.listAllExpenses();
         }
-        if (!CUSTOM_PERIOD_FILTER.equals(periodChoiceBox.getValue())) {
+        if (!CUSTOM_PERIOD_FILTER.equals(period)) {
             YearMonth currentMonth = YearMonth.now();
             return financeService.listExpenses(currentMonth.atDay(1), currentMonth.atEndOfMonth());
         }
-        LocalDate startDate = startDatePicker.getValue();
-        LocalDate endDate = endDatePicker.getValue();
         if (startDate == null && endDate == null) {
             return List.of();
         }
@@ -375,29 +448,6 @@ public class FinanceController {
             throw new IllegalArgumentException("Informe a data inicial e a data final do período personalizado.");
         }
         return financeService.listExpenses(startDate, endDate);
-    }
-
-    private void applyPeriodFilter() {
-        if (periodChoiceBox == null || currentMonthFilter == null) {
-            expensesTable.setItems(FXCollections.observableArrayList(allExpenses));
-            return;
-        }
-
-        if (ALL_PERIODS_FILTER.equals(periodChoiceBox.getValue())) {
-            expensesTable.setItems(FXCollections.observableArrayList(allExpenses));
-            return;
-        }
-
-        if (CUSTOM_PERIOD_FILTER.equals(periodChoiceBox.getValue())) {
-            expensesTable.setItems(FXCollections.observableArrayList(allExpenses));
-            return;
-        }
-
-        YearMonth currentMonth = YearMonth.now();
-        List<Expense> filteredExpenses = allExpenses.stream()
-                .filter(expense -> YearMonth.from(expense.getCreatedAt()).equals(currentMonth))
-                .toList();
-        expensesTable.setItems(FXCollections.observableArrayList(filteredExpenses));
     }
 
     private void showAttachmentsDialog(Expense expense, List<Attachment> attachments) {
@@ -452,17 +502,30 @@ public class FinanceController {
             return;
         }
 
-        try {
-            attachmentService.deleteAttachment(attachment);
-            attachmentsTable.getItems().remove(attachment);
-            loadFinanceData();
-            showMessage("Anexo removido com sucesso.");
-            if (attachmentsTable.getItems().isEmpty()) {
-                dialog.close();
-            }
-        } catch (HyperionException | IllegalArgumentException | IllegalStateException exception) {
-            showMessage(exception.getMessage());
+        if (financialOperationRunning) {
+            return;
         }
+
+        setFinancialOperationRunning(true, "Removendo anexo...");
+        AsyncUiTask.run(
+                "remover anexo",
+                () -> {
+                    attachmentService.deleteAttachment(attachment);
+                    return null;
+                },
+                ignored -> {
+                    setFinancialOperationRunning(false, null);
+                    attachmentsTable.getItems().remove(attachment);
+                    loadFinanceData("Anexo removido com sucesso.");
+                    if (attachmentsTable.getItems().isEmpty()) {
+                        dialog.close();
+                    }
+                },
+                exception -> {
+                    setFinancialOperationRunning(false, null);
+                    showMessage(messageFor(exception));
+                }
+        );
     }
 
     private TableView<Attachment> createAttachmentsTable() {
@@ -483,7 +546,7 @@ public class FinanceController {
         pathColumn.setPrefWidth(320);
         pathColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getFilePath())));
 
-        table.getColumns().addAll(nameColumn, sizeColumn, pathColumn);
+        table.getColumns().setAll(List.of(nameColumn, sizeColumn, pathColumn));
         return table;
     }
 
@@ -519,21 +582,51 @@ public class FinanceController {
     }
 
     private void showPdfPreviewDialog(Attachment attachment, Path filePath) {
-        VBox pagesContainer = new VBox(18);
-        pagesContainer.getStyleClass().add("dialog-content");
+        if (attachmentPreviewRunning) {
+            return;
+        }
+
+        attachmentPreviewRunning = true;
+        showMessage("Preparando visualização do PDF...");
+        AsyncUiTask.run(
+                "renderizar PDF",
+                () -> renderPdfPages(filePath),
+                pageImages -> {
+                    attachmentPreviewRunning = false;
+                    messageLabel.setText("");
+                    showPdfPreviewDialog(attachment, pageImages);
+                },
+                exception -> {
+                    attachmentPreviewRunning = false;
+                    showMessage(messageFor(exception));
+                }
+        );
+    }
+
+    private List<BufferedImage> renderPdfPages(Path filePath) {
+        List<BufferedImage> pageImages = new ArrayList<>();
 
         try (PDDocument document = Loader.loadPDF(filePath.toFile())) {
             PDFRenderer renderer = new PDFRenderer(document);
 
             for (int pageIndex = 0; pageIndex < document.getNumberOfPages(); pageIndex++) {
-                BufferedImage pageImage = renderer.renderImageWithDPI(pageIndex, 130);
-                ImageView pageView = new ImageView(toFxImage(pageImage));
-                pageView.setPreserveRatio(true);
-                pageView.setFitWidth(840);
-                pagesContainer.getChildren().add(pageView);
+                pageImages.add(renderer.renderImageWithDPI(pageIndex, 130));
             }
+            return pageImages;
         } catch (IOException exception) {
             throw new AttachmentPreviewException("Não foi possível renderizar o PDF.", exception);
+        }
+    }
+
+    private void showPdfPreviewDialog(Attachment attachment, List<BufferedImage> pageImages) {
+        VBox pagesContainer = new VBox(18);
+        pagesContainer.getStyleClass().add("dialog-content");
+
+        for (BufferedImage pageImage : pageImages) {
+            ImageView pageView = new ImageView(toFxImage(pageImage));
+            pageView.setPreserveRatio(true);
+            pageView.setFitWidth(840);
+            pagesContainer.getChildren().add(pageView);
         }
 
         ScrollPane scrollPane = new ScrollPane(pagesContainer);
@@ -625,8 +718,34 @@ public class FinanceController {
     }
 
     private String formatAttachmentCount(Expense expense) {
-        int count = attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, expense.getId());
+        int count = attachmentCounts.getOrDefault(expense.getId(), 0);
         return count == 0 ? "—" : String.valueOf(count);
+    }
+
+    private void setFinancialOperationRunning(boolean running, String message) {
+        financialOperationRunning = running;
+        addExpenseButton.setDisable(running);
+        selectAttachmentButton.setDisable(running);
+        clearAttachmentButton.setDisable(running || selectedAttachmentPath == null);
+        refreshButton.setDisable(running);
+        expensesTable.setDisable(running);
+        if (message != null) {
+            showMessage(message);
+        }
+    }
+
+    private String messageFor(Throwable exception) {
+        String message = exception == null ? null : exception.getMessage();
+        return message == null || message.isBlank()
+                ? "Não foi possível concluir a operação. Consulte o arquivo de log para mais detalhes."
+                : message;
+    }
+
+    private record FinanceData(
+            FinancialSummary summary,
+            List<Expense> expenses,
+            Map<Long, Integer> attachmentCounts
+    ) {
     }
 
     private String formatFileSize(long bytes) {

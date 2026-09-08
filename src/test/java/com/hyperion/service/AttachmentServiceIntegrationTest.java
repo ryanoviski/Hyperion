@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,6 +28,11 @@ class AttachmentServiceIntegrationTest extends DatabaseIntegrationTest {
         attachmentService.attachFile(AttachmentService.FINANCE_MODULE, expenseId, sourceFile);
 
         assertEquals(1, attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, expenseId));
+        assertEquals(Map.of(expenseId, 1), attachmentService.countAttachments(
+                AttachmentService.FINANCE_MODULE,
+                List.of(expenseId)
+        ));
+        assertTrue(attachmentService.countAttachments(AttachmentService.FINANCE_MODULE, List.of()).isEmpty());
         Attachment attachment = attachmentService.listAttachments(AttachmentService.FINANCE_MODULE, expenseId).getFirst();
         Path storedFile = attachmentService.resolveAttachmentPath(attachment);
         assertTrue(Files.isRegularFile(storedFile));

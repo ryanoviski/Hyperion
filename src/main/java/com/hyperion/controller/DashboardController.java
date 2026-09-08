@@ -2,6 +2,7 @@ package com.hyperion.controller;
 
 import com.hyperion.model.CreditInstallment;
 import com.hyperion.model.DailySalesSummary;
+import com.hyperion.model.FinancialSummary;
 import com.hyperion.model.Product;
 import com.hyperion.model.Sale;
 import com.hyperion.service.CreditInstallmentService;
@@ -9,6 +10,7 @@ import com.hyperion.service.CustomerService;
 import com.hyperion.service.FinanceService;
 import com.hyperion.service.ProductService;
 import com.hyperion.service.SaleService;
+import com.hyperion.util.AsyncUiTask;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -23,6 +25,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class DashboardController {
 
@@ -34,6 +37,7 @@ public class DashboardController {
     private final FinanceService financeService = new FinanceService();
     private final ProductService productService = new ProductService();
     private final SaleService saleService = new SaleService();
+    private final AtomicLong dashboardLoadVersion = new AtomicLong();
 
     @FXML
     private Label salesTodayValueLabel;
@@ -78,11 +82,12 @@ public class DashboardController {
     private Label emptyAlertsLabel;
 
     @FXML
+    private Label dashboardStatusLabel;
+
+    @FXML
     private void initialize() {
         configureLatestSalesTable();
-        loadDashboardData();
-        loadLatestSales();
-        loadCreditAlerts();
+        loadDashboard();
     }
 
     @FXML
@@ -129,30 +134,60 @@ public class DashboardController {
         latestSalesTable.setPlaceholder(new Label("Nenhuma venda registrada ainda."));
     }
 
-    private void loadDashboardData() {
-        int activeCustomers = customerService.listActiveCustomers().size();
-        List<Product> activeProducts = productService.listActiveProducts();
-        DailySalesSummary dailySalesSummary = saleService.getTodaySummary();
+    private void loadDashboard() {
+        long loadVersion = dashboardLoadVersion.incrementAndGet();
+        showDashboardStatus("Carregando informações do dashboard...");
+
+        AsyncUiTask.run(
+                "carregar dashboard",
+                () -> {
+                    List<Product> activeProducts = List.copyOf(productService.listActiveProducts());
+                    return new DashboardData(
+                            customerService.listActiveCustomers().size(),
+                            activeProducts,
+                            saleService.getTodaySummary(),
+                            financeService.getSummary(),
+                            List.copyOf(saleService.listLatestSales(8)),
+                            List.copyOf(creditInstallmentService.listPendingAlerts()),
+                            List.copyOf(productService.listLowStockProducts())
+                    );
+                },
+                dashboardData -> {
+                    if (loadVersion != dashboardLoadVersion.get()) {
+                        return;
+                    }
+                    applyDashboardData(dashboardData);
+                    showDashboardStatus("");
+                },
+                exception -> {
+                    if (loadVersion == dashboardLoadVersion.get()) {
+                        showDashboardStatus(messageFor(exception));
+                    }
+                }
+        );
+    }
+
+    private void applyDashboardData(DashboardData dashboardData) {
+        int activeCustomers = dashboardData.activeCustomers();
+        List<Product> activeProducts = dashboardData.activeProducts();
+        DailySalesSummary dailySalesSummary = dashboardData.dailySalesSummary();
+        FinancialSummary financialSummary = dashboardData.financialSummary();
 
         salesTodayValueLabel.setText(MONEY_FORMAT.format(dailySalesSummary.getTotal()));
         customersValueLabel.setText(String.valueOf(activeCustomers));
         productsValueLabel.setText(String.valueOf(activeProducts.size()));
-        balanceValueLabel.setText(MONEY_FORMAT.format(financeService.getSummary().getCurrentBalance()));
+        balanceValueLabel.setText(MONEY_FORMAT.format(financialSummary.getCurrentBalance()));
 
         salesTodayFootnoteLabel.setText(dailySalesSummary.getSalesCount() == 1
                 ? "1 venda registrada hoje"
                 : dailySalesSummary.getSalesCount() + " vendas registradas hoje");
         customersFootnoteLabel.setText(activeCustomers == 1 ? "1 cliente ativo" : activeCustomers + " clientes ativos");
         productsFootnoteLabel.setText(activeProducts.size() == 1 ? "1 produto ativo" : activeProducts.size() + " produtos ativos");
+        latestSalesTable.setItems(FXCollections.observableArrayList(dashboardData.latestSales()));
+        loadCreditAlerts(dashboardData.creditAlerts(), dashboardData.lowStockProducts());
     }
 
-    private void loadLatestSales() {
-        latestSalesTable.setItems(FXCollections.observableArrayList(saleService.listLatestSales(8)));
-    }
-
-    private void loadCreditAlerts() {
-        List<CreditInstallment> alerts = creditInstallmentService.listPendingAlerts();
-        List<Product> lowStockProducts = productService.listLowStockProducts();
+    private void loadCreditAlerts(List<CreditInstallment> alerts, List<Product> lowStockProducts) {
         alertsList.getChildren().clear();
 
         if (alerts.isEmpty()) {
@@ -243,5 +278,30 @@ public class DashboardController {
     private String displayValue(String value) {
         String normalizedValue = textValue(value).trim();
         return normalizedValue.isBlank() ? "—" : normalizedValue;
+    }
+
+    private String messageFor(Throwable exception) {
+        String message = exception == null ? null : exception.getMessage();
+        return message == null || message.isBlank()
+                ? "Não foi possível carregar o dashboard. Consulte o arquivo de log para mais detalhes."
+                : message;
+    }
+
+    private void showDashboardStatus(String message) {
+        boolean hasMessage = message != null && !message.isBlank();
+        dashboardStatusLabel.setText(hasMessage ? message : "");
+        dashboardStatusLabel.setVisible(hasMessage);
+        dashboardStatusLabel.setManaged(hasMessage);
+    }
+
+    private record DashboardData(
+            int activeCustomers,
+            List<Product> activeProducts,
+            DailySalesSummary dailySalesSummary,
+            FinancialSummary financialSummary,
+            List<Sale> latestSales,
+            List<CreditInstallment> creditAlerts,
+            List<Product> lowStockProducts
+    ) {
     }
 }

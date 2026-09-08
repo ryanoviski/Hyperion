@@ -284,7 +284,7 @@ public class SaleController {
                 cellData.getValue().isCancelled() ? "Cancelada" : "Concluída"
         ));
 
-        table.getColumns().addAll(idColumn, dateColumn, customerColumn, paymentColumn, totalColumn, statusColumn);
+        table.getColumns().setAll(List.of(idColumn, dateColumn, customerColumn, paymentColumn, totalColumn, statusColumn));
         return table;
     }
 
@@ -477,7 +477,7 @@ public class SaleController {
         emailColumn.setPrefWidth(180);
         emailColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getEmail())));
 
-        table.getColumns().addAll(nameColumn, documentColumn, phoneColumn, emailColumn);
+        table.getColumns().setAll(List.of(nameColumn, documentColumn, phoneColumn, emailColumn));
         return table;
     }
 
@@ -507,7 +507,7 @@ public class SaleController {
         supplierColumn.setPrefWidth(180);
         supplierColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getSupplier())));
 
-        table.getColumns().addAll(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn);
+        table.getColumns().setAll(List.of(nameColumn, barcodeColumn, stockColumn, priceColumn, supplierColumn));
         return table;
     }
 

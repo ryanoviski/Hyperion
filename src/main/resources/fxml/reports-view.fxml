@@ -37,9 +37,9 @@
                         <DatePicker fx:id="startDatePicker" promptText="Data inicial" prefWidth="135.0" />
                         <DatePicker fx:id="endDatePicker" promptText="Data final" prefWidth="135.0" />
                         <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
-                        <Button mnemonicParsing="false" onAction="#handleExportCsv" styleClass="secondary-button" text="Exportar CSV" />
-                        <Button mnemonicParsing="false" onAction="#handleExportExcel" styleClass="secondary-button" text="Exportar Excel" />
-                        <Button mnemonicParsing="false" onAction="#handleExportPdf" styleClass="secondary-button" text="Exportar PDF" />
+                        <Button fx:id="exportCsvButton" mnemonicParsing="false" onAction="#handleExportCsv" styleClass="secondary-button" text="Exportar CSV" />
+                        <Button fx:id="exportExcelButton" mnemonicParsing="false" onAction="#handleExportExcel" styleClass="secondary-button" text="Exportar Excel" />
+                        <Button fx:id="exportPdfButton" mnemonicParsing="false" onAction="#handleExportPdf" styleClass="secondary-button" text="Exportar PDF" />
                      </children>
                   </FlowPane>
                </children>

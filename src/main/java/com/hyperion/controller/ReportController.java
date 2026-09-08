@@ -7,6 +7,7 @@ import com.hyperion.model.SalesReportFilter;
 import com.hyperion.service.ReportService;
 import com.hyperion.service.ReportExportService;
 import com.hyperion.exception.HyperionException;
+import com.hyperion.util.AsyncUiTask;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -32,6 +33,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ReportController {
 
@@ -52,6 +54,9 @@ public class ReportController {
     private SalesReportSummary currentSummary = new SalesReportSummary(0, BigDecimal.ZERO, BigDecimal.ZERO);
     private List<PaymentMethodReport> currentPayments = List.of();
     private List<ProductSalesReport> currentProducts = List.of();
+    private final AtomicLong reportLoadVersion = new AtomicLong();
+    private boolean reportLoading;
+    private boolean exportInProgress;
 
     @FXML
     private ChoiceBox<String> periodChoiceBox;
@@ -120,6 +125,15 @@ public class ReportController {
     private Label messageLabel;
 
     @FXML
+    private Button exportCsvButton;
+
+    @FXML
+    private Button exportExcelButton;
+
+    @FXML
+    private Button exportPdfButton;
+
+    @FXML
     private void initialize() {
         configurePeriodFilter();
         configureReportFilters();
@@ -130,8 +144,7 @@ public class ReportController {
 
     @FXML
     private void handleRefresh() {
-        loadReports();
-        messageLabel.setText("Relat\u00f3rios atualizados.");
+        loadReports("Relatórios atualizados.");
     }
 
     @FXML
@@ -212,9 +225,15 @@ public class ReportController {
     }
 
     private void loadReports() {
+        loadReports(null);
+    }
+
+    private void loadReports(String successMessage) {
+        long loadVersion = reportLoadVersion.incrementAndGet();
+        SalesReportFilter filter;
         try {
             DateRange dateRange = resolveDateRange();
-            SalesReportFilter filter = new SalesReportFilter(
+            filter = new SalesReportFilter(
                     dateRange.startDate(),
                     dateRange.endDateExclusive(),
                     selectedFilterValue(customerFilterChoiceBox, ALL_CUSTOMERS_FILTER),
@@ -222,29 +241,62 @@ public class ReportController {
                     selectedFilterValue(categoryFilterChoiceBox, ALL_CATEGORIES_FILTER),
                     selectedFilterValue(supplierFilterChoiceBox, ALL_SUPPLIERS_FILTER)
             );
-            currentSummary = reportService.getSalesSummary(filter);
-            currentTotalSales = currentSummary.getTotalSales();
-
-            totalSalesLabel.setText(formatMoney(currentSummary.getTotalSales()));
-            salesCountLabel.setText(String.valueOf(currentSummary.getSalesCount()));
-            averageTicketLabel.setText(formatMoney(currentSummary.getAverageTicket()));
-
-            currentPayments = reportService.listSalesByPaymentMethod(filter);
-            currentProducts = reportService.listTopSellingProducts(filter);
-            paymentMethodsTable.setItems(FXCollections.observableArrayList(currentPayments));
-            topProductsTable.setItems(FXCollections.observableArrayList(currentProducts));
         } catch (HyperionException | IllegalArgumentException exception) {
-            currentSummary = new SalesReportSummary(0, BigDecimal.ZERO, BigDecimal.ZERO);
-            currentTotalSales = BigDecimal.ZERO;
-            currentPayments = List.of();
-            currentProducts = List.of();
-            totalSalesLabel.setText(formatMoney(BigDecimal.ZERO));
-            salesCountLabel.setText("0");
-            averageTicketLabel.setText(formatMoney(BigDecimal.ZERO));
-            paymentMethodsTable.setItems(FXCollections.observableArrayList());
-            topProductsTable.setItems(FXCollections.observableArrayList());
-            messageLabel.setText(exception.getMessage());
+            setReportLoading(false, null);
+            clearReportData(exception.getMessage());
+            return;
         }
+
+        setReportLoading(true, "Atualizando relatórios...");
+        SalesReportFilter capturedFilter = filter;
+        AsyncUiTask.run(
+                "carregar relatórios",
+                () -> new ReportData(
+                        reportService.getSalesSummary(capturedFilter),
+                        List.copyOf(reportService.listSalesByPaymentMethod(capturedFilter)),
+                        List.copyOf(reportService.listTopSellingProducts(capturedFilter))
+                ),
+                reportData -> {
+                    if (loadVersion != reportLoadVersion.get()) {
+                        return;
+                    }
+                    setReportLoading(false, null);
+                    applyReportData(reportData);
+                    messageLabel.setText(successMessage == null ? "" : successMessage);
+                },
+                exception -> {
+                    if (loadVersion == reportLoadVersion.get()) {
+                        setReportLoading(false, null);
+                        clearReportData(messageFor(exception));
+                    }
+                }
+        );
+    }
+
+    private void applyReportData(ReportData reportData) {
+        currentSummary = reportData.summary();
+        currentTotalSales = currentSummary.getTotalSales();
+        currentPayments = reportData.payments();
+        currentProducts = reportData.products();
+
+        totalSalesLabel.setText(formatMoney(currentSummary.getTotalSales()));
+        salesCountLabel.setText(String.valueOf(currentSummary.getSalesCount()));
+        averageTicketLabel.setText(formatMoney(currentSummary.getAverageTicket()));
+        paymentMethodsTable.setItems(FXCollections.observableArrayList(currentPayments));
+        topProductsTable.setItems(FXCollections.observableArrayList(currentProducts));
+    }
+
+    private void clearReportData(String message) {
+        currentSummary = new SalesReportSummary(0, BigDecimal.ZERO, BigDecimal.ZERO);
+        currentTotalSales = BigDecimal.ZERO;
+        currentPayments = List.of();
+        currentProducts = List.of();
+        totalSalesLabel.setText(formatMoney(BigDecimal.ZERO));
+        salesCountLabel.setText("0");
+        averageTicketLabel.setText(formatMoney(BigDecimal.ZERO));
+        paymentMethodsTable.setItems(FXCollections.observableArrayList());
+        topProductsTable.setItems(FXCollections.observableArrayList());
+        messageLabel.setText(message == null ? "" : message);
     }
 
     private String formatMoney(BigDecimal value) {
@@ -328,7 +380,18 @@ public class ReportController {
     private record DateRange(LocalDate startDate, LocalDate endDateExclusive) {
     }
 
+    private record ReportData(
+            SalesReportSummary summary,
+            List<PaymentMethodReport> payments,
+            List<ProductSalesReport> products
+    ) {
+    }
+
     private void export(String type, String extensionPattern, String extension) {
+        if (exportInProgress) {
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Exportar relatório em " + type);
         fileChooser.setInitialFileName("relatorio-vendas-" + LocalDate.now() + "." + extension);
@@ -338,18 +401,61 @@ public class ReportController {
             return;
         }
 
-        try {
-            Path file = selectedFile.toPath();
-            switch (extension) {
-                case "csv" -> reportExportService.exportCsv(file, currentSummary, currentPayments, currentProducts);
-                case "xlsx" -> reportExportService.exportExcel(file, currentSummary, currentPayments, currentProducts);
-                case "pdf" -> reportExportService.exportPdf(file, currentSummary, currentPayments, currentProducts);
-                default -> throw new IllegalArgumentException("Formato de exportação não suportado.");
-            }
-            messageLabel.setText("Relatório exportado em " + file.toAbsolutePath() + ".");
-        } catch (HyperionException | IllegalArgumentException exception) {
-            messageLabel.setText(exception.getMessage());
+        Path file = selectedFile.toPath();
+        SalesReportSummary summary = currentSummary;
+        List<PaymentMethodReport> payments = List.copyOf(currentPayments);
+        List<ProductSalesReport> products = List.copyOf(currentProducts);
+        setExportInProgress(true, "Exportando relatório em " + type + "...");
+        AsyncUiTask.run(
+                "exportar relatório",
+                () -> {
+                    switch (extension) {
+                        case "csv" -> reportExportService.exportCsv(file, summary, payments, products);
+                        case "xlsx" -> reportExportService.exportExcel(file, summary, payments, products);
+                        case "pdf" -> reportExportService.exportPdf(file, summary, payments, products);
+                        default -> throw new IllegalArgumentException("Formato de exportação não suportado.");
+                    }
+                    return file;
+                },
+                exportedFile -> {
+                    setExportInProgress(false, null);
+                    messageLabel.setText("Relatório exportado em " + exportedFile.toAbsolutePath() + ".");
+                },
+                exception -> {
+                    setExportInProgress(false, null);
+                    messageLabel.setText(messageFor(exception));
+                }
+        );
+    }
+
+    private void setExportInProgress(boolean running, String message) {
+        exportInProgress = running;
+        updateExportButtons();
+        if (message != null) {
+            messageLabel.setText(message);
         }
+    }
+
+    private void setReportLoading(boolean loading, String message) {
+        reportLoading = loading;
+        updateExportButtons();
+        if (message != null) {
+            messageLabel.setText(message);
+        }
+    }
+
+    private void updateExportButtons() {
+        boolean disableExports = reportLoading || exportInProgress;
+        exportCsvButton.setDisable(disableExports);
+        exportExcelButton.setDisable(disableExports);
+        exportPdfButton.setDisable(disableExports);
+    }
+
+    private String messageFor(Throwable exception) {
+        String message = exception == null ? null : exception.getMessage();
+        return message == null || message.isBlank()
+                ? "Não foi possível concluir a operação. Consulte o arquivo de log para mais detalhes."
+                : message;
     }
 
     private String selectedFilterValue(ChoiceBox<String> choiceBox, String allValue) {

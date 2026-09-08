@@ -9,14 +9,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AttachmentRepository {
 
-    private static final DateTimeFormatter SQLITE_DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final int MAX_ENTITY_IDS_PER_COUNT_QUERY = 900;
 
     public void save(Attachment attachment) {
         String sql = """
@@ -138,6 +138,49 @@ public class AttachmentRepository {
 
                 return resultSet.getInt("total");
             }
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível contar os anexos.", exception);
+        }
+    }
+
+    public Map<Long, Integer> countByEntities(String module, List<Long> entityIds) {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, Integer> counts = new LinkedHashMap<>();
+        for (int startIndex = 0; startIndex < entityIds.size(); startIndex += MAX_ENTITY_IDS_PER_COUNT_QUERY) {
+            int endIndex = Math.min(startIndex + MAX_ENTITY_IDS_PER_COUNT_QUERY, entityIds.size());
+            counts.putAll(countByEntityBatch(module, entityIds.subList(startIndex, endIndex)));
+        }
+        return counts;
+    }
+
+    private Map<Long, Integer> countByEntityBatch(String module, List<Long> entityIds) {
+        String placeholders = String.join(", ", java.util.Collections.nCopies(entityIds.size(), "?"));
+        String sql = """
+                SELECT entity_id, COUNT(*) AS total
+                FROM attachments
+                WHERE module = ?
+                  AND entity_id IN (%s)
+                GROUP BY entity_id;
+                """.formatted(placeholders);
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, module);
+            for (int index = 0; index < entityIds.size(); index++) {
+                statement.setLong(index + 2, entityIds.get(index));
+            }
+
+            Map<Long, Integer> counts = new LinkedHashMap<>();
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    counts.put(resultSet.getLong("entity_id"), resultSet.getInt("total"));
+                }
+            }
+            return counts;
         } catch (SQLException exception) {
             throw new PersistenceException("Não foi possível contar os anexos.", exception);
         }
