@@ -11,19 +11,18 @@ import java.sql.SQLException;
 
 public final class DatabaseConfig {
 
+    public static final String DATA_DIRECTORY_PROPERTY = "hyperion.data.dir";
     private static final Path LEGACY_DATABASE_FILE = Path.of("data", "hyperion.db").toAbsolutePath().normalize();
-    private static final Path DATABASE_DIRECTORY = resolveDataDirectory();
-    private static final Path DATABASE_FILE = DATABASE_DIRECTORY.resolve("hyperion.db");
-    private static final String DATABASE_URL = "jdbc:sqlite:" + DATABASE_FILE.toAbsolutePath();
 
     private DatabaseConfig() {
     }
 
     public static Connection getConnection() throws SQLException {
-        createDatabaseDirectory();
-        migrateLegacyDatabaseIfNecessary();
+        Path databaseFile = getDatabaseFile();
+        createDatabaseDirectory(getDataDirectory());
+        migrateLegacyDatabaseIfNecessary(databaseFile);
         loadDriver();
-        Connection connection = DriverManager.getConnection(DATABASE_URL);
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFile.toAbsolutePath());
 
         try (var statement = connection.createStatement()) {
             statement.execute("PRAGMA foreign_keys = ON;");
@@ -40,49 +39,62 @@ public final class DatabaseConfig {
     }
 
     public static Path getDatabaseFile() {
-        return DATABASE_FILE;
+        return getDataDirectory().resolve("hyperion.db");
     }
 
     public static Path getDataDirectory() {
-        return DATABASE_DIRECTORY;
+        return resolveDataDirectory();
     }
 
-    private static void createDatabaseDirectory() {
+    private static void createDatabaseDirectory(Path databaseDirectory) {
         try {
-            Files.createDirectories(DATABASE_DIRECTORY);
+            Files.createDirectories(databaseDirectory);
         } catch (IOException exception) {
             throw new DatabaseInitializationException("Não foi possível criar o diretório do banco de dados.", exception);
         }
     }
 
-    private static void migrateLegacyDatabaseIfNecessary() {
-        if (DATABASE_FILE.equals(LEGACY_DATABASE_FILE) || Files.exists(DATABASE_FILE) || !Files.isRegularFile(LEGACY_DATABASE_FILE)) {
+    private static void migrateLegacyDatabaseIfNecessary(Path databaseFile) {
+        if (hasDataDirectoryOverride()
+                || databaseFile.equals(LEGACY_DATABASE_FILE)
+                || Files.exists(databaseFile)
+                || !Files.isRegularFile(LEGACY_DATABASE_FILE)) {
             return;
         }
 
         try {
-            Files.copy(LEGACY_DATABASE_FILE, DATABASE_FILE);
-            copyLegacySidecarIfPresent("-wal");
-            copyLegacySidecarIfPresent("-shm");
+            Files.copy(LEGACY_DATABASE_FILE, databaseFile);
+            copyLegacySidecarIfPresent(databaseFile, "-wal");
+            copyLegacySidecarIfPresent(databaseFile, "-shm");
         } catch (IOException exception) {
             throw new DatabaseInitializationException("Não foi possível migrar os dados locais existentes.", exception);
         }
     }
 
-    private static void copyLegacySidecarIfPresent(String suffix) throws IOException {
+    private static void copyLegacySidecarIfPresent(Path databaseFile, String suffix) throws IOException {
         Path legacySidecar = Path.of(LEGACY_DATABASE_FILE + suffix);
         if (Files.isRegularFile(legacySidecar)) {
-            Files.copy(legacySidecar, Path.of(DATABASE_FILE + suffix));
+            Files.copy(legacySidecar, Path.of(databaseFile + suffix));
         }
     }
 
     private static Path resolveDataDirectory() {
+        String configuredDirectory = System.getProperty(DATA_DIRECTORY_PROPERTY);
+        if (configuredDirectory != null && !configuredDirectory.isBlank()) {
+            return Path.of(configuredDirectory).toAbsolutePath().normalize();
+        }
+
         String appData = System.getenv("APPDATA");
         if (appData != null && !appData.isBlank()) {
             return Path.of(appData, "Hyperion");
         }
 
         return Path.of(System.getProperty("user.home"), ".hyperion");
+    }
+
+    private static boolean hasDataDirectoryOverride() {
+        String configuredDirectory = System.getProperty(DATA_DIRECTORY_PROPERTY);
+        return configuredDirectory != null && !configuredDirectory.isBlank();
     }
 
     private static void loadDriver() {

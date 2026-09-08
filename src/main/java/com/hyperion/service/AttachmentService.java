@@ -1,5 +1,6 @@
 package com.hyperion.service;
 
+import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Attachment;
 import com.hyperion.repository.AttachmentRepository;
 import com.hyperion.exception.AttachmentStorageException;
@@ -18,7 +19,6 @@ public class AttachmentService {
 
     public static final String FINANCE_MODULE = "FINANCE";
 
-    private static final Path ATTACHMENTS_DIRECTORY = Path.of("data", "attachments");
     private static final DateTimeFormatter FILE_TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final AttachmentRepository attachmentRepository = new AttachmentRepository();
@@ -39,7 +39,7 @@ public class AttachmentService {
         }
 
         try {
-            Path moduleDirectory = ATTACHMENTS_DIRECTORY
+            Path moduleDirectory = getAttachmentsDirectory()
                     .resolve(normalizedModule.toLowerCase())
                     .resolve(String.valueOf(entityId));
             Files.createDirectories(moduleDirectory);
@@ -127,6 +127,10 @@ public class AttachmentService {
         }
 
         return FILE_TIMESTAMP.format(LocalDateTime.now()) + "_" + sanitizeFileName(originalName) + extension;
+    }
+
+    private Path getAttachmentsDirectory() {
+        return DatabaseConfig.getDataDirectory().resolve("attachments");
     }
 
     private String sanitizeFileName(String fileName) {

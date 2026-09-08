@@ -22,7 +22,7 @@ public class MainApp extends Application {
         DatabaseInitializer.initialize();
         ThemeManager.setCurrentTheme(new AppSettingsService().getTheme());
 
-        stage.setTitle("Hyperion");
+        stage.setTitle(AppMetadata.getName() + " " + AppMetadata.getVersion());
         var iconStream = MainApp.class.getResourceAsStream(APP_ICON);
         if (iconStream == null) {
             throw new ApplicationResourceException("Não foi possível localizar o ícone da aplicação.");
