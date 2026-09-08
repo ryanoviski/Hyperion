@@ -262,6 +262,7 @@ public class SaleController {
     private TableView<Sale> createRecentSalesTable() {
         TableView<Sale> table = new TableView<>();
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setPlaceholder(new Label("Nenhuma venda encontrada."));
 
         TableColumn<Sale, String> idColumn = new TableColumn<>("Venda");
         idColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper("#" + cellData.getValue().getId()));
@@ -320,6 +321,7 @@ public class SaleController {
 
     private void configureTableColumns() {
         cartTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        cartTable.setPlaceholder(new Label("O carrinho está vazio. Adicione um produto para começar."));
 
         productColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getProductName())));
         quantityColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getQuantity())));
@@ -457,6 +459,7 @@ public class SaleController {
         TableView<Customer> table = new TableView<>();
         table.setPrefHeight(360);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setPlaceholder(new Label("Nenhum cliente encontrado."));
 
         TableColumn<Customer, String> nameColumn = new TableColumn<>("Cliente");
         nameColumn.setPrefWidth(240);
@@ -482,6 +485,7 @@ public class SaleController {
         TableView<Product> table = new TableView<>();
         table.setPrefHeight(380);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setPlaceholder(new Label("Nenhum produto encontrado."));
 
         TableColumn<Product, String> nameColumn = new TableColumn<>("Produto");
         nameColumn.setPrefWidth(240);

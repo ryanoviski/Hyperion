@@ -191,6 +191,7 @@ public class CustomerController {
 
     private void configureTableColumns() {
         customersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        customersTable.setPlaceholder(new Label("Nenhum cliente encontrado."));
 
         nameColumn.getStyleClass().add("left-aligned-column");
         emailColumn.getStyleClass().add("left-aligned-column");
@@ -249,7 +250,7 @@ public class CustomerController {
 
                 HBox actions = new HBox(10, profileButton, editButton, activeToggleButton);
                 actions.setAlignment(Pos.CENTER);
-                actions.setMinWidth(128);
+                actions.setMinWidth(140);
                 setGraphic(actions);
                 setText(null);
                 setAlignment(Pos.CENTER);
@@ -265,9 +266,10 @@ public class CustomerController {
         Button button = new Button();
         button.setGraphic(icon);
         button.setTooltip(new Tooltip(tooltipText));
-        button.setMinSize(36, 36);
-        button.setPrefSize(36, 36);
-        button.setMaxSize(36, 36);
+        button.setAccessibleText(tooltipText);
+        button.setMinSize(40, 40);
+        button.setPrefSize(40, 40);
+        button.setMaxSize(40, 40);
         button.getStyleClass().add("action-icon-button");
         button.setOnAction(event -> action.run());
         return button;
@@ -374,6 +376,7 @@ public class CustomerController {
         TableView<Sale> purchasesTable = new TableView<>();
         purchasesTable.setPrefHeight(260);
         purchasesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        purchasesTable.setPlaceholder(new Label("Este cliente ainda não possui compras."));
 
         TableColumn<Sale, String> dateColumn = new TableColumn<>("Data");
         dateColumn.setPrefWidth(180);

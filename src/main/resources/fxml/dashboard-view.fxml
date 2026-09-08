@@ -6,11 +6,12 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.DashboardController">
+<ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.DashboardController">
    <content>
       <VBox fx:id="contentArea" maxWidth="1.7976931348623157E308" spacing="24.0" styleClass="content-area">
          <padding>
@@ -29,33 +30,29 @@
             <Button fx:id="newSaleButton" mnemonicParsing="false" onAction="#handleSales" prefWidth="190.0" styleClass="primary-button" text="Nova venda" />
          </children>
       </HBox>
-      <HBox spacing="20.0">
+      <FlowPane hgap="16.0" prefWrapLength="920.0" vgap="16.0">
          <children>
-            <HBox maxWidth="1.7976931348623157E308" spacing="20.0" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
                <children>
-                  <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label styleClass="card-label" text="Vendas hoje" />
-                        <Label fx:id="salesTodayValueLabel" styleClass="card-value" text="R$ 0,00" />
-                        <Label fx:id="salesTodayFootnoteLabel" styleClass="card-footnote" text="Nenhuma venda registrada" />
-                     </children>
-                  </VBox>
-                  <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label styleClass="card-label" text="Clientes" />
-                        <Label fx:id="customersValueLabel" styleClass="card-value" text="0" />
-                        <Label fx:id="customersFootnoteLabel" styleClass="card-footnote-success" text="Comece cadastrando clientes" />
-                     </children>
-                  </VBox>
-                  <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label styleClass="card-label" text="Produtos" />
-                        <Label fx:id="productsValueLabel" styleClass="card-value" text="0" />
-                        <Label fx:id="productsFootnoteLabel" styleClass="card-footnote-warning" text="Estoque ainda vazio" />
-                     </children>
-                  </VBox>
+                  <Label styleClass="card-label" text="Vendas hoje" />
+                  <Label fx:id="salesTodayValueLabel" styleClass="card-value" text="R$ 0,00" />
+                  <Label fx:id="salesTodayFootnoteLabel" styleClass="card-footnote" text="Nenhuma venda registrada" />
                </children>
-            </HBox>
+            </VBox>
+            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
+               <children>
+                  <Label styleClass="card-label" text="Clientes" />
+                  <Label fx:id="customersValueLabel" styleClass="card-value" text="0" />
+                  <Label fx:id="customersFootnoteLabel" styleClass="card-footnote-success" text="Comece cadastrando clientes" />
+               </children>
+            </VBox>
+            <VBox maxWidth="1.7976931348623157E308" prefHeight="140.0" prefWidth="220.0" styleClass="dashboard-card">
+               <children>
+                  <Label styleClass="card-label" text="Produtos" />
+                  <Label fx:id="productsValueLabel" styleClass="card-value" text="0" />
+                  <Label fx:id="productsFootnoteLabel" styleClass="card-footnote-warning" text="Estoque ainda vazio" />
+               </children>
+            </VBox>
             <VBox maxWidth="380.0" minWidth="300.0" prefHeight="140.0" prefWidth="340.0" styleClass="dashboard-card">
                <children>
                   <Label styleClass="card-label" text="Saldo" />
@@ -64,7 +61,7 @@
                </children>
             </VBox>
          </children>
-      </HBox>
+      </FlowPane>
       <HBox spacing="20.0">
          <children>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
@@ -90,7 +87,7 @@
                   </HBox>
                </children>
             </VBox>
-            <VBox maxWidth="380.0" minWidth="300.0" prefWidth="340.0" spacing="20.0">
+            <VBox maxWidth="340.0" minWidth="280.0" prefWidth="300.0" spacing="20.0">
                <children>
                   <VBox fx:id="shortcutsPanel" maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel">
                      <children>

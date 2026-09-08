@@ -191,6 +191,7 @@ public class ReportController {
 
     private void configurePaymentMethodsTable() {
         paymentMethodsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        paymentMethodsTable.setPlaceholder(new Label("Não há vendas para os filtros selecionados."));
         paymentMethodColumn.getStyleClass().add("left-aligned-column");
         paymentMethodColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getPaymentMethod())));
         paymentSalesCountColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(String.valueOf(cellData.getValue().getSalesCount())));
@@ -202,6 +203,7 @@ public class ReportController {
 
     private void configureTopProductsTable() {
         topProductsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        topProductsTable.setPlaceholder(new Label("Não há produtos vendidos para os filtros selecionados."));
         productNameColumn.getStyleClass().add("left-aligned-column");
         productNameColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getProductName())));
         productUnitPriceColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatMoney(cellData.getValue().getUnitPrice())));

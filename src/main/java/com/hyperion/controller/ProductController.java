@@ -198,6 +198,7 @@ public class ProductController {
 
     private void configureTableColumns() {
         productsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        productsTable.setPlaceholder(new Label("Nenhum produto encontrado."));
 
         nameColumn.getStyleClass().add("left-aligned-column");
         categoryColumn.getStyleClass().add("left-aligned-column");
@@ -274,9 +275,10 @@ public class ProductController {
         Button button = new Button();
         button.setGraphic(icon);
         button.setTooltip(new Tooltip(tooltipText));
-        button.setMinSize(36, 36);
-        button.setPrefSize(36, 36);
-        button.setMaxSize(36, 36);
+        button.setAccessibleText(tooltipText);
+        button.setMinSize(40, 40);
+        button.setPrefSize(40, 40);
+        button.setMaxSize(40, 40);
         button.getStyleClass().add("action-icon-button");
         button.setOnAction(event -> action.run());
         return button;

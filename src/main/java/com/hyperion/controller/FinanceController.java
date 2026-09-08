@@ -242,6 +242,7 @@ public class FinanceController {
 
     private void configureTableColumns() {
         expensesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        expensesTable.setPlaceholder(new Label("Nenhuma despesa encontrada no período."));
 
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
@@ -325,6 +326,10 @@ public class FinanceController {
         button.getStyleClass().add("action-icon-button");
         button.setGraphic(createIcon(svgContent));
         button.setTooltip(new javafx.scene.control.Tooltip(tooltipText));
+        button.setAccessibleText(tooltipText);
+        button.setMinSize(40, 40);
+        button.setPrefSize(40, 40);
+        button.setMaxSize(40, 40);
         return button;
     }
 
@@ -451,6 +456,7 @@ public class FinanceController {
         TableView<Attachment> table = new TableView<>();
         table.setPrefHeight(300);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setPlaceholder(new Label("Nenhum anexo disponível."));
 
         TableColumn<Attachment, String> nameColumn = new TableColumn<>("Arquivo");
         nameColumn.setPrefWidth(280);

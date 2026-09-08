@@ -28,6 +28,8 @@ public class MainApp extends Application {
         ThemeManager.setCurrentTheme(new AppSettingsService().getTheme());
 
         stage.setTitle(AppMetadata.getName() + " " + AppMetadata.getVersion());
+        stage.setMinWidth(960);
+        stage.setMinHeight(640);
         var iconStream = MainApp.class.getResourceAsStream(APP_ICON);
         if (iconStream == null) {
             throw new ApplicationResourceException("Não foi possível localizar o ícone da aplicação.");

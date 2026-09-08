@@ -10,13 +10,14 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.SaleController">
    <center>
-      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-area" BorderPane.alignment="CENTER">
+      <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED" styleClass="content-area" BorderPane.alignment="CENTER">
          <content>
             <VBox maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="content-area">
                <padding>
@@ -40,7 +41,7 @@
                         <Label styleClass="sale-step-title" text="1. Inserir itens" />
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
-                              <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                              <VBox prefWidth="520.0" spacing="6.0">
                                  <children>
                                     <Label styleClass="field-label" text="Cliente (opcional)" />
                                     <HBox spacing="8.0">
@@ -53,7 +54,7 @@
                               </VBox>
                            </children>
                         </HBox>
-                        <HBox alignment="BOTTOM_LEFT" spacing="10.0">
+                        <FlowPane hgap="10.0" vgap="10.0">
                            <children>
                               <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                  <children>
@@ -74,7 +75,7 @@
                               </VBox>
                               <Button fx:id="addItemButton" mnemonicParsing="false" onAction="#handleAddItem" prefHeight="42.0" prefWidth="150.0" styleClass="primary-button" text="Adicionar" />
                            </children>
-                        </HBox>
+                        </FlowPane>
                      </children>
                   </VBox>
 
@@ -101,7 +102,7 @@
                   <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel">
                      <children>
                         <Label styleClass="sale-step-title" text="3. Pagamento e finalização" />
-                        <HBox alignment="BOTTOM_LEFT" spacing="10.0">
+                        <FlowPane hgap="10.0" vgap="10.0">
                            <children>
                               <VBox spacing="6.0">
                                  <children>
@@ -128,7 +129,7 @@
                                  </children>
                               </VBox>
                            </children>
-                        </HBox>
+                        </FlowPane>
                         <HBox alignment="CENTER_LEFT" spacing="18.0">
                            <children>
                               <VBox alignment="CENTER_LEFT" minWidth="300.0" prefWidth="360.0" spacing="4.0">

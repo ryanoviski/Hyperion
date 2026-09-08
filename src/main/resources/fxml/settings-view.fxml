@@ -7,12 +7,13 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.SettingsController">
    <center>
-      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-area" BorderPane.alignment="CENTER">
+      <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED" styleClass="content-area" BorderPane.alignment="CENTER">
          <content>
             <VBox maxWidth="1.7976931348623157E308" spacing="22.0">
                <padding>
@@ -25,9 +26,9 @@
                   <Label styleClass="page-subtitle" text="Gerencie segurança, PIN e backups do Hyperion." />
                </children>
             </VBox>
-            <HBox alignment="TOP_LEFT" fillHeight="false" spacing="20.0">
+            <FlowPane hgap="20.0" prefWrapLength="900.0" vgap="20.0">
                <children>
-                  <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="14.0" styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                  <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="14.0" styleClass="dashboard-panel">
                      <children>
                         <Label styleClass="panel-title" text="Segurança" />
                         <Label fx:id="pinStatusLabel" styleClass="pin-status-disabled" text="PIN desativado" />
@@ -42,7 +43,7 @@
                         </HBox>
                      </children>
                   </VBox>
-                  <VBox maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="16.0" HBox.hgrow="ALWAYS">
+                  <VBox maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="16.0">
                      <children>
                         <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel">
                            <children>
@@ -63,7 +64,7 @@
                      </children>
                   </VBox>
                </children>
-            </HBox>
+            </FlowPane>
             <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="4.0">
                <children>
                   <Label styleClass="app-footer" text="© 2026 Hyperion. Todos os direitos reservados." />

@@ -15,6 +15,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 
 import java.text.NumberFormat;
@@ -207,8 +208,16 @@ public class DashboardController {
 
         VBox alertCard = new VBox(4, titleLabel, descriptionLabel);
         alertCard.setMaxWidth(Double.MAX_VALUE);
+        alertCard.setFocusTraversable(true);
+        alertCard.setAccessibleText(title + ". " + description + " Abrir detalhes.");
         alertCard.getStyleClass().addAll("system-alert-card", statusClass);
         alertCard.setOnMouseClicked(event -> MainController.openCreditView());
+        alertCard.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
+                MainController.openCreditView();
+                event.consume();
+            }
+        });
         return alertCard;
     }
 

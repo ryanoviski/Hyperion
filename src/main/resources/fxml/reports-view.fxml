@@ -9,20 +9,21 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.ReportController">
    <center>
-      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-area" BorderPane.alignment="CENTER">
+      <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED" styleClass="content-area" BorderPane.alignment="CENTER">
          <content>
             <VBox maxWidth="1.7976931348623157E308" spacing="16.0">
                <padding>
                   <Insets bottom="28.0" left="32.0" right="32.0" top="28.0" />
                </padding>
                <children>
-            <HBox alignment="CENTER_LEFT" spacing="16.0">
+            <VBox spacing="12.0">
                <children>
                   <VBox spacing="4.0">
                      <children>
@@ -30,50 +31,48 @@
                         <Label styleClass="page-subtitle" text="Acompanhe vendas, pagamentos e produtos mais vendidos." />
                      </children>
                   </VBox>
-                  <Region HBox.hgrow="ALWAYS" />
-                  <ChoiceBox fx:id="periodChoiceBox" prefWidth="170.0" />
-                  <DatePicker fx:id="startDatePicker" promptText="Data inicial" prefWidth="135.0" />
-                  <DatePicker fx:id="endDatePicker" promptText="Data final" prefWidth="135.0" />
-                  <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
+                  <FlowPane hgap="10.0" vgap="10.0">
+                     <children>
+                        <ChoiceBox fx:id="periodChoiceBox" prefWidth="170.0" />
+                        <DatePicker fx:id="startDatePicker" promptText="Data inicial" prefWidth="135.0" />
+                        <DatePicker fx:id="endDatePicker" promptText="Data final" prefWidth="135.0" />
+                        <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
+                        <Button mnemonicParsing="false" onAction="#handleExportCsv" styleClass="secondary-button" text="Exportar CSV" />
+                        <Button mnemonicParsing="false" onAction="#handleExportExcel" styleClass="secondary-button" text="Exportar Excel" />
+                        <Button mnemonicParsing="false" onAction="#handleExportPdf" styleClass="secondary-button" text="Exportar PDF" />
+                     </children>
+                  </FlowPane>
                </children>
-            </HBox>
+            </VBox>
 
-            <HBox alignment="CENTER_RIGHT" spacing="8.0">
-               <children>
-                  <Button mnemonicParsing="false" onAction="#handleExportCsv" styleClass="secondary-button" text="Exportar CSV" />
-                  <Button mnemonicParsing="false" onAction="#handleExportExcel" styleClass="secondary-button" text="Exportar Excel" />
-                  <Button mnemonicParsing="false" onAction="#handleExportPdf" styleClass="secondary-button" text="Exportar PDF" />
-               </children>
-            </HBox>
-
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <FlowPane hgap="10.0" vgap="10.0">
                <children>
                   <VBox spacing="4.0">
                      <children>
                         <Label styleClass="field-label" text="Cliente" />
-                        <ChoiceBox fx:id="customerFilterChoiceBox" prefWidth="180.0" />
+                        <ChoiceBox fx:id="customerFilterChoiceBox" prefWidth="240.0" />
                      </children>
                   </VBox>
                   <VBox spacing="4.0">
                      <children>
                         <Label styleClass="field-label" text="Pagamento" />
-                        <ChoiceBox fx:id="paymentFilterChoiceBox" prefWidth="160.0" />
+                        <ChoiceBox fx:id="paymentFilterChoiceBox" prefWidth="240.0" />
                      </children>
                   </VBox>
                   <VBox spacing="4.0">
                      <children>
                         <Label styleClass="field-label" text="Categoria" />
-                        <ChoiceBox fx:id="categoryFilterChoiceBox" prefWidth="180.0" />
+                        <ChoiceBox fx:id="categoryFilterChoiceBox" prefWidth="240.0" />
                      </children>
                   </VBox>
                   <VBox spacing="4.0">
                      <children>
                         <Label styleClass="field-label" text="Fornecedor" />
-                        <ChoiceBox fx:id="supplierFilterChoiceBox" prefWidth="180.0" />
+                        <ChoiceBox fx:id="supplierFilterChoiceBox" prefWidth="240.0" />
                      </children>
                   </VBox>
                </children>
-            </HBox>
+            </FlowPane>
 
             <HBox spacing="16.0">
                <children>

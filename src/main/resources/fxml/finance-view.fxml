@@ -16,7 +16,7 @@
 
 <BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="760.0" prefWidth="1200.0" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.hyperion.controller.FinanceController">
    <center>
-      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-area" BorderPane.alignment="CENTER">
+      <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED" styleClass="content-area" BorderPane.alignment="CENTER">
          <content>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="content-area" VBox.vgrow="ALWAYS">
                <padding>
@@ -97,8 +97,13 @@
                               <TextField fx:id="descriptionField" minWidth="240.0" prefHeight="42.0" prefWidth="340.0" promptText="Descrição" HBox.hgrow="ALWAYS" />
                               <TextField fx:id="categoryField" prefHeight="42.0" prefWidth="190.0" promptText="Categoria" />
                               <TextField fx:id="amountField" prefHeight="42.0" prefWidth="150.0" promptText="Valor em R$" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" spacing="10.0">
+                           <children>
                               <Button fx:id="selectAttachmentButton" mnemonicParsing="false" onAction="#handleSelectAttachment" prefHeight="42.0" prefWidth="180.0" styleClass="secondary-button" text="Anexar comprovante" />
                               <Button fx:id="clearAttachmentButton" mnemonicParsing="false" onAction="#handleClearAttachment" prefHeight="42.0" prefWidth="44.0" styleClass="secondary-button" text="X" />
+                              <Region HBox.hgrow="ALWAYS" />
                               <Button fx:id="addExpenseButton" mnemonicParsing="false" onAction="#handleAddExpense" prefHeight="42.0" prefWidth="170.0" styleClass="primary-button" text="Registrar despesa" />
                            </children>
                         </HBox>

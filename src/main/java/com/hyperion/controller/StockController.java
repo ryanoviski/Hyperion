@@ -125,6 +125,7 @@ public class StockController {
 
     private void configureTableColumns() {
         movementsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        movementsTable.setPlaceholder(new Label("Nenhuma movimentação registrada ainda."));
 
         dateColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(
                 cellData.getValue().getCreatedAt().format(DATE_TIME_FORMAT)
@@ -198,6 +199,7 @@ public class StockController {
         TableView<Product> table = new TableView<>();
         table.setPrefHeight(380);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setPlaceholder(new Label("Nenhum produto encontrado."));
 
         TableColumn<Product, String> nameColumn = new TableColumn<>("Produto");
         nameColumn.setPrefWidth(240);

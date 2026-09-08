@@ -120,6 +120,7 @@ public class CreditController {
 
     private void configureInstallmentsTable() {
         installmentsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        installmentsTable.setPlaceholder(new Label("Nenhuma parcela encontrada."));
 
         customerColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(displayValue(cellData.getValue().getCustomerName())));
         installmentColumn.setCellValueFactory(cellData -> new ReadOnlyStringWrapper(formatInstallment(cellData.getValue())));
@@ -315,6 +316,7 @@ public class CreditController {
         TableView<CreditInstallment> table = new TableView<>();
         table.setPrefHeight(240);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setPlaceholder(new Label("Este cliente não possui parcelas registradas."));
 
         TableColumn<CreditInstallment, String> saleColumn = new TableColumn<>("Venda");
         saleColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper("#" + cell.getValue().getSaleId()));
