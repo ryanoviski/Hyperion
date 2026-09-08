@@ -43,7 +43,6 @@ public class ProductRepository {
                     description = ?,
                     price = ?,
                     cost = ?,
-                    stock_quantity = ?,
                     category = ?,
                     barcode = ?,
                     supplier = ?,
@@ -54,8 +53,8 @@ public class ProductRepository {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            fillProductStatement(statement, product);
-            statement.setLong(9, product.getId());
+            fillProductUpdateStatement(statement, product);
+            statement.setLong(8, product.getId());
             if (statement.executeUpdate() != 1) {
                 throw new EntityNotFoundException("Produto");
             }
@@ -207,6 +206,16 @@ public class ProductRepository {
         statement.setString(6, product.getCategory());
         statement.setString(7, product.getBarcode());
         statement.setString(8, product.getSupplier());
+    }
+
+    private void fillProductUpdateStatement(PreparedStatement statement, Product product) throws SQLException {
+        statement.setString(1, product.getName());
+        statement.setString(2, product.getDescription());
+        statement.setBigDecimal(3, product.getPrice());
+        statement.setBigDecimal(4, product.getCost());
+        statement.setString(5, product.getCategory());
+        statement.setString(6, product.getBarcode());
+        statement.setString(7, product.getSupplier());
     }
 
     private List<Product> mapProducts(ResultSet resultSet) throws SQLException {

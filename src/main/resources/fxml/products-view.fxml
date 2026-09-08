@@ -24,7 +24,7 @@
                   <VBox spacing="4.0">
                      <children>
                         <Label styleClass="page-title" text="Produtos" />
-                        <Label styleClass="page-subtitle" text="Cadastre produtos, preços e quantidade em estoque." />
+                        <Label styleClass="page-subtitle" text="Cadastre produtos e preços. Ajuste o estoque pela tela de Estoque." />
                      </children>
                   </VBox>
                   <Region HBox.hgrow="ALWAYS" />

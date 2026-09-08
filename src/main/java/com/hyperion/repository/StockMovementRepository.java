@@ -1,6 +1,7 @@
 package com.hyperion.repository;
 
 import com.hyperion.config.DatabaseConfig;
+import com.hyperion.exception.InsufficientStockException;
 import com.hyperion.model.StockMovement;
 import com.hyperion.exception.PersistenceException;
 
@@ -28,7 +29,8 @@ public class StockMovementRepository {
                 UPDATE products
                 SET stock_quantity = stock_quantity + ?,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?;
+                WHERE id = ?
+                  AND stock_quantity + ? >= 0;
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection()) {
@@ -45,7 +47,10 @@ public class StockMovementRepository {
 
                 updateStatement.setInt(1, stockDelta);
                 updateStatement.setLong(2, movement.getProductId());
-                updateStatement.executeUpdate();
+                updateStatement.setInt(3, stockDelta);
+                if (updateStatement.executeUpdate() != 1) {
+                    throw new InsufficientStockException("produto selecionado");
+                }
 
                 connection.commit();
             } catch (SQLException | RuntimeException exception) {

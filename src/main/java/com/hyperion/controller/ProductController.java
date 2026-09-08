@@ -115,7 +115,6 @@ public class ProductController {
                         formData.description(),
                         formData.price(),
                         formData.cost(),
-                        formData.stockQuantity(),
                         formData.category(),
                         formData.barcode(),
                         formData.supplier()
@@ -141,7 +140,7 @@ public class ProductController {
                         formData.description(),
                         formData.price(),
                         formData.cost(),
-                        formData.stockQuantity(),
+                        selectedProduct.getStockQuantity(),
                         formData.category(),
                         formData.barcode(),
                         formData.supplier(),
@@ -314,7 +313,6 @@ public class ProductController {
                     productDescriptionArea.getText(),
                     parseMoney(productPriceField.getText()),
                     parseMoney(productCostField.getText()),
-                    parseStock(productStockField.getText()),
                     productCategoryField.getText(),
                     productBarcodeField.getText(),
                     productSupplierField.getText()
@@ -328,7 +326,6 @@ public class ProductController {
         productNameField = new TextField();
         productPriceField = new TextField();
         productCostField = new TextField();
-        productStockField = new TextField();
         productCategoryField = new TextField();
         productBarcodeField = new TextField();
         productSupplierField = new TextField();
@@ -337,7 +334,6 @@ public class ProductController {
         productNameField.setPromptText("Nome do produto");
         productPriceField.setPromptText("R$ 0,00");
         productCostField.setPromptText("R$ 0,00");
-        productStockField.setPromptText("0");
         productCategoryField.setPromptText("Categoria");
         productBarcodeField.setPromptText("Código de barras");
         productSupplierField.setPromptText("Fornecedor");
@@ -352,7 +348,6 @@ public class ProductController {
             productDescriptionArea.setText(textValue(product.getDescription()));
             productPriceField.setText(formatMoney(product.getPrice()));
             productCostField.setText(formatMoney(product.getCost()));
-            productStockField.setText(String.valueOf(product.getStockQuantity()));
             productCategoryField.setText(textValue(product.getCategory()));
             productBarcodeField.setText(textValue(product.getBarcode()));
             productSupplierField.setText(textValue(product.getSupplier()));
@@ -371,16 +366,14 @@ public class ProductController {
         form.add(productPriceField, 1, 1);
         form.add(new Label("Custo"), 0, 2);
         form.add(productCostField, 1, 2);
-        form.add(new Label("Estoque"), 0, 3);
-        form.add(productStockField, 1, 3);
-        form.add(new Label("Categoria"), 0, 4);
-        form.add(productCategoryField, 1, 4);
-        form.add(new Label("Código"), 0, 5);
-        form.add(productBarcodeField, 1, 5);
-        form.add(new Label("Fornecedor"), 0, 6);
-        form.add(productSupplierField, 1, 6);
-        form.add(new Label("Descrição"), 0, 7);
-        form.add(productDescriptionArea, 1, 7);
+        form.add(new Label("Categoria"), 0, 3);
+        form.add(productCategoryField, 1, 3);
+        form.add(new Label("Código"), 0, 4);
+        form.add(productBarcodeField, 1, 4);
+        form.add(new Label("Fornecedor"), 0, 5);
+        form.add(productSupplierField, 1, 5);
+        form.add(new Label("Descrição"), 0, 6);
+        form.add(productDescriptionArea, 1, 6);
 
         return form;
     }
@@ -396,20 +389,6 @@ public class ProductController {
             return new BigDecimal(digits).movePointLeft(2);
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Informe valores monetários válidos.");
-        }
-    }
-
-    private int parseStock(String value) {
-        String normalizedValue = textValue(value).trim();
-
-        if (normalizedValue.isBlank()) {
-            return 0;
-        }
-
-        try {
-            return Integer.parseInt(normalizedValue);
-        } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Informe uma quantidade válida em estoque.");
         }
     }
 
@@ -469,7 +448,6 @@ public class ProductController {
     private TextField productNameField;
     private TextField productPriceField;
     private TextField productCostField;
-    private TextField productStockField;
     private TextField productCategoryField;
     private TextField productBarcodeField;
     private TextField productSupplierField;
@@ -480,7 +458,6 @@ public class ProductController {
             String description,
             BigDecimal price,
             BigDecimal cost,
-            int stockQuantity,
             String category,
             String barcode,
             String supplier

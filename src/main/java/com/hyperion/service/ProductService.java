@@ -17,21 +17,20 @@ public class ProductService {
             String description,
             BigDecimal price,
             BigDecimal cost,
-            int stockQuantity,
             String category,
             String barcode,
             String supplier
     ) {
         String normalizedName = normalize(name);
 
-        validateProduct(normalizedName, price, cost, stockQuantity);
+        validateProduct(normalizedName, price, cost);
 
         productRepository.save(new Product(
                 normalizedName,
                 normalize(description),
                 price,
                 cost,
-                stockQuantity,
+                0,
                 normalize(category),
                 normalize(barcode),
                 normalize(supplier)
@@ -43,7 +42,7 @@ public class ProductService {
             throw new ValidationException("Produto inválido para atualização.");
         }
 
-        validateProduct(product.getName(), product.getPrice(), product.getCost(), product.getStockQuantity());
+        validateProduct(product.getName(), product.getPrice(), product.getCost());
         productRepository.update(product);
     }
 
@@ -99,7 +98,7 @@ public class ProductService {
         return productRepository.searchInactive(normalizedTerm);
     }
 
-    private void validateProduct(String name, BigDecimal price, BigDecimal cost, int stockQuantity) {
+    private void validateProduct(String name, BigDecimal price, BigDecimal cost) {
         if (normalize(name).isBlank()) {
             throw new ValidationException("Informe o nome do produto.");
         }
@@ -110,10 +109,6 @@ public class ProductService {
 
         if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0) {
             throw new ValidationException("Informe um custo válido.");
-        }
-
-        if (stockQuantity < 0) {
-            throw new ValidationException("O estoque não pode ser negativo.");
         }
     }
 

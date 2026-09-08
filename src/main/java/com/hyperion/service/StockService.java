@@ -45,12 +45,17 @@ public class StockService {
             throw new ValidationException("Informe uma quantidade maior que zero.");
         }
 
+        String normalizedNotes = normalize(notes);
+        if (normalizedNotes.isBlank()) {
+            throw new ValidationException("Informe o motivo da movimentação de estoque.");
+        }
+
         if (MOVEMENT_TYPE_OUT.equals(type) && product.getStockQuantity() < quantity) {
             throw new InsufficientStockException(product.getName());
         }
 
         int stockDelta = MOVEMENT_TYPE_IN.equals(type) ? quantity : -quantity;
-        StockMovement movement = new StockMovement(productId, type, quantity, normalize(notes));
+        StockMovement movement = new StockMovement(productId, type, quantity, normalizedNotes);
         stockMovementRepository.registerMovement(movement, stockDelta);
     }
 
