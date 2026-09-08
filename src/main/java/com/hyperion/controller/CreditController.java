@@ -16,6 +16,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -296,10 +297,38 @@ public class CreditController {
                 ));
             }
         }
+        List<CreditInstallment> creditHistory = creditInstallmentService.listInstallmentsByCustomer(installment.getCustomerId());
+        Label creditHistoryTitle = new Label("Histórico completo do crediário");
+        creditHistoryTitle.getStyleClass().add("panel-title");
+        content.getChildren().addAll(creditHistoryTitle, createCustomerCreditHistoryTable(creditHistory));
         content.getStyleClass().add("dialog-content");
-        content.setPrefWidth(360);
-        dialog.getDialogPane().setContent(content);
+        content.setPrefWidth(680);
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefViewportWidth(700);
+        scrollPane.setPrefViewportHeight(560);
+        dialog.getDialogPane().setContent(scrollPane);
         dialog.showAndWait();
+    }
+
+    private TableView<CreditInstallment> createCustomerCreditHistoryTable(List<CreditInstallment> installments) {
+        TableView<CreditInstallment> table = new TableView<>();
+        table.setPrefHeight(240);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+
+        TableColumn<CreditInstallment, String> saleColumn = new TableColumn<>("Venda");
+        saleColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper("#" + cell.getValue().getSaleId()));
+        TableColumn<CreditInstallment, String> installmentColumn = new TableColumn<>("Parcela");
+        installmentColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatInstallment(cell.getValue())));
+        TableColumn<CreditInstallment, String> dueDateColumn = new TableColumn<>("Vencimento");
+        dueDateColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatDate(cell.getValue())));
+        TableColumn<CreditInstallment, String> amountColumn = new TableColumn<>("Valor");
+        amountColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatMoney(cell.getValue().getAmount())));
+        TableColumn<CreditInstallment, String> statusColumn = new TableColumn<>("Status");
+        statusColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatStatus(cell.getValue())));
+        table.getColumns().addAll(saleColumn, installmentColumn, dueDateColumn, amountColumn, statusColumn);
+        table.setItems(FXCollections.observableArrayList(installments));
+        return table;
     }
 
     private Optional<PaymentFormData> showPaymentDialog(CreditInstallment installment) {

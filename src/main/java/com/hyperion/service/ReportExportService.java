@@ -21,6 +21,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /** Exports the report currently displayed by the operator. */
 public class ReportExportService {
@@ -36,27 +38,38 @@ public class ReportExportService {
         }
     }
 
-    /** Excel opens this standards-based XML spreadsheet directly as a .xls file. */
+    /** Creates a native Office Open XML workbook compatible with modern Excel. */
     public void exportExcel(Path file, SalesReportSummary summary, List<PaymentMethodReport> payments, List<ProductSalesReport> products) {
-        StringBuilder xml = new StringBuilder("""
-                <?xml version="1.0" encoding="UTF-8"?>
-                <?mso-application progid="Excel.Sheet"?>
-                <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-                  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-                  <Worksheet ss:Name="Relatório"><Table>
-                """);
-        for (String line : buildDelimitedLines(summary, payments, products, "\t")) {
-            xml.append("<Row>");
-            for (String cell : line.split("\\t", -1)) {
-                xml.append("<Cell><Data ss:Type=\"String\">")
-                        .append(escapeXml(cell))
-                        .append("</Data></Cell>");
-            }
-            xml.append("</Row>");
-        }
-        xml.append("</Table></Worksheet></Workbook>");
-        try {
-            Files.writeString(file, xml.toString(), StandardCharsets.UTF_8);
+        try (ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(file), StandardCharsets.UTF_8)) {
+            writeZipEntry(output, "[Content_Types].xml", """
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+                      <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+                      <Default Extension="xml" ContentType="application/xml"/>
+                      <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+                      <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+                    </Types>
+                    """);
+            writeZipEntry(output, "_rels/.rels", """
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                      <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+                    </Relationships>
+                    """);
+            writeZipEntry(output, "xl/workbook.xml", """
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+                      xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+                      <sheets><sheet name="Relatório" sheetId="1" r:id="rId1"/></sheets>
+                    </workbook>
+                    """);
+            writeZipEntry(output, "xl/_rels/workbook.xml.rels", """
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                      <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+                    </Relationships>
+                    """);
+            writeZipEntry(output, "xl/worksheets/sheet1.xml", buildWorksheetXml(summary, payments, products));
         } catch (IOException exception) {
             throw new ReportExportException("Não foi possível exportar o relatório para Excel.", exception);
         }
@@ -111,6 +124,48 @@ public class ReportExportService {
                     String.valueOf(product.getQuantitySold()), formatMoney(product.getTotalAmount())));
         }
         return lines;
+    }
+
+    private String buildWorksheetXml(
+            SalesReportSummary summary,
+            List<PaymentMethodReport> payments,
+            List<ProductSalesReport> products
+    ) {
+        StringBuilder worksheet = new StringBuilder("""
+                <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>
+                """);
+        List<String> lines = buildDelimitedLines(summary, payments, products, "\t");
+        for (int rowIndex = 0; rowIndex < lines.size(); rowIndex++) {
+            worksheet.append("<row r=\"").append(rowIndex + 1).append("\">");
+            String[] cells = lines.get(rowIndex).split("\\t", -1);
+            for (int columnIndex = 0; columnIndex < cells.length; columnIndex++) {
+                worksheet.append("<c r=\"")
+                        .append(toColumnName(columnIndex + 1)).append(rowIndex + 1)
+                        .append("\" t=\"inlineStr\"><is><t>")
+                        .append(escapeXml(cells[columnIndex]))
+                        .append("</t></is></c>");
+            }
+            worksheet.append("</row>");
+        }
+        return worksheet.append("</sheetData></worksheet>").toString();
+    }
+
+    private void writeZipEntry(ZipOutputStream output, String name, String content) throws IOException {
+        output.putNextEntry(new ZipEntry(name));
+        output.write(content.getBytes(StandardCharsets.UTF_8));
+        output.closeEntry();
+    }
+
+    private String toColumnName(int index) {
+        StringBuilder name = new StringBuilder();
+        int remaining = index;
+        while (remaining > 0) {
+            remaining--;
+            name.append((char) ('A' + (remaining % 26)));
+            remaining /= 26;
+        }
+        return name.reverse().toString();
     }
 
     private List<String> buildPrintableLines(SalesReportSummary summary, List<PaymentMethodReport> payments, List<ProductSalesReport> products) {

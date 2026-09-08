@@ -25,6 +25,13 @@ public class CreditInstallmentService {
         return creditInstallmentRepository.findPaidInstallments();
     }
 
+    public List<CreditInstallment> listInstallmentsByCustomer(Long customerId) {
+        if (customerId == null) {
+            return List.of();
+        }
+        return creditInstallmentRepository.findByCustomer(customerId);
+    }
+
     public void markAsPaid(CreditInstallment installment) {
         markAsPaid(installment, "Operador", "Dinheiro", "");
     }

@@ -141,7 +141,7 @@ public class ReportController {
 
     @FXML
     private void handleExportExcel() {
-        export("Excel", "*.xls", "xls");
+        export("Excel", "*.xlsx", "xlsx");
     }
 
     @FXML
@@ -330,7 +330,7 @@ public class ReportController {
         Path file = selectedFile.toPath();
         switch (extension) {
             case "csv" -> reportExportService.exportCsv(file, currentSummary, currentPayments, currentProducts);
-            case "xls" -> reportExportService.exportExcel(file, currentSummary, currentPayments, currentProducts);
+            case "xlsx" -> reportExportService.exportExcel(file, currentSummary, currentPayments, currentProducts);
             case "pdf" -> reportExportService.exportPdf(file, currentSummary, currentPayments, currentProducts);
             default -> throw new IllegalArgumentException("Formato de exportação não suportado.");
         }

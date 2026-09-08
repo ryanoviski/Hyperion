@@ -50,5 +50,6 @@ class CreditInstallmentServiceIntegrationTest extends DatabaseIntegrationTest {
         assertEquals("PIX", payment.paymentMethod());
         assertEquals("Pagamento antecipado", payment.notes());
         assertEquals(new BigDecimal("66.67"), installmentService.getOpenBalanceByCustomer(customer.getId()));
+        assertEquals(3, installmentService.listInstallmentsByCustomer(customer.getId()).size());
     }
 }

@@ -96,6 +96,36 @@ public class CreditInstallmentRepository {
         return findInstallments(sql);
     }
 
+    public List<CreditInstallment> findByCustomer(Long customerId) {
+        String sql = """
+                SELECT id,
+                       sale_id,
+                       customer_id,
+                       customer_name,
+                       installment_number,
+                       total_installments,
+                       amount,
+                       due_date,
+                       status
+                FROM credit_installments
+                WHERE customer_id = ?
+                ORDER BY created_at DESC, sale_id DESC, installment_number ASC;
+                """;
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, customerId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<CreditInstallment> installments = new ArrayList<>();
+                while (resultSet.next()) {
+                    installments.add(mapInstallment(resultSet));
+                }
+                return installments;
+            }
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível listar o histórico completo do crediário.", exception);
+        }
+    }
+
     public BigDecimal getTotalPaidInstallments() {
         String sql = """
                 SELECT COALESCE(SUM(amount), 0) AS total
