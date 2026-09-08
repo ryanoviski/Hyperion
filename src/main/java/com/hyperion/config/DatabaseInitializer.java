@@ -9,15 +9,6 @@ import java.sql.Statement;
 
 public final class DatabaseInitializer {
 
-    private static final String CREATE_COMPANY_TABLE = """
-            CREATE TABLE IF NOT EXISTS company (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                owner_name TEXT NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            );
-            """;
-
     private static final String CREATE_APP_SETTINGS_TABLE = """
             CREATE TABLE IF NOT EXISTS app_settings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -160,7 +151,6 @@ public final class DatabaseInitializer {
         try (Connection connection = DatabaseConfig.getConnection();
              Statement statement = connection.createStatement()) {
 
-            statement.execute(CREATE_COMPANY_TABLE);
             statement.execute(CREATE_APP_SETTINGS_TABLE);
             statement.execute(CREATE_CUSTOMERS_TABLE);
             statement.execute(CREATE_PRODUCTS_TABLE);

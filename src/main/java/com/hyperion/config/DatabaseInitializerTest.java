@@ -16,7 +16,7 @@ public class DatabaseInitializerTest {
                      SELECT name
                      FROM sqlite_master
                      WHERE type = 'table'
-                       AND name IN ('company', 'app_settings')
+                       AND name = 'app_settings'
                      ORDER BY name;
                      """)) {
 
