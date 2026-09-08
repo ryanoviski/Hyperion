@@ -14,6 +14,7 @@ import com.hyperion.exception.InsufficientStockException;
 import com.hyperion.exception.InvalidCreditPlanException;
 import com.hyperion.exception.InvalidPaymentMethodException;
 import com.hyperion.exception.ValidationException;
+import com.hyperion.util.Money;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -56,8 +57,8 @@ public class SaleService {
 
         BigDecimal normalizedDiscount = discount == null ? BigDecimal.ZERO : discount;
 
-        if (normalizedDiscount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new ValidationException("O desconto não pode ser negativo.");
+        if (normalizedDiscount.compareTo(BigDecimal.ZERO) < 0 || !Money.hasAtMostTwoFractionDigits(normalizedDiscount)) {
+            throw new ValidationException("O desconto deve ter valor não negativo e no máximo duas casas decimais.");
         }
 
         List<SaleItem> validatedItems = validateItems(items);

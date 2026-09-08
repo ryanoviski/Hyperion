@@ -15,6 +15,7 @@ import com.hyperion.exception.EntityNotFoundException;
 import com.hyperion.exception.SaleAlreadyCancelledException;
 import com.hyperion.exception.SaleCancellationNotAllowedException;
 import com.hyperion.exception.PersistenceException;
+import com.hyperion.util.Money;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -81,9 +82,9 @@ public class SaleRepository {
 
                 saleStatement.setLong(1, sale.getCustomerId());
                 saleStatement.setString(2, sale.getCustomerName());
-                saleStatement.setBigDecimal(3, sale.getSubtotal());
-                saleStatement.setBigDecimal(4, sale.getDiscount());
-                saleStatement.setBigDecimal(5, sale.getTotal());
+                Money.setCents(saleStatement, 3, sale.getSubtotal());
+                Money.setCents(saleStatement, 4, sale.getDiscount());
+                Money.setCents(saleStatement, 5, sale.getTotal());
                 saleStatement.setString(6, sale.getPaymentMethod());
                 saleStatement.executeUpdate();
 
@@ -94,8 +95,8 @@ public class SaleRepository {
                     itemStatement.setLong(2, item.getProductId());
                     itemStatement.setString(3, item.getProductName());
                     itemStatement.setInt(4, item.getQuantity());
-                    itemStatement.setBigDecimal(5, item.getUnitPrice());
-                    itemStatement.setBigDecimal(6, item.getSubtotal());
+                    Money.setCents(itemStatement, 5, item.getUnitPrice());
+                    Money.setCents(itemStatement, 6, item.getSubtotal());
                     itemStatement.addBatch();
 
                     stockStatement.setInt(1, item.getQuantity());
@@ -244,7 +245,7 @@ public class SaleRepository {
             statement.setString(3, sale.getCustomerName());
             statement.setInt(4, installmentNumber);
             statement.setInt(5, installments);
-            statement.setBigDecimal(6, amount);
+            Money.setCents(statement, 6, amount);
             statement.setString(7, dueDate.toString());
             statement.addBatch();
 
@@ -270,7 +271,7 @@ public class SaleRepository {
             }
 
             return new DailySalesSummary(
-                    resultSet.getBigDecimal("total"),
+                    Money.getCents(resultSet, "total"),
                     resultSet.getInt("sales_count")
             );
         } catch (SQLException exception) {
@@ -435,8 +436,7 @@ public class SaleRepository {
     public SalesReportSummary getSalesReportSummary(LocalDate startDate, LocalDate endDateExclusive) {
         String sql = """
                 SELECT COUNT(*) AS sales_count,
-                       COALESCE(SUM(total), 0) AS total_sales,
-                       COALESCE(AVG(total), 0) AS average_ticket
+                       COALESCE(SUM(total), 0) AS total_sales
                 FROM sales
                 %s;
                 """;
@@ -456,8 +456,8 @@ public class SaleRepository {
 
             return new SalesReportSummary(
                     resultSet.getInt("sales_count"),
-                    resultSet.getBigDecimal("total_sales"),
-                    resultSet.getBigDecimal("average_ticket")
+                    Money.getCents(resultSet, "total_sales"),
+                    averageTicket(Money.getCents(resultSet, "total_sales"), resultSet.getInt("sales_count"))
             );
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not load sales report summary.", exception);
@@ -494,7 +494,7 @@ public class SaleRepository {
                 reports.add(new PaymentMethodReport(
                         resultSet.getString("payment_method"),
                         resultSet.getInt("sales_count"),
-                        resultSet.getBigDecimal("total_amount")
+                        Money.getCents(resultSet, "total_amount")
                 ));
             }
 
@@ -511,7 +511,6 @@ public class SaleRepository {
     public List<ProductSalesReport> findTopSellingProducts(LocalDate startDate, LocalDate endDateExclusive) {
         String sql = """
                 SELECT si.product_name,
-                       COALESCE(SUM(si.subtotal) / NULLIF(SUM(si.quantity), 0), 0) AS unit_price,
                        COALESCE(SUM(si.quantity), 0) AS quantity_sold,
                        COALESCE(SUM(si.subtotal), 0) AS total_amount
                 FROM sale_items si
@@ -536,9 +535,9 @@ public class SaleRepository {
             while (resultSet.next()) {
                 reports.add(new ProductSalesReport(
                         resultSet.getString("product_name"),
-                        resultSet.getBigDecimal("unit_price"),
+                        averageTicket(Money.getCents(resultSet, "total_amount"), resultSet.getInt("quantity_sold")),
                         resultSet.getInt("quantity_sold"),
-                        resultSet.getBigDecimal("total_amount")
+                        Money.getCents(resultSet, "total_amount")
                 ));
             }
 
@@ -557,10 +556,18 @@ public class SaleRepository {
                 return BigDecimal.ZERO;
             }
 
-            return resultSet.getBigDecimal("total");
+            return Money.getCents(resultSet, "total");
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not load sales total.", exception);
         }
+    }
+
+    private BigDecimal averageTicket(BigDecimal total, int quantity) {
+        if (quantity <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return total.divide(BigDecimal.valueOf(quantity), 2, RoundingMode.HALF_UP);
     }
 
     private String buildSalesDateWhereClause(LocalDate startDate, LocalDate endDateExclusive) {
@@ -621,9 +628,9 @@ public class SaleRepository {
                 resultSet.getLong("id"),
                 resultSet.getLong("customer_id"),
                 resultSet.getString("customer_name"),
-                resultSet.getBigDecimal("subtotal"),
-                resultSet.getBigDecimal("discount"),
-                resultSet.getBigDecimal("total"),
+                Money.getCents(resultSet, "subtotal"),
+                Money.getCents(resultSet, "discount"),
+                Money.getCents(resultSet, "total"),
                 resultSet.getString("payment_method"),
                 LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME),
                 resultSet.getString("status"),
@@ -670,8 +677,8 @@ public class SaleRepository {
                             resultSet.getLong("product_id"),
                             resultSet.getString("product_name"),
                             resultSet.getInt("quantity"),
-                            resultSet.getBigDecimal("unit_price"),
-                            resultSet.getBigDecimal("subtotal")
+                            Money.getCents(resultSet, "unit_price"),
+                            Money.getCents(resultSet, "subtotal")
                     ));
                 }
                 return items;

@@ -23,7 +23,20 @@ public final class DatabaseConfig {
         createDatabaseDirectory();
         migrateLegacyDatabaseIfNecessary();
         loadDriver();
-        return DriverManager.getConnection(DATABASE_URL);
+        Connection connection = DriverManager.getConnection(DATABASE_URL);
+
+        try (var statement = connection.createStatement()) {
+            statement.execute("PRAGMA foreign_keys = ON;");
+        } catch (SQLException exception) {
+            try {
+                connection.close();
+            } catch (SQLException closeException) {
+                exception.addSuppressed(closeException);
+            }
+            throw exception;
+        }
+
+        return connection;
     }
 
     public static Path getDatabaseFile() {

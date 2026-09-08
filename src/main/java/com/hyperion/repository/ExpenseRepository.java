@@ -4,6 +4,7 @@ import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Expense;
 import com.hyperion.exception.EntityNotFoundException;
 import com.hyperion.exception.PersistenceException;
+import com.hyperion.util.Money;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -31,7 +32,7 @@ public class ExpenseRepository {
 
             statement.setString(1, expense.getDescription());
             statement.setString(2, expense.getCategory());
-            statement.setBigDecimal(3, expense.getAmount());
+            Money.setCents(statement, 3, expense.getAmount());
             statement.executeUpdate();
 
             try (ResultSet resultSet = statement.getGeneratedKeys()) {
@@ -120,7 +121,7 @@ public class ExpenseRepository {
                 return BigDecimal.ZERO;
             }
 
-            return resultSet.getBigDecimal("total");
+            return Money.getCents(resultSet, "total");
         } catch (SQLException exception) {
             throw new PersistenceException("Não foi possível carregar o resumo de despesas.", exception);
         }
@@ -131,7 +132,7 @@ public class ExpenseRepository {
                 resultSet.getLong("id"),
                 resultSet.getString("description"),
                 resultSet.getString("category"),
-                resultSet.getBigDecimal("amount"),
+                Money.getCents(resultSet, "amount"),
                 LocalDateTime.parse(resultSet.getString("created_at"), SQLITE_DATE_TIME)
         );
     }

@@ -4,6 +4,7 @@ import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.CreditInstallment;
 import com.hyperion.exception.DataCorruptionException;
 import com.hyperion.exception.PersistenceException;
+import com.hyperion.util.Money;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -157,8 +158,7 @@ public class CreditInstallmentRepository {
                 return BigDecimal.ZERO;
             }
 
-            BigDecimal total = resultSet.getBigDecimal("total");
-            return total == null ? BigDecimal.ZERO : total;
+            return Money.getCents(resultSet, "total");
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not calculate credit installment total.", exception);
         }
@@ -173,7 +173,7 @@ public class CreditInstallmentRepository {
                 resultSet.getString("customer_name"),
                 resultSet.getInt("installment_number"),
                 resultSet.getInt("total_installments"),
-                resultSet.getBigDecimal("amount"),
+                Money.getCents(resultSet, "amount"),
                 LocalDate.parse(resultSet.getString("due_date")),
                     resultSet.getString("status")
             );

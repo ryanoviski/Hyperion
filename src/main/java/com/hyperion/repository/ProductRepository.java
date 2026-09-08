@@ -3,6 +3,7 @@ package com.hyperion.repository;
 import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Product;
 import com.hyperion.exception.EntityNotFoundException;
+import com.hyperion.util.Money;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -200,8 +201,8 @@ public class ProductRepository {
     private void fillProductStatement(PreparedStatement statement, Product product) throws SQLException {
         statement.setString(1, product.getName());
         statement.setString(2, product.getDescription());
-        statement.setBigDecimal(3, product.getPrice());
-        statement.setBigDecimal(4, product.getCost());
+        Money.setCents(statement, 3, product.getPrice());
+        Money.setCents(statement, 4, product.getCost());
         statement.setInt(5, product.getStockQuantity());
         statement.setString(6, product.getCategory());
         statement.setString(7, product.getBarcode());
@@ -211,8 +212,8 @@ public class ProductRepository {
     private void fillProductUpdateStatement(PreparedStatement statement, Product product) throws SQLException {
         statement.setString(1, product.getName());
         statement.setString(2, product.getDescription());
-        statement.setBigDecimal(3, product.getPrice());
-        statement.setBigDecimal(4, product.getCost());
+        Money.setCents(statement, 3, product.getPrice());
+        Money.setCents(statement, 4, product.getCost());
         statement.setString(5, product.getCategory());
         statement.setString(6, product.getBarcode());
         statement.setString(7, product.getSupplier());
@@ -233,8 +234,8 @@ public class ProductRepository {
                 resultSet.getLong("id"),
                 resultSet.getString("name"),
                 resultSet.getString("description"),
-                BigDecimal.valueOf(resultSet.getDouble("price")),
-                BigDecimal.valueOf(resultSet.getDouble("cost")),
+                Money.getCents(resultSet, "price"),
+                Money.getCents(resultSet, "cost"),
                 resultSet.getInt("stock_quantity"),
                 resultSet.getString("category"),
                 resultSet.getString("barcode"),

@@ -3,6 +3,7 @@ package com.hyperion.service;
 import com.hyperion.model.Product;
 import com.hyperion.repository.ProductRepository;
 import com.hyperion.exception.ValidationException;
+import com.hyperion.util.Money;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -103,12 +104,12 @@ public class ProductService {
             throw new ValidationException("Informe o nome do produto.");
         }
 
-        if (price == null || price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new ValidationException("Informe um preço válido.");
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0 || !Money.hasAtMostTwoFractionDigits(price)) {
+            throw new ValidationException("Informe um preço válido com no máximo duas casas decimais.");
         }
 
-        if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0) {
-            throw new ValidationException("Informe um custo válido.");
+        if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0 || !Money.hasAtMostTwoFractionDigits(cost)) {
+            throw new ValidationException("Informe um custo válido com no máximo duas casas decimais.");
         }
     }
 

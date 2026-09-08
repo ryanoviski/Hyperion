@@ -8,6 +8,7 @@ import com.hyperion.repository.SaleRepository;
 import com.hyperion.exception.HyperionException;
 import com.hyperion.exception.PartialOperationException;
 import com.hyperion.exception.ValidationException;
+import com.hyperion.util.Money;
 import java.nio.file.Path;
 
 import java.math.BigDecimal;
@@ -27,8 +28,8 @@ public class FinanceService {
             throw new ValidationException("Informe a descrição da despesa.");
         }
 
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidationException("Informe um valor maior que zero.");
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0 || !Money.hasAtMostTwoFractionDigits(amount)) {
+            throw new ValidationException("Informe um valor maior que zero com no máximo duas casas decimais.");
         }
 
         return expenseRepository.save(new Expense(
