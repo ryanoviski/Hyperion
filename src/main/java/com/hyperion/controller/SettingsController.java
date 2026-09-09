@@ -160,7 +160,7 @@ public class SettingsController {
                     setBackupOperationRunning(false, null);
                     showMessage(result.attachmentsRestored()
                             ? "Backup e anexos restaurados. Reinicie o Hyperion para carregar todos os dados restaurados."
-                            : "Backup legado restaurado. Os anexos atuais foram preservados; reinicie o Hyperion para carregar os dados.");
+                            : "Backup legado restaurado sem anexos. Os arquivos de anexo não fazem parte de backups .db; reinicie o Hyperion para carregar os dados.");
                 },
                 exception -> {
                     setBackupOperationRunning(false, null);

@@ -57,7 +57,7 @@
                      <children>
                         <Label styleClass="card-label" text="Lucro do mês" />
                         <Label fx:id="monthlyProfitLabel" styleClass="card-value" text="R$ 0,00" />
-                        <Label styleClass="card-footnote" text="Mês atual" />
+                        <Label styleClass="card-footnote" text="Vendas - custos - despesas" />
                      </children>
                   </VBox>
                </children>

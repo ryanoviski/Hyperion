@@ -2,6 +2,7 @@ package com.hyperion.service;
 
 import com.hyperion.model.Attachment;
 import com.hyperion.exception.AttachmentStorageException;
+import com.hyperion.exception.ValidationException;
 import com.hyperion.support.DatabaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 
@@ -64,5 +65,26 @@ class AttachmentServiceIntegrationTest extends DatabaseIntegrationTest {
 
         assertThrows(AttachmentStorageException.class,
                 () -> new AttachmentService().resolveAttachmentPath(attachment));
+    }
+
+    @Test
+    void doesNotPersistExpenseWhenItsRequestedAttachmentIsInvalid() throws Exception {
+        Path invalidFile = testDirectory.resolve("comprovante.txt");
+        Files.writeString(invalidFile, "arquivo inválido");
+        FinanceService financeService = new FinanceService();
+
+        assertThrows(ValidationException.class, () -> financeService.registerExpenseWithAttachment(
+                "Internet", "Serviços", new BigDecimal("89.90"), invalidFile
+        ));
+
+        assertTrue(financeService.listAllExpenses().isEmpty());
+        assertEquals(new BigDecimal("0.00"), financeService.getSummary().getTotalExpenses());
+    }
+
+    @Test
+    void rejectsExpenseAmountsThatDoNotFitTheIntegerCentStorage() {
+        assertThrows(ValidationException.class, () -> new FinanceService().registerExpense(
+                "Despesa inválida", "Teste", new BigDecimal("92233720368547758.08")
+        ));
     }
 }

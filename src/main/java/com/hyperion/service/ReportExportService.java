@@ -124,7 +124,7 @@ public class ReportExportService {
         }
         rows.add(List.of());
         rows.add(row(text("Produtos mais vendidos")));
-        rows.add(row(text("Produto"), text("Preço unitário"), text("Quantidade"), text("Total")));
+        rows.add(row(text("Produto"), text("Preço médio líquido"), text("Quantidade"), text("Total")));
         for (ProductSalesReport product : safeList(products)) {
             rows.add(row(text(product.getProductName()), money(product.getUnitPrice()),
                     number(product.getQuantitySold()), money(product.getTotalAmount())));

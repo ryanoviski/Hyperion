@@ -131,7 +131,7 @@
                   <TableView fx:id="topProductsTable" prefHeight="230.0" VBox.vgrow="ALWAYS">
                      <columns>
                         <TableColumn fx:id="productNameColumn" prefWidth="420.0" text="Produto" />
-                        <TableColumn fx:id="productUnitPriceColumn" prefWidth="160.0" text="Preço Unitário" />
+                        <TableColumn fx:id="productUnitPriceColumn" prefWidth="160.0" text="Preço médio líquido" />
                         <TableColumn fx:id="productQuantityColumn" prefWidth="190.0" text="Vendas (Quantidade)" />
                         <TableColumn fx:id="productTotalColumn" prefWidth="180.0" text="Total (R$)" />
                      </columns>

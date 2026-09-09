@@ -264,15 +264,17 @@ public class BackupService {
         boolean attachmentsReplaced = false;
 
         try {
-            if (candidate.includesAttachments()) {
-                if (Files.exists(currentAttachments)) {
-                    previousAttachments = DatabaseConfig.getDataDirectory()
-                            .resolve("attachments-before-restore-" + UUID.randomUUID());
-                    moveReplacing(currentAttachments, previousAttachments);
-                }
-                moveReplacing(candidate.attachmentsDirectory(), currentAttachments);
-                attachmentsReplaced = true;
+            if (Files.exists(currentAttachments)) {
+                previousAttachments = DatabaseConfig.getDataDirectory()
+                        .resolve("attachments-before-restore-" + UUID.randomUUID());
+                moveReplacing(currentAttachments, previousAttachments);
             }
+            if (candidate.includesAttachments()) {
+                moveReplacing(candidate.attachmentsDirectory(), currentAttachments);
+            } else {
+                Files.createDirectories(currentAttachments);
+            }
+            attachmentsReplaced = true;
 
             replaceDatabase(candidate.databaseFile());
             deleteDirectoryQuietly(previousAttachments);

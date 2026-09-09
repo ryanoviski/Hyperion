@@ -6,6 +6,7 @@ import com.hyperion.model.DailySalesSummary;
 import com.hyperion.model.Product;
 import com.hyperion.model.Sale;
 import com.hyperion.model.SaleItem;
+import com.hyperion.repository.CustomerRepository;
 import com.hyperion.repository.ProductRepository;
 import com.hyperion.repository.SaleRepository;
 import com.hyperion.exception.EntityInactiveException;
@@ -26,7 +27,9 @@ import java.util.Set;
 public class SaleService {
 
     private static final Set<String> PAYMENT_METHODS = Set.of("Dinheiro", "PIX", "Cartão crédito", "Cartão débito", "Crediário");
+    private static final int MAX_CREDIT_INSTALLMENTS = 10;
 
+    private final CustomerRepository customerRepository = new CustomerRepository();
     private final ProductRepository productRepository = new ProductRepository();
     private final SaleRepository saleRepository = new SaleRepository();
 
@@ -39,6 +42,12 @@ public class SaleService {
     ) {
         if (customer == null || customer.getId() == null) {
             throw new ValidationException("Selecione um cliente.");
+        }
+
+        Customer persistedCustomer = customerRepository.findById(customer.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Cliente"));
+        if (!persistedCustomer.isActive()) {
+            throw new EntityInactiveException("Cliente");
         }
 
         if (items == null || items.isEmpty()) {
@@ -69,16 +78,22 @@ public class SaleService {
         }
 
         BigDecimal total = subtotal.subtract(normalizedDiscount);
+        if (!Money.fitsInCents(subtotal) || !Money.fitsInCents(total)) {
+            throw new ValidationException("O valor total da venda excede o limite suportado.");
+        }
         CreditSalePlan validatedCreditSalePlan = validateCreditSalePlan(normalizedPaymentMethod, creditSalePlan);
+        if ("Crediário".equals(normalizedPaymentMethod) && total.signum() <= 0) {
+            throw new InvalidCreditPlanException("A venda no crediário deve ter valor total maior que zero.");
+        }
 
         Sale sale = new Sale(
-                customer.getId(),
-                customer.getName(),
+                persistedCustomer.getId(),
+                persistedCustomer.getName(),
                 subtotal,
                 normalizedDiscount,
                 total,
                 normalizedPaymentMethod,
-                validatedItems
+                allocateNetSubtotals(validatedItems, total)
         );
 
         saleRepository.save(sale, validatedCreditSalePlan);
@@ -150,7 +165,10 @@ public class SaleService {
                     product.getId(),
                     product.getName(),
                     item.getQuantity(),
-                    product.getPrice()
+                    product.getPrice(),
+                    product.getCost(),
+                    product.getCategory(),
+                    product.getSupplier()
             ));
         }
 
@@ -167,6 +185,28 @@ public class SaleService {
         return subtotal;
     }
 
+    private List<SaleItem> allocateNetSubtotals(List<SaleItem> items, BigDecimal total) {
+        List<BigDecimal> allocations = Money.allocateProportionally(
+                total,
+                items.stream().map(SaleItem::getSubtotal).toList()
+        );
+        List<SaleItem> allocatedItems = new ArrayList<>(items.size());
+        for (int index = 0; index < items.size(); index++) {
+            SaleItem item = items.get(index);
+            allocatedItems.add(new SaleItem(
+                    item.getProductId(),
+                    item.getProductName(),
+                    item.getQuantity(),
+                    item.getUnitPrice(),
+                    item.getUnitCost(),
+                    allocations.get(index),
+                    item.getProductCategory(),
+                    item.getProductSupplier()
+            ));
+        }
+        return allocatedItems;
+    }
+
     private CreditSalePlan validateCreditSalePlan(String paymentMethod, CreditSalePlan creditSalePlan) {
         if (!"Crediário".equals(paymentMethod)) {
             return null;
@@ -176,8 +216,8 @@ public class SaleService {
             throw new InvalidCreditPlanException("Informe os dados do crediário.");
         }
 
-        if (creditSalePlan.getInstallments() <= 0) {
-            throw new InvalidCreditPlanException("Informe uma quantidade válida de parcelas.");
+        if (creditSalePlan.getInstallments() <= 0 || creditSalePlan.getInstallments() > MAX_CREDIT_INSTALLMENTS) {
+            throw new InvalidCreditPlanException("Selecione de 1 a " + MAX_CREDIT_INSTALLMENTS + " parcelas.");
         }
 
         if (creditSalePlan.getFirstDueDate() == null) {

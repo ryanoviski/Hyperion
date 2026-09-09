@@ -2,6 +2,9 @@ package com.hyperion.config;
 
 import com.hyperion.exception.DatabaseInitializationException;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,7 +20,10 @@ final class DatabaseMigrations {
             new Migration(2, "strict-integrity-and-money-in-cents", true, DatabaseMigrations::rebuildWithStrictSchema),
             new Migration(3, "query-indexes", false, DatabaseMigrations::createQueryIndexes),
             new Migration(4, "optional-unique-identifiers", false, DatabaseMigrations::createUniqueIdentifierIndexes),
-            new Migration(5, "operational-security-and-credit-history", false, DatabaseMigrations::createOperationalSecurityAndCreditHistory)
+            new Migration(5, "operational-security-and-credit-history", false, DatabaseMigrations::createOperationalSecurityAndCreditHistory),
+            new Migration(6, "sale-item-cost-snapshots", false, DatabaseMigrations::addSaleItemCostSnapshots),
+            new Migration(7, "sale-item-net-subtotal-snapshots", false, DatabaseMigrations::addSaleItemNetSubtotalSnapshots),
+            new Migration(8, "sale-item-classification-snapshots", false, DatabaseMigrations::addSaleItemClassificationSnapshots)
     );
 
     private DatabaseMigrations() {
@@ -553,6 +559,140 @@ final class DatabaseMigrations {
                 "CREATE INDEX IF NOT EXISTS idx_products_stock_minimum ON products(active, stock_quantity, minimum_stock);");
     }
 
+    private static void addSaleItemCostSnapshots(Connection connection) throws SQLException {
+        addColumnIfMissing(connection, "sale_items", "unit_cost",
+                "ALTER TABLE sale_items ADD COLUMN unit_cost INTEGER NOT NULL DEFAULT 0 CHECK (unit_cost >= 0);");
+        execute(connection, """
+                UPDATE sale_items
+                SET unit_cost = COALESCE((
+                    SELECT cost
+                    FROM products
+                    WHERE products.id = sale_items.product_id
+                ), 0)
+                WHERE unit_cost = 0;
+                """);
+    }
+
+    /**
+     * Stores each item's exact share of a sale-level discount. Reports can
+     * then reconcile their product totals with the sale total without relying
+     * on the product's price at query time.
+     */
+    private static void addSaleItemNetSubtotalSnapshots(Connection connection) throws SQLException {
+        addColumnIfMissing(connection, "sale_items", "net_subtotal",
+                "ALTER TABLE sale_items ADD COLUMN net_subtotal INTEGER NOT NULL DEFAULT 0 CHECK (net_subtotal >= 0 AND net_subtotal <= subtotal);");
+
+        String salesSql = "SELECT id, total FROM sales ORDER BY id;";
+        String itemsSql = "SELECT id, subtotal FROM sale_items WHERE sale_id = ? ORDER BY id;";
+        String updateSql = "UPDATE sale_items SET net_subtotal = ? WHERE id = ?;";
+
+        try (PreparedStatement salesStatement = connection.prepareStatement(salesSql);
+             PreparedStatement itemsStatement = connection.prepareStatement(itemsSql);
+             PreparedStatement updateStatement = connection.prepareStatement(updateSql);
+             ResultSet sales = salesStatement.executeQuery()) {
+            while (sales.next()) {
+                long saleId = sales.getLong("id");
+                long saleTotal = sales.getLong("total");
+                List<SaleItemAmount> items = new ArrayList<>();
+                itemsStatement.setLong(1, saleId);
+                try (ResultSet resultSet = itemsStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        items.add(new SaleItemAmount(resultSet.getLong("id"), resultSet.getLong("subtotal")));
+                    }
+                }
+
+                List<Long> netSubtotals = allocateNetSubtotals(saleId, saleTotal, items);
+                for (int index = 0; index < items.size(); index++) {
+                    updateStatement.setLong(1, netSubtotals.get(index));
+                    updateStatement.setLong(2, items.get(index).id());
+                    updateStatement.addBatch();
+                }
+            }
+            updateStatement.executeBatch();
+        }
+    }
+
+    private static void addSaleItemClassificationSnapshots(Connection connection) throws SQLException {
+        addColumnIfMissing(connection, "sale_items", "product_category",
+                "ALTER TABLE sale_items ADD COLUMN product_category TEXT;");
+        addColumnIfMissing(connection, "sale_items", "product_supplier",
+                "ALTER TABLE sale_items ADD COLUMN product_supplier TEXT;");
+        execute(connection, """
+                UPDATE sale_items
+                SET product_category = (
+                    SELECT category FROM products WHERE products.id = sale_items.product_id
+                ),
+                    product_supplier = (
+                    SELECT supplier FROM products WHERE products.id = sale_items.product_id
+                )
+                WHERE product_category IS NULL
+                   OR product_supplier IS NULL;
+                """);
+        executeAll(connection,
+                "CREATE INDEX IF NOT EXISTS idx_sale_items_category ON sale_items(product_category);",
+                "CREATE INDEX IF NOT EXISTS idx_sale_items_supplier ON sale_items(product_supplier);");
+    }
+
+    private static List<Long> allocateNetSubtotals(long saleId, long saleTotal, List<SaleItemAmount> items) {
+        if (saleTotal < 0) {
+            throw invalidSaleForNetSubtotalMigration(saleId);
+        }
+
+        long grossTotal = 0;
+        for (SaleItemAmount item : items) {
+            if (item.subtotal() < 0) {
+                throw invalidSaleForNetSubtotalMigration(saleId);
+            }
+            try {
+                grossTotal = Math.addExact(grossTotal, item.subtotal());
+            } catch (ArithmeticException exception) {
+                throw invalidSaleForNetSubtotalMigration(saleId);
+            }
+        }
+        if ((items.isEmpty() && saleTotal != 0) || saleTotal > grossTotal) {
+            throw invalidSaleForNetSubtotalMigration(saleId);
+        }
+        if (items.isEmpty()) {
+            return List.of();
+        }
+        if (grossTotal == 0) {
+            return java.util.Collections.nCopies(items.size(), 0L);
+        }
+
+        BigInteger divisor = BigInteger.valueOf(grossTotal);
+        BigInteger total = BigInteger.valueOf(saleTotal);
+        List<NetSubtotalAllocation> allocations = new ArrayList<>(items.size());
+        long allocatedCents = 0;
+        for (int index = 0; index < items.size(); index++) {
+            BigInteger dividend = BigInteger.valueOf(items.get(index).subtotal()).multiply(total);
+            BigInteger[] division = dividend.divideAndRemainder(divisor);
+            long allocated = division[0].longValueExact();
+            allocations.add(new NetSubtotalAllocation(index, allocated, division[1]));
+            allocatedCents = Math.addExact(allocatedCents, allocated);
+        }
+
+        long remainingCents = saleTotal - allocatedCents;
+        allocations.sort(Comparator.comparing(NetSubtotalAllocation::remainder).reversed()
+                .thenComparing(NetSubtotalAllocation::index));
+        for (int index = 0; index < remainingCents; index++) {
+            NetSubtotalAllocation allocation = allocations.get(index);
+            allocations.set(index, allocation.withAmount(Math.addExact(allocation.amount(), 1)));
+        }
+
+        Long[] values = new Long[items.size()];
+        for (NetSubtotalAllocation allocation : allocations) {
+            values[allocation.index()] = allocation.amount();
+        }
+        return List.of(values);
+    }
+
+    private static DatabaseInitializationException invalidSaleForNetSubtotalMigration(long saleId) {
+        return new DatabaseInitializationException(
+                "A venda " + saleId + " possui itens incompatíveis com o total e não pode receber o rateio de desconto.",
+                null
+        );
+    }
+
     private static void failWhenDuplicateIdentifier(Connection connection, String table, String column, String label) throws SQLException {
         String sql = """
                 SELECT %s FROM %s
@@ -620,6 +760,15 @@ final class DatabaseMigrations {
     }
 
     private record Migration(int version, String description, boolean disableForeignKeys, SqlOperation operation) {
+    }
+
+    private record SaleItemAmount(long id, long subtotal) {
+    }
+
+    private record NetSubtotalAllocation(int index, long amount, BigInteger remainder) {
+        private NetSubtotalAllocation withAmount(long value) {
+            return new NetSubtotalAllocation(index, value, remainder);
+        }
     }
 
     @FunctionalInterface

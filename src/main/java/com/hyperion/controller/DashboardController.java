@@ -190,12 +190,6 @@ public class DashboardController {
     private void loadCreditAlerts(List<CreditInstallment> alerts, List<Product> lowStockProducts) {
         alertsList.getChildren().clear();
 
-        if (alerts.isEmpty()) {
-            alertsList.getChildren().add(emptyAlertsLabel);
-            emptyAlertsLabel.setText("Nenhum alerta por enquanto.");
-            return;
-        }
-
         LocalDate today = LocalDate.now();
         long overdueCount = alerts.stream()
                 .filter(installment -> installment.getDueDate().isBefore(today))
@@ -264,6 +258,12 @@ public class DashboardController {
                 "system-alert-warning"
         );
         card.setOnMouseClicked(event -> MainController.openProductsView());
+        card.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
+                MainController.openProductsView();
+                event.consume();
+            }
+        });
         return card;
     }
 

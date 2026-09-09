@@ -40,8 +40,10 @@ public class SaleRepository {
                 """;
 
         String insertSaleItemSql = """
-                INSERT INTO sale_items (sale_id, product_id, product_name, quantity, unit_price, subtotal)
-                VALUES (?, ?, ?, ?, ?, ?);
+                INSERT INTO sale_items (
+                    sale_id, product_id, product_name, quantity, unit_price, unit_cost, subtotal, net_subtotal,
+                    product_category, product_supplier
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """;
 
         String updateStockSql = """
@@ -95,7 +97,11 @@ public class SaleRepository {
                     itemStatement.setString(3, item.getProductName());
                     itemStatement.setInt(4, item.getQuantity());
                     Money.setCents(itemStatement, 5, item.getUnitPrice());
-                    Money.setCents(itemStatement, 6, item.getSubtotal());
+                    Money.setCents(itemStatement, 6, item.getUnitCost());
+                    Money.setCents(itemStatement, 7, item.getSubtotal());
+                    Money.setCents(itemStatement, 8, item.getNetSubtotal());
+                    itemStatement.setString(9, item.getProductCategory());
+                    itemStatement.setString(10, item.getProductSupplier());
                     itemStatement.addBatch();
 
                     stockStatement.setInt(1, item.getQuantity());
@@ -138,7 +144,12 @@ public class SaleRepository {
     public void cancel(Long saleId, String reason) {
         String findSaleSql = "SELECT status FROM sales WHERE id = ?;";
         String paidInstallmentsSql = "SELECT COUNT(*) FROM credit_installments WHERE sale_id = ? AND status = 'PAID';";
-        String saleItemsSql = "SELECT id, sale_id, product_id, product_name, quantity, unit_price, subtotal FROM sale_items WHERE sale_id = ?;";
+        String saleItemsSql = """
+                SELECT id, sale_id, product_id, product_name, quantity, unit_price, unit_cost, subtotal, net_subtotal,
+                       product_category, product_supplier
+                FROM sale_items
+                WHERE sale_id = ?;
+                """;
         String cancelSaleSql = """
                 UPDATE sales
                 SET status = 'CANCELLED',
@@ -294,6 +305,18 @@ public class SaleRepository {
                 FROM sales
                 WHERE status = 'COMPLETED'
                   AND strftime('%Y-%m', created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime');
+                """;
+
+        return queryTotal(sql);
+    }
+
+    public BigDecimal getCurrentMonthCostOfGoodsSold() {
+        String sql = """
+                SELECT COALESCE(SUM(si.unit_cost * si.quantity), 0) AS total
+                FROM sale_items si
+                INNER JOIN sales s ON s.id = si.sale_id
+                WHERE s.status = 'COMPLETED'
+                  AND strftime('%Y-%m', s.created_at, 'localtime') = strftime('%Y-%m', 'now', 'localtime');
                 """;
 
         return queryTotal(sql);
@@ -511,7 +534,7 @@ public class SaleRepository {
         String sql = """
                 SELECT si.product_name,
                        COALESCE(SUM(si.quantity), 0) AS quantity_sold,
-                       COALESCE(SUM(si.subtotal), 0) AS total_amount
+                       COALESCE(SUM(si.net_subtotal), 0) AS total_amount
                 FROM sale_items si
                 JOIN sales s ON s.id = si.sale_id
                 %s
@@ -547,13 +570,22 @@ public class SaleRepository {
     }
 
     public SalesReportSummary getSalesReportSummary(SalesReportFilter filter) {
-        FilterSql filterSql = buildReportFilter(filter, false);
-        String sql = """
-                SELECT COUNT(*) AS sales_count,
-                       COALESCE(SUM(s.total), 0) AS total_sales
-                FROM sales s
-                %s;
-                """.formatted(filterSql.whereClause());
+        boolean productScoped = hasProductClassificationFilters(filter);
+        FilterSql filterSql = buildReportFilter(filter, productScoped);
+        String sql = productScoped
+                ? """
+                        SELECT COUNT(DISTINCT s.id) AS sales_count,
+                               COALESCE(SUM(si.net_subtotal), 0) AS total_sales
+                        FROM sale_items si
+                        INNER JOIN sales s ON s.id = si.sale_id
+                        %s;
+                        """.formatted(filterSql.whereClause())
+                : """
+                        SELECT COUNT(*) AS sales_count,
+                               COALESCE(SUM(s.total), 0) AS total_sales
+                        FROM sales s
+                        %s;
+                        """.formatted(filterSql.whereClause());
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = prepareFilteredStatement(connection, sql, filterSql.parameters());
              ResultSet resultSet = statement.executeQuery()) {
@@ -569,16 +601,28 @@ public class SaleRepository {
     }
 
     public List<PaymentMethodReport> findSalesByPaymentMethod(SalesReportFilter filter) {
-        FilterSql filterSql = buildReportFilter(filter, false);
-        String sql = """
-                SELECT s.payment_method,
-                       COUNT(*) AS sales_count,
-                       COALESCE(SUM(s.total), 0) AS total_amount
-                FROM sales s
-                %s
-                GROUP BY s.payment_method
-                ORDER BY total_amount DESC;
-                """.formatted(filterSql.whereClause());
+        boolean productScoped = hasProductClassificationFilters(filter);
+        FilterSql filterSql = buildReportFilter(filter, productScoped);
+        String sql = productScoped
+                ? """
+                        SELECT s.payment_method,
+                               COUNT(DISTINCT s.id) AS sales_count,
+                               COALESCE(SUM(si.net_subtotal), 0) AS total_amount
+                        FROM sale_items si
+                        INNER JOIN sales s ON s.id = si.sale_id
+                        %s
+                        GROUP BY s.payment_method
+                        ORDER BY total_amount DESC;
+                        """.formatted(filterSql.whereClause())
+                : """
+                        SELECT s.payment_method,
+                               COUNT(*) AS sales_count,
+                               COALESCE(SUM(s.total), 0) AS total_amount
+                        FROM sales s
+                        %s
+                        GROUP BY s.payment_method
+                        ORDER BY total_amount DESC;
+                        """.formatted(filterSql.whereClause());
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = prepareFilteredStatement(connection, sql, filterSql.parameters());
              ResultSet resultSet = statement.executeQuery()) {
@@ -601,10 +645,9 @@ public class SaleRepository {
         String sql = """
                 SELECT si.product_name,
                        COALESCE(SUM(si.quantity), 0) AS quantity_sold,
-                       COALESCE(SUM(si.subtotal), 0) AS total_amount
+                       COALESCE(SUM(si.net_subtotal), 0) AS total_amount
                 FROM sale_items si
                 INNER JOIN sales s ON s.id = si.sale_id
-                INNER JOIN products p ON p.id = si.product_id
                 %s
                 GROUP BY si.product_id, si.product_name
                 ORDER BY quantity_sold DESC, total_amount DESC
@@ -632,11 +675,11 @@ public class SaleRepository {
     }
 
     public List<String> findReportCategories() {
-        return findReportFilterValues("p.category", "FROM sale_items si INNER JOIN sales s ON s.id = si.sale_id INNER JOIN products p ON p.id = si.product_id", "WHERE s.status = 'COMPLETED'");
+        return findReportFilterValues("si.product_category", "FROM sale_items si INNER JOIN sales s ON s.id = si.sale_id", "WHERE s.status = 'COMPLETED'");
     }
 
     public List<String> findReportSuppliers() {
-        return findReportFilterValues("p.supplier", "FROM sale_items si INNER JOIN sales s ON s.id = si.sale_id INNER JOIN products p ON p.id = si.product_id", "WHERE s.status = 'COMPLETED'");
+        return findReportFilterValues("si.product_supplier", "FROM sale_items si INNER JOIN sales s ON s.id = si.sale_id", "WHERE s.status = 'COMPLETED'");
     }
 
     private FilterSql buildReportFilter(SalesReportFilter filter, boolean directProductJoin) {
@@ -659,23 +702,26 @@ public class SaleRepository {
         appendEqualsFilter(where, parameters, "s.payment_method", filter.paymentMethod());
 
         if (directProductJoin) {
-            appendEqualsFilter(where, parameters, "p.category", filter.category());
-            appendEqualsFilter(where, parameters, "p.supplier", filter.supplier());
+            appendEqualsFilter(where, parameters, "si.product_category", filter.category());
+            appendEqualsFilter(where, parameters, "si.product_supplier", filter.supplier());
         } else if (!filter.category().isBlank() || !filter.supplier().isBlank()) {
             where.append(" AND EXISTS (SELECT 1 FROM sale_items filter_item ")
-                    .append("INNER JOIN products filter_product ON filter_product.id = filter_item.product_id ")
                     .append("WHERE filter_item.sale_id = s.id");
             if (!filter.category().isBlank()) {
-                where.append(" AND filter_product.category = ?");
+                where.append(" AND filter_item.product_category = ?");
                 parameters.add(filter.category());
             }
             if (!filter.supplier().isBlank()) {
-                where.append(" AND filter_product.supplier = ?");
+                where.append(" AND filter_item.product_supplier = ?");
                 parameters.add(filter.supplier());
             }
             where.append(")");
         }
         return new FilterSql(where.toString(), parameters);
+    }
+
+    private boolean hasProductClassificationFilters(SalesReportFilter filter) {
+        return filter != null && (!filter.category().isBlank() || !filter.supplier().isBlank());
     }
 
     private void appendEqualsFilter(StringBuilder where, List<String> parameters, String column, String value) {
@@ -841,7 +887,11 @@ public class SaleRepository {
                             resultSet.getString("product_name"),
                             resultSet.getInt("quantity"),
                             Money.getCents(resultSet, "unit_price"),
-                            Money.getCents(resultSet, "subtotal")
+                            Money.getCents(resultSet, "unit_cost"),
+                            Money.getCents(resultSet, "subtotal"),
+                            Money.getCents(resultSet, "net_subtotal"),
+                            resultSet.getString("product_category"),
+                            resultSet.getString("product_supplier")
                     ));
                 }
                 return items;

@@ -85,4 +85,23 @@ class BackupServiceIntegrationTest extends DatabaseIntegrationTest {
 
         assertThrows(BackupException.class, () -> backupService.restoreDatabaseBackup(tamperedBackup));
     }
+
+    @Test
+    void clearsCurrentAttachmentsWhenRestoringALegacyDatabaseOnlyBackup() throws Exception {
+        Long expenseId = new FinanceService().registerExpense("Telefone", "Serviços", new BigDecimal("50.00"));
+        Path sourceFile = testDirectory.resolve("comprovante.pdf");
+        Files.writeString(sourceFile, "%PDF-1.4\ncomprovante de backup legado");
+        AttachmentService attachmentService = new AttachmentService();
+        attachmentService.attachFile(AttachmentService.FINANCE_MODULE, expenseId, sourceFile);
+
+        Path legacyBackup = testDirectory.resolve("backup-legado.db");
+        Files.copy(com.hyperion.config.DatabaseConfig.getDatabaseFile(), legacyBackup);
+
+        BackupService.RestoreResult result = new BackupService().restoreDatabaseBackup(legacyBackup);
+
+        assertTrue(!result.attachmentsRestored());
+        try (var files = Files.walk(new AttachmentService().getAttachmentsDirectory())) {
+            assertEquals(0, files.filter(Files::isRegularFile).count());
+        }
+    }
 }

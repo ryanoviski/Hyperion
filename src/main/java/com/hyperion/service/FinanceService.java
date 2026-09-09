@@ -29,7 +29,8 @@ public class FinanceService {
             throw new ValidationException("Informe a descrição da despesa.");
         }
 
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0 || !Money.hasAtMostTwoFractionDigits(amount)) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0
+                || !Money.hasAtMostTwoFractionDigits(amount) || !Money.fitsInCents(amount)) {
             throw new ValidationException("Informe um valor maior que zero com no máximo duas casas decimais.");
         }
 
@@ -62,7 +63,17 @@ public class FinanceService {
             attachmentService.attachFile(AttachmentService.FINANCE_MODULE, expenseId, attachmentPath);
             return expenseId;
         } catch (HyperionException exception) {
-            throw new PartialOperationException("A despesa foi registrada, mas o comprovante não pôde ser salvo.", exception);
+            try {
+                attachmentService.deleteByEntity(AttachmentService.FINANCE_MODULE, expenseId);
+                expenseRepository.delete(expenseId);
+            } catch (HyperionException rollbackException) {
+                rollbackException.addSuppressed(exception);
+                throw new PartialOperationException(
+                        "O comprovante não pôde ser salvo e a reversão da despesa também falhou.",
+                        rollbackException
+                );
+            }
+            throw exception;
         }
     }
 
@@ -85,19 +96,15 @@ public class FinanceService {
         return new FinancialSummary(
                 getTotalRealizedIncome(),
                 expenseRepository.getTotalExpenses(),
-                getCurrentMonthRealizedIncome(),
-                expenseRepository.getCurrentMonthExpenses()
-        );
+                saleRepository.getCurrentMonthSales(),
+                expenseRepository.getCurrentMonthExpenses(),
+                saleRepository.getCurrentMonthCostOfGoodsSold()
+            );
     }
 
     private BigDecimal getTotalRealizedIncome() {
         return saleRepository.getTotalImmediateSales()
                 .add(creditInstallmentRepository.getTotalPaidInstallments());
-    }
-
-    private BigDecimal getCurrentMonthRealizedIncome() {
-        return saleRepository.getCurrentMonthImmediateSales()
-                .add(creditInstallmentRepository.getCurrentMonthPaidInstallments());
     }
 
     private String normalize(String value) {

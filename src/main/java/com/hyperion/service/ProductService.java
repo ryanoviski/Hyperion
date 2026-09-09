@@ -122,11 +122,13 @@ public class ProductService {
             throw new ValidationException("Informe o nome do produto.");
         }
 
-        if (price == null || price.compareTo(BigDecimal.ZERO) < 0 || !Money.hasAtMostTwoFractionDigits(price)) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0
+                || !Money.hasAtMostTwoFractionDigits(price) || !Money.fitsInCents(price)) {
             throw new ValidationException("Informe um preço válido com no máximo duas casas decimais.");
         }
 
-        if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0 || !Money.hasAtMostTwoFractionDigits(cost)) {
+        if (cost == null || cost.compareTo(BigDecimal.ZERO) < 0
+                || !Money.hasAtMostTwoFractionDigits(cost) || !Money.fitsInCents(cost)) {
             throw new ValidationException("Informe um custo válido com no máximo duas casas decimais.");
         }
 

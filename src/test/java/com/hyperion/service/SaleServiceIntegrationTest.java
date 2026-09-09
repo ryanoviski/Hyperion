@@ -1,5 +1,7 @@
 package com.hyperion.service;
 
+import com.hyperion.exception.EntityInactiveException;
+import com.hyperion.exception.InvalidCreditPlanException;
 import com.hyperion.exception.InsufficientStockException;
 import com.hyperion.exception.ValidationException;
 import com.hyperion.model.Customer;
@@ -10,6 +12,7 @@ import com.hyperion.support.DatabaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,6 +75,60 @@ class SaleServiceIntegrationTest extends DatabaseIntegrationTest {
         ));
 
         assertEquals(1, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+        assertEquals(0, new SaleService().listLatestSales(10).size());
+    }
+
+    @Test
+    void rejectsSaleForCustomerDeactivatedAfterSelectionWithoutChangingStock() {
+        Customer customer = createCustomer("Daniela");
+        Product product = createProduct("Mochila", new BigDecimal("80.00"));
+        new StockService().registerEntry(product.getId(), 1, "Estoque inicial");
+        new CustomerService().deactivateCustomer(customer.getId());
+
+        assertThrows(EntityInactiveException.class, () -> new SaleService().finishSale(
+                customer,
+                List.of(new SaleItem(product.getId(), product.getName(), 1, product.getPrice())),
+                BigDecimal.ZERO,
+                "PIX"
+        ));
+
+        assertEquals(1, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+        assertEquals(0, new SaleService().listLatestSales(10).size());
+    }
+
+    @Test
+    void rejectsZeroValueCreditSaleBeforePersistingAnyData() {
+        Customer customer = createCustomer("Eduardo");
+        Product product = createProduct("Brinde", new BigDecimal("5.00"));
+        new StockService().registerEntry(product.getId(), 1, "Estoque inicial");
+
+        assertThrows(InvalidCreditPlanException.class, () -> new SaleService().finishSale(
+                customer,
+                List.of(new SaleItem(product.getId(), product.getName(), 1, product.getPrice())),
+                new BigDecimal("5.00"),
+                "Crediário",
+                new com.hyperion.model.CreditSalePlan(1, LocalDate.now().plusDays(30))
+        ));
+
+        assertEquals(1, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+        assertEquals(0, new SaleService().listLatestSales(10).size());
+    }
+
+    @Test
+    void rejectsSaleWhoseCalculatedTotalWouldOverflowTheDatabaseMoneyRange() {
+        Customer customer = createCustomer("Fernanda");
+        BigDecimal maximumMoneyValue = new BigDecimal("92233720368547758.07");
+        Product product = createProduct("Produto muito caro", maximumMoneyValue);
+        new StockService().registerEntry(product.getId(), 2, "Estoque inicial");
+
+        assertThrows(ValidationException.class, () -> new SaleService().finishSale(
+                customer,
+                List.of(new SaleItem(product.getId(), product.getName(), 2, product.getPrice())),
+                BigDecimal.ZERO,
+                "PIX"
+        ));
+
+        assertEquals(2, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
         assertEquals(0, new SaleService().listLatestSales(10).size());
     }
 }

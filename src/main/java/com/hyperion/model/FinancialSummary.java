@@ -9,20 +9,25 @@ public class FinancialSummary {
     private final BigDecimal currentBalance;
     private final BigDecimal monthlyIncome;
     private final BigDecimal monthlyExpenses;
+    private final BigDecimal monthlyCostOfGoodsSold;
     private final BigDecimal monthlyProfit;
 
     public FinancialSummary(
             BigDecimal totalIncome,
             BigDecimal totalExpenses,
             BigDecimal monthlyIncome,
-            BigDecimal monthlyExpenses
+            BigDecimal monthlyExpenses,
+            BigDecimal monthlyCostOfGoodsSold
     ) {
         this.totalIncome = valueOrZero(totalIncome);
         this.totalExpenses = valueOrZero(totalExpenses);
         this.currentBalance = this.totalIncome.subtract(this.totalExpenses);
         this.monthlyIncome = valueOrZero(monthlyIncome);
         this.monthlyExpenses = valueOrZero(monthlyExpenses);
-        this.monthlyProfit = this.monthlyIncome.subtract(this.monthlyExpenses);
+        this.monthlyCostOfGoodsSold = valueOrZero(monthlyCostOfGoodsSold);
+        this.monthlyProfit = this.monthlyIncome
+                .subtract(this.monthlyCostOfGoodsSold)
+                .subtract(this.monthlyExpenses);
     }
 
     public BigDecimal getTotalIncome() {
@@ -43,6 +48,10 @@ public class FinancialSummary {
 
     public BigDecimal getMonthlyExpenses() {
         return monthlyExpenses;
+    }
+
+    public BigDecimal getMonthlyCostOfGoodsSold() {
+        return monthlyCostOfGoodsSold;
     }
 
     public BigDecimal getMonthlyProfit() {
