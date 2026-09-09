@@ -14,6 +14,12 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - name: Install OSV-Scanner
+        shell: powershell
+        run: winget install --id Google.OSVScanner --exact --source winget --silent --accept-package-agreements --accept-source-agreements
+      - name: Scan runtime dependencies
+        shell: powershell
+        run: .\scripts\run-security-scan.ps1
       - name: Build portable Windows package and test
         shell: powershell
         run: .\scripts\package-windows.ps1 -Type app-image

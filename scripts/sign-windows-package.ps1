@@ -1,28 +1,29 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string]$File,
+    [string]$InstallerFile,
     [Parameter(Mandatory)]
     [string]$CertificateThumbprint,
-    [Parameter(Mandatory)]
-    [string]$TimestampServer
+    [string]$TimestampServer = 'http://timestamp.digicert.com'
 )
 
 $ErrorActionPreference = 'Stop'
-$packageFile = (Resolve-Path -LiteralPath $File).Path
-if (-not $packageFile.EndsWith('.exe', [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw 'Informe um executável .exe para assinatura.'
-}
-
+$installerPath = (Resolve-Path -LiteralPath $InstallerFile).Path
 $signTool = (Get-Command 'signtool.exe' -ErrorAction Stop).Source
-& $signTool sign /sha1 $CertificateThumbprint /fd SHA256 /tr $TimestampServer /td SHA256 $packageFile
-if ($LASTEXITCODE -ne 0) {
-    throw "A assinatura falhou (código $LASTEXITCODE)."
+$thumbprint = $CertificateThumbprint.Replace(' ', '')
+
+if ($thumbprint -notmatch '^[0-9A-Fa-f]{40}$') {
+    throw 'Informe a impressão digital SHA-1 de um certificado de assinatura de código válido.'
 }
 
-& $signTool verify /pa /all $packageFile
+& $signTool sign /sha1 $thumbprint /fd SHA256 /tr $TimestampServer /td SHA256 /d 'Hyperion' $installerPath
 if ($LASTEXITCODE -ne 0) {
-    throw "A verificação da assinatura falhou (código $LASTEXITCODE)."
+    throw "A assinatura do instalador falhou (código $LASTEXITCODE)."
 }
 
-Write-Output "Pacote assinado e validado: $packageFile"
+& $signTool verify /pa /v $installerPath
+if ($LASTEXITCODE -ne 0) {
+    throw "A assinatura do instalador não foi validada (código $LASTEXITCODE)."
+}
+
+Write-Output "Instalador assinado e validado: $installerPath"

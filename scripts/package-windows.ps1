@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [ValidateSet('app-image', 'exe')]
-    [string]$Type = 'exe'
+    [string]$Type = 'exe',
+    [string]$SigningCertificateThumbprint,
+    [string]$TimestampServer = 'http://timestamp.digicert.com'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -61,14 +63,27 @@ try {
     )
 
     if ($Type -eq 'exe') {
-        $arguments += @('--win-shortcut', '--win-menu', '--win-menu-group', 'Hyperion', '--win-dir-chooser', '--win-per-user-install')
+        $arguments += @(
+            '--win-shortcut', '--win-menu', '--win-menu-group', 'Hyperion', '--win-dir-chooser', '--win-per-user-install',
+            '--win-upgrade-uuid', 'e6507986-59db-4ca4-94d4-a75422128338'
+        )
     }
 
     & $jpackage @arguments
     if ($LASTEXITCODE -ne 0) {
         throw "O jpackage falhou (código $LASTEXITCODE)."
     }
+
+    if (-not [string]::IsNullOrWhiteSpace($SigningCertificateThumbprint)) {
+        if ($Type -ne 'exe') {
+            throw 'A assinatura só é suportada ao gerar o instalador EXE.'
+        }
+        $installerFile = Join-Path $outputDirectory ("Hyperion-" + $version + '.exe')
+        & (Join-Path $PSScriptRoot 'sign-windows-package.ps1') `
+            -InstallerFile $installerFile `
+            -CertificateThumbprint $SigningCertificateThumbprint `
+            -TimestampServer $TimestampServer
+    }
 } finally {
     Pop-Location
 }
-
