@@ -4,6 +4,7 @@ import com.hyperion.config.DatabaseConfig;
 import com.hyperion.exception.InsufficientStockException;
 import com.hyperion.model.StockMovement;
 import com.hyperion.exception.PersistenceException;
+import com.hyperion.exception.ValidationException;
 import com.hyperion.util.SqliteTimestamp;
 
 import java.sql.Connection;
@@ -27,7 +28,8 @@ public class StockMovementRepository {
                 SET stock_quantity = stock_quantity + ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-                  AND stock_quantity + ? >= 0;
+                  AND stock_quantity + ? >= 0
+                  AND stock_quantity <= ?;
                 """;
 
         try (Connection connection = DatabaseConfig.getConnection()) {
@@ -45,7 +47,11 @@ public class StockMovementRepository {
                 updateStatement.setInt(1, stockDelta);
                 updateStatement.setLong(2, movement.getProductId());
                 updateStatement.setInt(3, stockDelta);
+                updateStatement.setInt(4, maximumCurrentStock(stockDelta));
                 if (updateStatement.executeUpdate() != 1) {
+                    if (stockDelta > 0) {
+                        throw new ValidationException("A movimentação excede o limite máximo de estoque suportado.");
+                    }
                     throw new InsufficientStockException("produto selecionado");
                 }
 
@@ -59,6 +65,10 @@ public class StockMovementRepository {
         } catch (SQLException exception) {
             throw new PersistenceException("Não foi possível registrar a movimentação de estoque.", exception);
         }
+    }
+
+    private int maximumCurrentStock(int stockDelta) {
+        return stockDelta > 0 ? Integer.MAX_VALUE - stockDelta : Integer.MAX_VALUE;
     }
 
     public List<StockMovement> findLatest() {

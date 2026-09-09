@@ -28,9 +28,10 @@ if ($RequireSignature) {
 
 if ($SmokeTest) {
     $healthDataDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("hyperion-healthcheck-" + [Guid]::NewGuid())
+    $launcher = $null
     try {
         $launcher = Start-Process -FilePath (Join-Path $applicationPath 'Hyperion.exe') `
-            -ArgumentList '--healthcheck', ("--data-dir=" + $healthDataDirectory) -PassThru
+            -ArgumentList '--healthcheck', ("--data-dir=" + $healthDataDirectory) -PassThru -WindowStyle Hidden
         $deadline = [DateTime]::UtcNow.AddSeconds(30)
         while (-not (Test-Path -LiteralPath (Join-Path $healthDataDirectory 'hyperion.db')) -and [DateTime]::UtcNow -lt $deadline) {
             Start-Sleep -Milliseconds 250
@@ -39,7 +40,7 @@ if ($SmokeTest) {
             throw "O teste de inicialização não criou o banco de dados isolado esperado."
         }
     } finally {
-        if (-not $launcher.HasExited) {
+        if ($null -ne $launcher -and -not $launcher.HasExited) {
             $launcher.WaitForExit(5000) | Out-Null
         }
         if (Test-Path -LiteralPath $healthDataDirectory) {

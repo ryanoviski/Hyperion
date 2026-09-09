@@ -12,6 +12,7 @@ import java.sql.SQLException;
 public final class DatabaseConfig {
 
     public static final String DATA_DIRECTORY_PROPERTY = "hyperion.data.dir";
+    private static final int SQLITE_BUSY_TIMEOUT_MILLISECONDS = 5_000;
     private static final Path LEGACY_DATABASE_FILE = Path.of("data", "hyperion.db").toAbsolutePath().normalize();
 
     private DatabaseConfig() {
@@ -26,6 +27,8 @@ public final class DatabaseConfig {
 
         try (var statement = connection.createStatement()) {
             statement.execute("PRAGMA foreign_keys = ON;");
+            statement.execute("PRAGMA busy_timeout = " + SQLITE_BUSY_TIMEOUT_MILLISECONDS + ";");
+            statement.execute("PRAGMA journal_mode = WAL;");
         } catch (SQLException exception) {
             try {
                 connection.close();

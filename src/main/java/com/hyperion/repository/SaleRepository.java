@@ -169,7 +169,8 @@ public class SaleRepository {
                 UPDATE products
                 SET stock_quantity = stock_quantity + ?,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE id = ?;
+                WHERE id = ?
+                  AND stock_quantity <= ?;
                 """;
         String movementSql = """
                 INSERT INTO stock_movements (product_id, type, quantity, notes)
@@ -209,8 +210,9 @@ public class SaleRepository {
                     for (SaleItem item : items) {
                         restoreStockStatement.setInt(1, item.getQuantity());
                         restoreStockStatement.setLong(2, item.getProductId());
+                        restoreStockStatement.setInt(3, Integer.MAX_VALUE - item.getQuantity());
                         if (restoreStockStatement.executeUpdate() != 1) {
-                            throw new EntityNotFoundException("Produto da venda");
+                            throw new PersistenceException("O estorno excederia o limite máximo de estoque suportado.");
                         }
 
                         movementStatement.setLong(1, item.getProductId());

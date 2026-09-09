@@ -15,6 +15,7 @@ public class StockService {
 
     public static final String MOVEMENT_TYPE_IN = "IN";
     public static final String MOVEMENT_TYPE_OUT = "OUT";
+    private static final int MAXIMUM_STOCK_QUANTITY = Integer.MAX_VALUE;
 
     private final ProductRepository productRepository = new ProductRepository();
     private final StockMovementRepository stockMovementRepository = new StockMovementRepository();
@@ -52,6 +53,10 @@ public class StockService {
 
         if (MOVEMENT_TYPE_OUT.equals(type) && product.getStockQuantity() < quantity) {
             throw new InsufficientStockException(product.getName());
+        }
+        if (MOVEMENT_TYPE_IN.equals(type)
+                && product.getStockQuantity() > MAXIMUM_STOCK_QUANTITY - quantity) {
+            throw new ValidationException("A movimentação excede o limite máximo de estoque suportado.");
         }
 
         int stockDelta = MOVEMENT_TYPE_IN.equals(type) ? quantity : -quantity;

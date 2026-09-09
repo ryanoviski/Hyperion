@@ -71,16 +71,23 @@ class DatabaseMigrationIntegrationTest {
             assertEquals("INTEGER", scalar(statement, "SELECT type FROM pragma_table_info('products') WHERE name = 'price';"));
             assertEquals("1234", scalar(statement, "SELECT price FROM products WHERE name = 'Produto legado';"));
             assertEquals("567", scalar(statement, "SELECT cost FROM products WHERE name = 'Produto legado';"));
-            assertEquals("8", scalar(statement, "SELECT MAX(version) FROM schema_migrations;"));
+            assertEquals("9", scalar(statement, "SELECT MAX(version) FROM schema_migrations;"));
             assertEquals("0", scalar(statement, "SELECT minimum_stock FROM products WHERE name = 'Produto legado';"));
             assertEquals("INTEGER", scalar(statement, "SELECT type FROM pragma_table_info('sale_items') WHERE name = 'unit_cost';"));
             assertEquals("INTEGER", scalar(statement, "SELECT type FROM pragma_table_info('sale_items') WHERE name = 'net_subtotal';"));
             assertEquals("TEXT", scalar(statement, "SELECT type FROM pragma_table_info('sale_items') WHERE name = 'product_category';"));
             assertEquals("TEXT", scalar(statement, "SELECT type FROM pragma_table_info('sale_items') WHERE name = 'product_supplier';"));
             assertEquals("1", scalar(statement, "PRAGMA foreign_keys;"));
+            assertEquals("5000", scalar(statement, "PRAGMA busy_timeout;"));
+            assertEquals("wal", scalar(statement, "PRAGMA journal_mode;"));
             assertThrows(Exception.class, () -> statement.executeUpdate("""
                     INSERT INTO products (name, price, cost, stock_quantity)
                     VALUES ('Preço inválido', -1, 0, 0);
+                    """));
+            assertThrows(Exception.class, () -> statement.executeUpdate("""
+                    UPDATE products
+                    SET stock_quantity = 2147483648
+                    WHERE name = 'Produto legado';
                     """));
         }
     }
@@ -118,7 +125,7 @@ class DatabaseMigrationIntegrationTest {
             assertEquals("1900", scalar(statement, "SELECT net_subtotal FROM sale_items;"));
             assertEquals("Higiene", scalar(statement, "SELECT product_category FROM sale_items;"));
             assertEquals("Fornecedor A", scalar(statement, "SELECT product_supplier FROM sale_items;"));
-            assertEquals("8", scalar(statement, "SELECT MAX(version) FROM schema_migrations;"));
+            assertEquals("9", scalar(statement, "SELECT MAX(version) FROM schema_migrations;"));
         }
     }
 

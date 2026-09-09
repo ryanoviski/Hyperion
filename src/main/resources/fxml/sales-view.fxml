@@ -43,7 +43,7 @@
                            <children>
                               <VBox prefWidth="520.0" spacing="6.0">
                                  <children>
-                                    <Label styleClass="field-label" text="Cliente (opcional)" />
+                                    <Label styleClass="field-label" text="Cliente" />
                                     <HBox spacing="8.0">
                                        <children>
                                           <TextField fx:id="selectedCustomerField" prefHeight="42.0" promptText="Clique em Buscar para inserir o cliente" HBox.hgrow="ALWAYS" />

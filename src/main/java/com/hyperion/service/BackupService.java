@@ -345,6 +345,11 @@ public class BackupService {
                     throw new BackupException("O arquivo selecionado não pertence a uma instalação compatível do Hyperion.");
                 }
             }
+            try (ResultSet resultSet = statement.executeQuery("PRAGMA foreign_key_check")) {
+                if (resultSet.next()) {
+                    throw new BackupException("O arquivo selecionado possui referências inválidas e não pode ser restaurado.");
+                }
+            }
         } catch (SQLException exception) {
             throw new BackupException("Não foi possível validar o arquivo de backup.", exception);
         }

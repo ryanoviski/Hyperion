@@ -1,8 +1,11 @@
 package com.hyperion.service;
 
+import com.hyperion.config.DatabaseConfig;
+import com.hyperion.config.DatabaseInitializer;
 import com.hyperion.exception.EntityInactiveException;
 import com.hyperion.exception.InvalidCreditPlanException;
 import com.hyperion.exception.InsufficientStockException;
+import com.hyperion.exception.PersistenceException;
 import com.hyperion.exception.ValidationException;
 import com.hyperion.model.Customer;
 import com.hyperion.model.Product;
@@ -130,5 +133,68 @@ class SaleServiceIntegrationTest extends DatabaseIntegrationTest {
 
         assertEquals(2, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
         assertEquals(0, new SaleService().listLatestSales(10).size());
+    }
+
+    @Test
+    void requiresACustomerWithoutPersistingAnySaleData() {
+        Product product = createProduct("Produto sem cliente", new BigDecimal("10.00"));
+        new StockService().registerEntry(product.getId(), 1, "Estoque inicial");
+
+        assertThrows(ValidationException.class, () -> new SaleService().finishSale(
+                null,
+                List.of(new SaleItem(product.getId(), product.getName(), 1, product.getPrice())),
+                BigDecimal.ZERO,
+                "PIX"
+        ));
+
+        assertEquals(1, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+        assertEquals(0, new SaleService().listLatestSales(10).size());
+    }
+
+    @Test
+    void preservesCompletedSalesAndStockAfterDatabaseReinitialization() {
+        Customer customer = createCustomer("Helena");
+        Product product = createProduct("Produto persistente", new BigDecimal("15.00"));
+        new StockService().registerEntry(product.getId(), 2, "Estoque inicial");
+        new SaleService().finishSale(
+                customer,
+                List.of(new SaleItem(product.getId(), product.getName(), 1, product.getPrice())),
+                BigDecimal.ZERO,
+                "Dinheiro"
+        );
+
+        DatabaseInitializer.initialize();
+
+        assertEquals(1, new SaleService().listLatestSales(10).size());
+        assertEquals(new BigDecimal("15.00"), new FinanceService().getSummary().getTotalIncome());
+        assertEquals(1, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+    }
+
+    @Test
+    void rollsBackCancellationWhenRestoringStockWouldExceedTheSupportedRange() throws Exception {
+        Customer customer = createCustomer("Gabriel");
+        Product product = createProduct("Item para estorno", new BigDecimal("10.00"));
+        StockService stockService = new StockService();
+        stockService.registerEntry(product.getId(), 1, "Estoque inicial");
+
+        SaleService saleService = new SaleService();
+        saleService.finishSale(customer,
+                List.of(new SaleItem(product.getId(), product.getName(), 1, product.getPrice())),
+                BigDecimal.ZERO,
+                "PIX");
+        Sale sale = saleService.listLatestSales(1).getFirst();
+
+        try (var connection = DatabaseConfig.getConnection();
+             var statement = connection.prepareStatement("UPDATE products SET stock_quantity = ? WHERE id = ?")) {
+            statement.setInt(1, Integer.MAX_VALUE);
+            statement.setLong(2, product.getId());
+            statement.executeUpdate();
+        }
+
+        assertThrows(PersistenceException.class, () -> saleService.cancelSale(sale, "Teste de limite"));
+        assertEquals("COMPLETED", saleService.listLatestSales(1).getFirst().getStatus());
+        assertEquals(Integer.MAX_VALUE,
+                new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+        assertEquals(2, stockService.listLatestMovements().size());
     }
 }

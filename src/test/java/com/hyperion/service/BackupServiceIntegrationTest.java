@@ -1,10 +1,12 @@
 package com.hyperion.service;
 
+import com.hyperion.config.DatabaseConfig;
 import com.hyperion.model.Attachment;
 import com.hyperion.exception.BackupException;
 import com.hyperion.support.DatabaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 
+import java.sql.DriverManager;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.math.BigDecimal;
@@ -103,5 +105,25 @@ class BackupServiceIntegrationTest extends DatabaseIntegrationTest {
         try (var files = Files.walk(new AttachmentService().getAttachmentsDirectory())) {
             assertEquals(0, files.filter(Files::isRegularFile).count());
         }
+    }
+
+    @Test
+    void rejectsBackupsWithBrokenForeignKeysBeforeReplacingCurrentData() throws Exception {
+        CustomerService customerService = new CustomerService();
+        customerService.createCustomer("Dados atuais", "", "", "", "", "");
+
+        Path invalidBackup = testDirectory.resolve("backup-com-referencia-invalida.db");
+        Files.copy(DatabaseConfig.getDatabaseFile(), invalidBackup);
+        try (var connection = DriverManager.getConnection("jdbc:sqlite:" + invalidBackup.toAbsolutePath());
+             var statement = connection.createStatement()) {
+            statement.execute("PRAGMA foreign_keys = OFF;");
+            statement.execute("""
+                    INSERT INTO stock_movements (product_id, type, quantity, notes)
+                    VALUES (999999, 'IN', 1, 'Referência inválida para teste');
+                    """);
+        }
+
+        assertThrows(BackupException.class, () -> new BackupService().restoreDatabaseBackup(invalidBackup));
+        assertEquals("Dados atuais", customerService.listActiveCustomers().getFirst().getName());
     }
 }

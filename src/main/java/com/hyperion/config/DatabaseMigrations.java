@@ -15,6 +15,8 @@ import java.util.List;
 /** Versioned, transactional SQLite migrations. */
 final class DatabaseMigrations {
 
+    private static final int MAXIMUM_PRODUCT_QUANTITY = Integer.MAX_VALUE;
+
     private static final List<Migration> MIGRATIONS = List.of(
             new Migration(1, "baseline-schema", false, DatabaseMigrations::createBaselineSchema),
             new Migration(2, "strict-integrity-and-money-in-cents", true, DatabaseMigrations::rebuildWithStrictSchema),
@@ -23,7 +25,8 @@ final class DatabaseMigrations {
             new Migration(5, "operational-security-and-credit-history", false, DatabaseMigrations::createOperationalSecurityAndCreditHistory),
             new Migration(6, "sale-item-cost-snapshots", false, DatabaseMigrations::addSaleItemCostSnapshots),
             new Migration(7, "sale-item-net-subtotal-snapshots", false, DatabaseMigrations::addSaleItemNetSubtotalSnapshots),
-            new Migration(8, "sale-item-classification-snapshots", false, DatabaseMigrations::addSaleItemClassificationSnapshots)
+            new Migration(8, "sale-item-classification-snapshots", false, DatabaseMigrations::addSaleItemClassificationSnapshots),
+            new Migration(9, "product-quantity-range", false, DatabaseMigrations::enforceProductQuantityRange)
     );
 
     private DatabaseMigrations() {
@@ -631,6 +634,48 @@ final class DatabaseMigrations {
         executeAll(connection,
                 "CREATE INDEX IF NOT EXISTS idx_sale_items_category ON sale_items(product_category);",
                 "CREATE INDEX IF NOT EXISTS idx_sale_items_supplier ON sale_items(product_supplier);");
+    }
+
+    private static void enforceProductQuantityRange(Connection connection) throws SQLException {
+        String invalidQuantitySql = """
+                SELECT id
+                FROM products
+                WHERE stock_quantity > ?
+                   OR minimum_stock > ?
+                LIMIT 1;
+                """;
+        try (PreparedStatement statement = connection.prepareStatement(invalidQuantitySql)) {
+            statement.setInt(1, MAXIMUM_PRODUCT_QUANTITY);
+            statement.setInt(2, MAXIMUM_PRODUCT_QUANTITY);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    throw new DatabaseInitializationException(
+                            "O produto " + resultSet.getLong("id")
+                                    + " possui uma quantidade acima do limite suportado.",
+                            null
+                    );
+                }
+            }
+        }
+
+        String limit = Integer.toString(MAXIMUM_PRODUCT_QUANTITY);
+        executeAll(connection,
+                """
+                        CREATE TRIGGER IF NOT EXISTS trg_products_quantity_range_insert
+                        BEFORE INSERT ON products
+                        WHEN NEW.stock_quantity > %s OR NEW.minimum_stock > %s
+                        BEGIN
+                            SELECT RAISE(ABORT, 'A quantidade de estoque excede o limite suportado.');
+                        END;
+                        """.formatted(limit, limit),
+                """
+                        CREATE TRIGGER IF NOT EXISTS trg_products_quantity_range_update
+                        BEFORE UPDATE OF stock_quantity, minimum_stock ON products
+                        WHEN NEW.stock_quantity > %s OR NEW.minimum_stock > %s
+                        BEGIN
+                            SELECT RAISE(ABORT, 'A quantidade de estoque excede o limite suportado.');
+                        END;
+                        """.formatted(limit, limit));
     }
 
     private static List<Long> allocateNetSubtotals(long saleId, long saleTotal, List<SaleItemAmount> items) {

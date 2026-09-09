@@ -8,6 +8,12 @@ import com.hyperion.support.DatabaseIntegrationTest;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -43,5 +49,48 @@ class StockServiceIntegrationTest extends DatabaseIntegrationTest {
                 () -> new StockService().registerEntry(product.getId(), 1, "Tentativa inválida"));
         assertEquals(0, new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
         assertEquals(0, new StockService().listLatestMovements().size());
+    }
+
+    @Test
+    void preventsEntriesThatWouldExceedTheSupportedStockRange() {
+        Product product = createProduct("Estoque máximo", new BigDecimal("10.00"));
+        StockService stockService = new StockService();
+
+        stockService.registerEntry(product.getId(), Integer.MAX_VALUE, "Carga inicial");
+
+        assertThrows(ValidationException.class,
+                () -> stockService.registerEntry(product.getId(), 1, "Excede o limite"));
+        assertEquals(Integer.MAX_VALUE,
+                new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+        assertEquals(1, stockService.listLatestMovements().size());
+    }
+
+    @Test
+    void serializesConcurrentEntriesWithoutLosingStockMovements() throws Exception {
+        Product product = createProduct("Movimentação concorrente", new BigDecimal("10.00"));
+        int movementCount = 20;
+        CountDownLatch start = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        List<Future<?>> movements = new ArrayList<>();
+
+        try {
+            for (int index = 0; index < movementCount; index++) {
+                movements.add(executor.submit(() -> {
+                    start.await();
+                    new StockService().registerEntry(product.getId(), 1, "Entrada concorrente");
+                    return null;
+                }));
+            }
+            start.countDown();
+            for (Future<?> movement : movements) {
+                movement.get();
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+
+        assertEquals(movementCount,
+                new ProductService().findById(product.getId()).orElseThrow().getStockQuantity());
+        assertEquals(movementCount, new StockService().listLatestMovements().size());
     }
 }
