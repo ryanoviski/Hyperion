@@ -31,21 +31,44 @@
             <VBox maxWidth="1.7976931348623157E308" spacing="16.0" styleClass="dashboard-panel">
                <children>
                   <Label styleClass="panel-title" text="Nova movimentação" />
-                  <VBox spacing="12.0">
+                  <VBox spacing="14.0" styleClass="stock-movement-form">
                      <children>
-                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                        <VBox spacing="6.0">
                            <children>
-                              <TextField fx:id="selectedProductField" editable="false" focusTraversable="false" prefHeight="42.0" prefWidth="280.0" promptText="Selecione o produto" HBox.hgrow="ALWAYS" />
-                              <Button fx:id="searchProductButton" mnemonicParsing="false" onAction="#handleSearchProduct" prefHeight="42.0" prefWidth="90.0" styleClass="secondary-button" text="Buscar" />
-                              <TextField fx:id="quantityField" prefHeight="42.0" prefWidth="150.0" promptText="Quantidade" />
-                              <TextField fx:id="notesArea" alignment="CENTER_LEFT" prefHeight="42.0" prefWidth="320.0" promptText="Motivo obrigatório" styleClass="stock-notes-area" HBox.hgrow="ALWAYS" />
+                              <Label styleClass="field-label" text="Produto" />
+                              <HBox spacing="10.0">
+                                 <children>
+                                    <TextField fx:id="selectedProductField" editable="false" focusTraversable="false" prefHeight="42.0" promptText="Selecione o produto" HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="searchProductButton" mnemonicParsing="false" onAction="#handleSearchProduct" prefHeight="42.0" prefWidth="100.0" styleClass="secondary-button" text="Buscar" />
+                                 </children>
+                              </HBox>
                            </children>
-                        </HBox>
-                        <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                        </VBox>
+                        <HBox alignment="BOTTOM_LEFT" spacing="14.0" styleClass="stock-movement-details">
                            <children>
-                              <Region HBox.hgrow="ALWAYS" />
-                              <Button fx:id="entryButton" mnemonicParsing="false" onAction="#handleEntry" prefHeight="42.0" prefWidth="110.0" styleClass="primary-button" text="Entrada" />
-                              <Button fx:id="exitButton" mnemonicParsing="false" onAction="#handleExit" prefHeight="42.0" prefWidth="110.0" styleClass="secondary-button" text="Saída" />
+                              <VBox prefWidth="170.0" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="field-label" text="Quantidade" />
+                                    <TextField fx:id="quantityField" prefHeight="42.0" prefWidth="170.0" promptText="Quantidade" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <Label styleClass="field-label" text="Motivo" />
+                                    <TextField fx:id="notesArea" alignment="CENTER_LEFT" prefHeight="42.0" promptText="Motivo obrigatório" styleClass="stock-notes-area" />
+                                 </children>
+                              </VBox>
+                              <VBox prefWidth="250.0" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="field-label" text="Tipo de movimentação" />
+                                    <HBox spacing="10.0">
+                                       <children>
+                                          <Button fx:id="entryButton" mnemonicParsing="false" onAction="#handleEntry" prefHeight="42.0" prefWidth="120.0" styleClass="primary-button, stock-entry-button" text="Entrada" />
+                                          <Button fx:id="exitButton" mnemonicParsing="false" onAction="#handleExit" prefHeight="42.0" prefWidth="120.0" styleClass="secondary-button, stock-exit-button" text="Saída" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
                            </children>
                         </HBox>
                      </children>

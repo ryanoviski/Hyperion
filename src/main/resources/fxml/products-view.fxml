@@ -47,15 +47,15 @@
                   </FlowPane>
                   <TableView fx:id="productsTable" prefHeight="430.0" VBox.vgrow="ALWAYS">
                      <columns>
-                        <TableColumn fx:id="nameColumn" prefWidth="250.0" text="Nome" />
-                        <TableColumn fx:id="categoryColumn" prefWidth="140.0" text="Categoria" />
-                        <TableColumn fx:id="priceColumn" prefWidth="120.0" text="Preço" />
-                        <TableColumn fx:id="costColumn" prefWidth="120.0" text="Custo" />
-                        <TableColumn fx:id="stockColumn" prefWidth="100.0" text="Estoque" />
-                        <TableColumn fx:id="barcodeColumn" prefWidth="150.0" text="Código" />
-                        <TableColumn fx:id="supplierColumn" prefWidth="190.0" text="Fornecedor" />
-                        <TableColumn fx:id="statusColumn" prefWidth="100.0" text="Status" />
-                        <TableColumn fx:id="actionsColumn" prefWidth="120.0" text="Ações" />
+                        <TableColumn fx:id="nameColumn" minWidth="155.0" prefWidth="205.0" text="Nome" />
+                        <TableColumn fx:id="categoryColumn" minWidth="100.0" prefWidth="120.0" text="Categoria" />
+                        <TableColumn fx:id="priceColumn" minWidth="118.0" prefWidth="132.0" text="Preço" />
+                        <TableColumn fx:id="costColumn" minWidth="102.0" prefWidth="116.0" text="Custo" />
+                        <TableColumn fx:id="stockColumn" minWidth="72.0" prefWidth="86.0" text="Estoque" />
+                        <TableColumn fx:id="barcodeColumn" minWidth="92.0" prefWidth="125.0" text="Código" />
+                        <TableColumn fx:id="supplierColumn" minWidth="108.0" prefWidth="145.0" text="Fornecedor" />
+                        <TableColumn fx:id="statusColumn" minWidth="82.0" prefWidth="90.0" text="Status" />
+                        <TableColumn fx:id="actionsColumn" minWidth="92.0" prefWidth="100.0" text="Ações" />
                      </columns>
                   </TableView>
                   <HBox alignment="CENTER_LEFT" spacing="12.0">

@@ -9,7 +9,6 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -23,7 +22,7 @@
                   <Insets bottom="28.0" left="32.0" right="32.0" top="28.0" />
                </padding>
                <children>
-            <VBox spacing="12.0">
+            <VBox spacing="14.0">
                <children>
                   <VBox spacing="4.0">
                      <children>
@@ -31,48 +30,77 @@
                         <Label styleClass="page-subtitle" text="Acompanhe vendas, pagamentos e produtos mais vendidos." />
                      </children>
                   </VBox>
-                  <FlowPane hgap="10.0" vgap="10.0">
+                  <VBox maxWidth="1.7976931348623157E308" styleClass="dashboard-panel, report-toolbar">
                      <children>
-                        <ChoiceBox fx:id="periodChoiceBox" prefWidth="170.0" />
-                        <DatePicker fx:id="startDatePicker" promptText="Data inicial" prefWidth="135.0" />
-                        <DatePicker fx:id="endDatePicker" promptText="Data final" prefWidth="135.0" />
-                        <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="120.0" styleClass="secondary-button" text="Atualizar" />
-                        <Button fx:id="exportCsvButton" mnemonicParsing="false" onAction="#handleExportCsv" styleClass="secondary-button" text="Exportar CSV" />
-                        <Button fx:id="exportExcelButton" mnemonicParsing="false" onAction="#handleExportExcel" styleClass="secondary-button" text="Exportar Excel" />
-                        <Button fx:id="exportPdfButton" mnemonicParsing="false" onAction="#handleExportPdf" styleClass="secondary-button" text="Exportar PDF" />
+                        <HBox alignment="BOTTOM_LEFT" spacing="10.0" styleClass="report-period-controls">
+                           <children>
+                              <VBox prefWidth="170.0" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="field-label" text="Período" />
+                                    <ChoiceBox fx:id="periodChoiceBox" prefWidth="170.0" />
+                                 </children>
+                              </VBox>
+                              <VBox prefWidth="160.0" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="field-label" text="Data inicial" />
+                                    <DatePicker fx:id="startDatePicker" prefWidth="160.0" promptText="DD/MM/AAAA" />
+                                 </children>
+                              </VBox>
+                              <VBox prefWidth="160.0" spacing="6.0">
+                                 <children>
+                                    <Label styleClass="field-label" text="Data final" />
+                                    <DatePicker fx:id="endDatePicker" prefWidth="160.0" promptText="DD/MM/AAAA" />
+                                 </children>
+                              </VBox>
+                              <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#handleRefresh" prefWidth="104.0" styleClass="secondary-button" text="Atualizar" />
+                              <Region maxWidth="10.0" minWidth="10.0" prefWidth="10.0" />
+                              <VBox spacing="6.0">
+                                 <children>
+                                    <Label styleClass="field-label" text="Exportar como:" />
+                                    <HBox spacing="10.0">
+                                       <children>
+                                          <Button fx:id="exportCsvButton" mnemonicParsing="false" onAction="#handleExportCsv" prefWidth="74.0" styleClass="secondary-button" text="CSV" />
+                                          <Button fx:id="exportExcelButton" mnemonicParsing="false" onAction="#handleExportExcel" prefWidth="78.0" styleClass="secondary-button" text="Excel" />
+                                          <Button fx:id="exportPdfButton" mnemonicParsing="false" onAction="#handleExportPdf" prefWidth="74.0" styleClass="secondary-button" text="PDF" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
                      </children>
-                  </FlowPane>
+                  </VBox>
                </children>
             </VBox>
 
-            <FlowPane hgap="10.0" vgap="10.0">
+            <HBox maxWidth="1.7976931348623157E308" spacing="12.0">
                <children>
-                  <VBox spacing="4.0">
+                  <VBox maxWidth="1.7976931348623157E308" prefWidth="240.0" spacing="4.0" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="field-label" text="Cliente" />
-                        <ChoiceBox fx:id="customerFilterChoiceBox" prefWidth="240.0" />
+                        <ChoiceBox fx:id="customerFilterChoiceBox" maxWidth="1.7976931348623157E308" prefWidth="240.0" />
                      </children>
                   </VBox>
-                  <VBox spacing="4.0">
+                  <VBox maxWidth="1.7976931348623157E308" prefWidth="240.0" spacing="4.0" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="field-label" text="Pagamento" />
-                        <ChoiceBox fx:id="paymentFilterChoiceBox" prefWidth="240.0" />
+                        <ChoiceBox fx:id="paymentFilterChoiceBox" maxWidth="1.7976931348623157E308" prefWidth="240.0" />
                      </children>
                   </VBox>
-                  <VBox spacing="4.0">
+                  <VBox maxWidth="1.7976931348623157E308" prefWidth="240.0" spacing="4.0" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="field-label" text="Categoria" />
-                        <ChoiceBox fx:id="categoryFilterChoiceBox" prefWidth="240.0" />
+                        <ChoiceBox fx:id="categoryFilterChoiceBox" maxWidth="1.7976931348623157E308" prefWidth="240.0" />
                      </children>
                   </VBox>
-                  <VBox spacing="4.0">
+                  <VBox maxWidth="1.7976931348623157E308" prefWidth="240.0" spacing="4.0" HBox.hgrow="ALWAYS">
                      <children>
                         <Label styleClass="field-label" text="Fornecedor" />
-                        <ChoiceBox fx:id="supplierFilterChoiceBox" prefWidth="240.0" />
+                        <ChoiceBox fx:id="supplierFilterChoiceBox" maxWidth="1.7976931348623157E308" prefWidth="240.0" />
                      </children>
                   </VBox>
                </children>
-            </FlowPane>
+            </HBox>
 
             <HBox spacing="16.0">
                <children>

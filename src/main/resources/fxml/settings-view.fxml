@@ -7,7 +7,6 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
@@ -15,20 +14,20 @@
    <center>
       <ScrollPane fitToWidth="true" hbarPolicy="AS_NEEDED" styleClass="content-area" BorderPane.alignment="CENTER">
          <content>
-            <VBox maxWidth="1.7976931348623157E308" spacing="22.0">
+            <VBox alignment="TOP_CENTER" maxWidth="1.7976931348623157E308" spacing="22.0">
                <padding>
                   <Insets bottom="32.0" left="32.0" right="32.0" top="32.0" />
                </padding>
                <children>
-            <VBox spacing="4.0">
+            <VBox maxWidth="760.0" prefWidth="760.0" spacing="4.0">
                <children>
                   <Label styleClass="page-title" text="Configurações" />
                   <Label styleClass="page-subtitle" text="Gerencie segurança, PIN e backups do Hyperion." />
                </children>
             </VBox>
-            <FlowPane hgap="20.0" prefWrapLength="900.0" vgap="20.0">
+            <VBox maxWidth="760.0" prefWidth="760.0" spacing="16.0" styleClass="settings-stack">
                <children>
-                  <VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="14.0" styleClass="dashboard-panel">
+                  <VBox maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="dashboard-panel, settings-panel">
                      <children>
                         <Label styleClass="panel-title" text="Segurança" />
                         <Label fx:id="pinStatusLabel" styleClass="pin-status-disabled" text="PIN desativado" />
@@ -43,29 +42,25 @@
                         </HBox>
                      </children>
                   </VBox>
-                  <VBox maxWidth="1.7976931348623157E308" prefWidth="430.0" spacing="16.0">
+                  <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel, settings-panel">
                      <children>
-                        <VBox maxWidth="1.7976931348623157E308" spacing="12.0" styleClass="dashboard-panel">
-                           <children>
-                              <Label styleClass="panel-title" text="Aparência" />
-                              <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Escolha como o Hyperion deve aparecer neste computador." wrapText="true" />
-                              <ChoiceBox fx:id="themeChoiceBox" maxWidth="1.7976931348623157E308" prefHeight="42.0" />
-                           </children>
-                        </VBox>
-                        <VBox maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="dashboard-panel">
-                           <children>
-                              <Label styleClass="panel-title" text="Backup manual" />
-                              <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Crie cópias consistentes do banco. Os 30 backups mais recentes são mantidos automaticamente." wrapText="true" />
-                              <Button fx:id="createBackupButton" mnemonicParsing="false" onAction="#handleCreateBackup" prefWidth="220.0" styleClass="primary-button" text="Criar backup agora" />
-                              <Button fx:id="restoreBackupButton" mnemonicParsing="false" onAction="#handleRestoreBackup" prefWidth="220.0" styleClass="secondary-button" text="Restaurar backup" />
-                              <Label fx:id="messageLabel" managed="false" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="" visible="false" wrapText="true" />
-                           </children>
-                        </VBox>
+                        <Label styleClass="panel-title" text="Aparência" />
+                        <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Escolha como o Hyperion deve aparecer neste computador." wrapText="true" />
+                        <ChoiceBox fx:id="themeChoiceBox" maxWidth="1.7976931348623157E308" prefHeight="42.0" />
+                     </children>
+                  </VBox>
+                  <VBox maxWidth="1.7976931348623157E308" spacing="14.0" styleClass="dashboard-panel, settings-panel">
+                     <children>
+                        <Label styleClass="panel-title" text="Backup manual" />
+                        <Label maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="Crie cópias consistentes do banco. Os 30 backups mais recentes são mantidos automaticamente." wrapText="true" />
+                        <Button fx:id="createBackupButton" mnemonicParsing="false" onAction="#handleCreateBackup" prefWidth="220.0" styleClass="primary-button" text="Criar backup agora" />
+                        <Button fx:id="restoreBackupButton" mnemonicParsing="false" onAction="#handleRestoreBackup" prefWidth="220.0" styleClass="secondary-button" text="Restaurar backup" />
+                        <Label fx:id="messageLabel" managed="false" maxWidth="1.7976931348623157E308" styleClass="text-muted-left" text="" visible="false" wrapText="true" />
                      </children>
                   </VBox>
                </children>
-            </FlowPane>
-            <HBox alignment="CENTER" maxWidth="1.7976931348623157E308" spacing="4.0">
+            </VBox>
+            <HBox alignment="CENTER" maxWidth="760.0" prefWidth="760.0" spacing="4.0">
                <children>
                   <Label styleClass="app-footer" text="© 2026 Hyperion. Todos os direitos reservados." />
                </children>

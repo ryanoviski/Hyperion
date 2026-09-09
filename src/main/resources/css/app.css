@@ -592,15 +592,46 @@
     -fx-font-size: 12px;
 }
 
+/* Page-specific layout refinements */
+.stock-movement-form {
+    -fx-spacing: 14;
+}
+
+.stock-movement-details {
+    -fx-alignment: bottom-left;
+}
+
+.stock-exit-button {
+    -fx-border-color: -fx-color-danger;
+    -fx-text-fill: -fx-color-danger;
+}
+
+.stock-exit-button:hover {
+    -fx-background-color: -fx-color-danger-surface;
+    -fx-border-color: -fx-color-danger-strong;
+    -fx-text-fill: -fx-color-danger;
+}
+
+.report-toolbar {
+    -fx-padding: 18 22;
+}
+
+.settings-stack {
+    -fx-spacing: 16;
+}
+
+.settings-panel {
+    -fx-padding: 20 22;
+}
+
 /* Tables */
 .table-view {
-    -fx-background-color: -fx-color-surface;
-    -fx-background-insets: 0;
-    -fx-border-color: -fx-color-border;
-    -fx-border-width: 1;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 0;
+    -fx-background-color: -fx-color-border, -fx-color-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 10, 9;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 1;
 }
 
 .table-view .virtual-flow,
@@ -618,13 +649,13 @@
 }
 
 .table-view .virtual-flow .scroll-bar:vertical {
-    -fx-pref-width: 9;
-    -fx-padding: 3 2 3 0;
+    -fx-pref-width: 11;
+    -fx-padding: 4 3 4 0;
 }
 
 .table-view .virtual-flow .scroll-bar:horizontal {
-    -fx-pref-height: 9;
-    -fx-padding: 0 3 2 3;
+    -fx-pref-height: 11;
+    -fx-padding: 0 4 3 4;
 }
 
 .table-view .virtual-flow .scroll-bar .thumb {
@@ -644,13 +675,15 @@
 }
 
 .table-view .column-header-background {
-    -fx-background-radius: 10 10 0 0;
+    -fx-background-radius: 9 9 0 0;
+    -fx-border-color: transparent transparent -fx-color-border transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
 .table-view .column-header,
 .table-view .filler {
-    -fx-border-color: transparent transparent -fx-color-border transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-size: 42;
 }
 
@@ -665,7 +698,8 @@
 .table-row-cell {
     -fx-background-color: -fx-color-surface;
     -fx-background-insets: 0;
-    -fx-border-color: transparent transparent -fx-color-surface-raised transparent;
+    -fx-border-color: transparent transparent -fx-color-border transparent;
+    -fx-border-width: 0 0 1 0;
     -fx-table-cell-border-color: transparent;
 }
 
@@ -684,6 +718,11 @@
 
 .table-row-cell:selected .table-cell {
     -fx-text-fill: -fx-color-on-selection;
+}
+
+.table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .table-cell {
